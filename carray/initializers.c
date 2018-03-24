@@ -26,6 +26,7 @@
  */
 void identity(CArray * carray, int xy) {
     int i, j;
+    #pragma omp parallel for
     for(i = 0; i < xy; i++) {
         for(j = 0; j < xy; j++) {
             carray->array2d[i][j] = j == i ? 1.0 : 0.0;
@@ -36,6 +37,10 @@ void identity(CArray * carray, int xy) {
 /**
  * Create CArray full of zeros
  *
+ * zeros    select best function based on shape
+ * zeros1d  for 1D CArray
+ * zeros2d  for 2D Carray
+ *
  * @author Henrique Borba <henrique.borba.dev>
  */
 void zeros(CArray * carray, int x, int y) {
@@ -45,7 +50,6 @@ void zeros(CArray * carray, int x, int y) {
     if(x > 0 && y == 0) {
         zeros1d(carray, x);
     }
-
 }
 void zeros1d(CArray * carray, int x) {
     int i;

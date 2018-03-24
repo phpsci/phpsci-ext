@@ -86,6 +86,20 @@ PHP_METHOD(CArray, fromArray)
 }
 
 
+PHP_METHOD(CArray, destroy)
+{
+    long uuid, rows, cols;
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+        Z_PARAM_LONG(uuid)
+        Z_PARAM_LONG(rows)
+        Z_PARAM_LONG(cols)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if(cols > 0 && rows > 0) {
+        destroy_carray((int)uuid, (int) rows, (int) cols);
+    }
+}
+
 PHP_METHOD(CArray, toArray)
 {
     long uuid, rows, cols;
@@ -107,7 +121,8 @@ PHP_METHOD(CArray, toArray)
 static zend_function_entry phpsci_class_methods[] =
 {
    PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, destroy, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, zeros, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    // CONVERT SECTION
    PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)

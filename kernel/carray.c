@@ -47,6 +47,20 @@ CArray ptr_to_carray(MemoryPointer * ptr) {
     return PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid];
 }
 
+/**
+ * Destroy target CArray and set last_deleted_uuid for posterior
+ * allocation.
+ *
+ * @param uuid
+ * @param rows
+ * @param cols
+ */
+void destroy_carray(int uuid, int rows, int cols) {
+    free(PHPSCI_MAIN_MEM_STACK.buffer[uuid].array2d[0]);
+    free(PHPSCI_MAIN_MEM_STACK.buffer[uuid].array2d);
+    PHPSCI_MAIN_MEM_STACK.size--;
+    PHPSCI_MAIN_MEM_STACK.last_deleted_uuid = uuid;
+}
 
 /**
  *  Create MemoryPointer from ZVAL
