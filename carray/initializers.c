@@ -17,5 +17,18 @@
 */
 
 #include "initializers.h"
-#include "../kernel/carray.h"
+#include "../phpsci.h"
 
+/**
+ * Create 2D Identity CArray with shape (m,m)
+ *
+ * @author Henrique Borba <henrique.borba.dev>
+ */
+void identity(CArray * carray, int m) {
+    int i, j;
+    for(i = 0; i < m; i++) {
+        for(j = 0; j < m; j++) {
+            carray->array2d[i][j] = j == i ? 1.0 : 0.0;
+        }
+    }
+}

@@ -18,7 +18,6 @@
 
 #ifndef PHPSCI_EXT_CARRAY_H
 #define PHPSCI_EXT_CARRAY_H
-
 #include "../phpsci.h"
 
 /**

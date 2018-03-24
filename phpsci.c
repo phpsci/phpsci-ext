@@ -21,7 +21,7 @@
 #endif
 
 #include "phpsci.h"
-#include "kernel/carray.h"
+#include "carray/initializers.h"
 #include "kernel/memory_manager.h"
 #include "php.h"
 
@@ -34,6 +34,21 @@ PHP_METHOD(CArray, __construct)
 {
     array_init(return_value);
 }
+
+PHP_METHOD(CArray, identity)
+{
+    long m;
+    ZEND_PARSE_PARAMETERS_START(1,1)
+        Z_PARAM_LONG(m)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    carray_init((int)m, (int)m, &ptr);
+    CArray arr = ptr_to_carray(&ptr);
+    identity(&arr, (int)m);
+    object_init(return_value);
+    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
+}
+
 
 PHP_METHOD(CArray, fromArray)
 {
@@ -71,6 +86,7 @@ PHP_METHOD(CArray, toArray)
 static zend_function_entry phpsci_class_methods[] =
 {
    PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, fromArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }
