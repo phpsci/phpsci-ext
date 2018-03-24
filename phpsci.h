@@ -26,6 +26,7 @@
 #ifdef ZTS
 #include "TSRM.h"
 #endif
+
 #include "kernel/exceptions.h"
 
 #include "php.h"

@@ -30,6 +30,7 @@ struct MemoryStack {
     int size;
     int capacity;
     size_t bsize;
+    int last_deleted_uuid;
 } MemoryStack;
 
 /**

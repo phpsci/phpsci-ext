@@ -21,7 +21,7 @@
 #endif
 
 #include "phpsci.h"
-#include "kernel/carray.h"
+#include "carray/initializers.h"
 #include "kernel/memory_manager.h"
 #include "php.h"
 
@@ -34,6 +34,42 @@ PHP_METHOD(CArray, __construct)
 {
     array_init(return_value);
 }
+
+/**
+ *
+ * INITIALIZERS SECTION
+ *
+ */
+PHP_METHOD(CArray, identity)
+{
+    long m;
+    ZEND_PARSE_PARAMETERS_START(1,1)
+        Z_PARAM_LONG(m)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    carray_init((int)m, (int)m, &ptr);
+    CArray arr = ptr_to_carray(&ptr);
+    identity(&arr, (int)m);
+    object_init(return_value);
+    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
+}
+PHP_METHOD(CArray, zeros)
+{
+    long x, y;
+    ZEND_PARSE_PARAMETERS_START(2,2)
+        Z_PARAM_LONG(x)
+        Z_PARAM_LONG(y)
+    ZEND_PARSE_PARAMETERS_END();
+
+    MemoryPointer ptr;
+    carray_init((int)x, (int)y, &ptr);
+    CArray arr = ptr_to_carray(&ptr);
+    zeros(&arr, (int)x, (int)y);
+    object_init(return_value);
+    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
+}
+
+
 
 PHP_METHOD(CArray, fromArray)
 {
@@ -49,6 +85,20 @@ PHP_METHOD(CArray, fromArray)
     zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
 }
 
+
+PHP_METHOD(CArray, destroy)
+{
+    long uuid, rows, cols;
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+        Z_PARAM_LONG(uuid)
+        Z_PARAM_LONG(rows)
+        Z_PARAM_LONG(cols)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if(cols > 0 && rows > 0) {
+        destroy_carray((int)uuid, (int) rows, (int) cols);
+    }
+}
 
 PHP_METHOD(CArray, toArray)
 {
@@ -71,6 +121,10 @@ PHP_METHOD(CArray, toArray)
 static zend_function_entry phpsci_class_methods[] =
 {
    PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, destroy, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, zeros, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   // CONVERT SECTION
    PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, fromArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }

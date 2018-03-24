@@ -18,7 +18,6 @@
 
 #ifndef PHPSCI_EXT_CARRAY_H
 #define PHPSCI_EXT_CARRAY_H
-
 #include "../phpsci.h"
 
 /**
@@ -39,6 +38,7 @@ typedef struct MemoryPointer {
     int uuid;
 } MemoryPointer;
 
+void destroy_carray(int uuid, int rows, int cols);
 void carray_to_array(CArray carray, zval * rtn_array, int m, int n);
 void carray_init(int rows, int cols, MemoryPointer * ptr);
 void array_to_carray_ptr(MemoryPointer * ptr, zval * inarray, int * rows, int * cols);

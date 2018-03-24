@@ -11,8 +11,9 @@ PHP_NEW_EXTENSION(phpsci,
 	  phpsci.c \
 	  kernel/carray.c \
 	  kernel/exceptions.c \
-	  kernel/memory_manager.c,
+	  kernel/memory_manager.c \
+	  carray/initializers.c,
 	  $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
-  PHP_INSTALL_HEADERS([ext/phpsci], [phpsci.h])
+  PHP_INSTALL_HEADERS([ext/phpsci], [phpsci.h omp.h])
   PHP_SUBST(PHPSCI_SHARED_LIBADD)
 fi

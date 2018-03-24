@@ -36,9 +36,10 @@ struct MemoryStack PHPSCI_MAIN_MEM_STACK = {UNINITIALIZED,UNINITIALIZED,UNINITIA
 void stack_init(size_t size) {
     PHPSCI_MAIN_MEM_STACK.size = 0;
     PHPSCI_MAIN_MEM_STACK.capacity = 1;
+    PHPSCI_MAIN_MEM_STACK.last_deleted_uuid = NULL;
     PHPSCI_MAIN_MEM_STACK.bsize = size;
     // Allocate first CArray struct to buffer
-    if((PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)malloc(sizeof(struct CArray))) == NULL){
+    if((PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)malloc(2 * sizeof(struct CArray))) == NULL){
         php_printf("[MEMORY STACK] MALLOC FAILED\n");
     }
 }
@@ -53,7 +54,7 @@ void stack_init(size_t size) {
  */
 void buffer_to_capacity(int new_capacity, size_t size) {
     PHPSCI_MAIN_MEM_STACK.bsize += size;
-    if((PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)realloc(PHPSCI_MAIN_MEM_STACK.buffer, new_capacity * sizeof(CArray)))==NULL) {
+    if((PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)realloc(PHPSCI_MAIN_MEM_STACK.buffer, (new_capacity * sizeof(CArray) + sizeof(CArray))))==NULL) {
         php_printf("[MEMORY STACK] REALLOC FAILED\n");
     }
 
@@ -79,8 +80,13 @@ void add_to_stack(MemoryPointer * ptr, struct CArray array, size_t size) {
     if((PHPSCI_MAIN_MEM_STACK.size+1) > PHPSCI_MAIN_MEM_STACK.capacity) {
         buffer_to_capacity((PHPSCI_MAIN_MEM_STACK.capacity+1),size);
     }
-    // Copy CArray to the MemoryStack Buffer
-    PHPSCI_MAIN_MEM_STACK.buffer[PHPSCI_MAIN_MEM_STACK.size].array2d = array.array2d;
+    // Copy CArray to the MemoryStack Buffer, check if there are preallocated CArray pointers empty
+    if(PHPSCI_MAIN_MEM_STACK.last_deleted_uuid == NULL) {
+        PHPSCI_MAIN_MEM_STACK.buffer[PHPSCI_MAIN_MEM_STACK.size].array2d = array.array2d;
+    } else {
+        PHPSCI_MAIN_MEM_STACK.buffer[PHPSCI_MAIN_MEM_STACK.last_deleted_uuid].array2d = array.array2d;
+    }
+
     // Associate CArray unique id
     ptr->uuid = (int)PHPSCI_MAIN_MEM_STACK.size;
     // Set new size for MemoryStack
