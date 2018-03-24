@@ -49,12 +49,29 @@ PHP_METHOD(CArray, fromArray)
     zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
 }
 
+
+PHP_METHOD(CArray, toArray)
+{
+    long uuid, rows, cols;
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+        Z_PARAM_LONG(uuid)
+        Z_PARAM_LONG(rows)
+        Z_PARAM_LONG(cols)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    ptr.uuid = (int)uuid;
+    CArray arr = ptr_to_carray(&ptr);
+    array_init(return_value);
+    carray_to_array(arr, return_value, rows, cols);
+}
+
 /**
  * CLASS METHODS
  */
 static zend_function_entry phpsci_class_methods[] =
 {
    PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, fromArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }
 };

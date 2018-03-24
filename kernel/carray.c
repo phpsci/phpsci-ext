@@ -47,6 +47,7 @@ CArray ptr_to_carray(MemoryPointer * ptr) {
     return PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid];
 }
 
+
 /**
  *  Create MemoryPointer from ZVAL
  *
@@ -73,7 +74,7 @@ void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * co
         if (Z_TYPE_P(row) == IS_ARRAY) {
             ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(row), col) {
                 convert_to_double(col);
-                temp.array2d[i][j] = 0;
+                temp.array2d[i][j] = Z_DVAL_P(col);
                 ++j;
             } ZEND_HASH_FOREACH_END();
         }
@@ -88,6 +89,14 @@ void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * co
  * @param carray    CArray to convert
  * @param rtn_array Target ZVAL object
  */
-void carray_to_array(CArray carray, zval * rtn_array) {
-
+void carray_to_array(CArray carray, zval * rtn_array, int m, int n) {
+    int rows, cols;
+    zval inner;
+    for( rows = 0; rows < m; rows++ ) {
+        array_init(&inner);
+        for( cols = 0; cols < n; cols++ ) {
+            add_next_index_double(&inner, carray.array2d[rows][cols]);
+        }
+        add_next_index_zval(rtn_array, &inner);
+    }
 }

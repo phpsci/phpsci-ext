@@ -21,8 +21,9 @@
 #define UNINITIALIZED 0xcdcdcdcd
 
 #include "carray.h"
+
 /**
- *
+ * MemoryStack : The memory buffer of CArrays
  */
 struct MemoryStack {
     CArray * buffer;
@@ -31,6 +32,12 @@ struct MemoryStack {
     size_t bsize;
 } MemoryStack;
 
+/**
+ * PHPSCI_MAIN_MEM_STACK : Global memory stack of CArrays. CArrays are always visible
+ * within the runtime.
+ *
+ * @todo Check if this is bad
+ */
 extern struct MemoryStack PHPSCI_MAIN_MEM_STACK;
 
 

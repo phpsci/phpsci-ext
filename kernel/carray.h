@@ -21,18 +21,25 @@
 
 #include "../phpsci.h"
 
+/**
+ * PHPSci internal array structure
+ *
+ * Currently working with shaped 2D, 1D and 0D.
+ */
 typedef struct CArray {
-    double *** array3d;
     double **  array2d;
     double *   array1d;
     double     array0d;
 } CArray;
 
+/**
+ * The only thing between PHP and the extension
+ */
 typedef struct MemoryPointer {
     int uuid;
 } MemoryPointer;
 
-void carray_to_array(CArray carray, zval * rtn_array);
+void carray_to_array(CArray carray, zval * rtn_array, int m, int n);
 void carray_init(int rows, int cols, MemoryPointer * ptr);
 void array_to_carray_ptr(MemoryPointer * ptr, zval * inarray, int * rows, int * cols);
 CArray ptr_to_carray(MemoryPointer * ptr);

@@ -31,6 +31,7 @@ struct MemoryStack PHPSCI_MAIN_MEM_STACK = {UNINITIALIZED,UNINITIALIZED,UNINITIA
  * Initialize MemoryStack Buffer
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @todo Same from buffer_to_capacity
  */
 void stack_init(size_t size) {
     PHPSCI_MAIN_MEM_STACK.size = 0;
@@ -47,6 +48,8 @@ void stack_init(size_t size) {
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param new_capacity int New capacity for MemoryStack (Buffer)
+ *
+ * @todo Check if this won't fck everything as the computing requirements grow up
  */
 void buffer_to_capacity(int new_capacity, size_t size) {
     PHPSCI_MAIN_MEM_STACK.bsize += size;
