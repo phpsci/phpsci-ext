@@ -35,6 +35,11 @@ PHP_METHOD(CArray, __construct)
     array_init(return_value);
 }
 
+/**
+ *
+ * INITIALIZERS SECTION
+ *
+ */
 PHP_METHOD(CArray, identity)
 {
     long m;
@@ -48,6 +53,22 @@ PHP_METHOD(CArray, identity)
     object_init(return_value);
     zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
 }
+PHP_METHOD(CArray, zeros)
+{
+    long x, y;
+    ZEND_PARSE_PARAMETERS_START(2,2)
+        Z_PARAM_LONG(x)
+        Z_PARAM_LONG(y)
+    ZEND_PARSE_PARAMETERS_END();
+
+    MemoryPointer ptr;
+    carray_init((int)x, (int)y, &ptr);
+    CArray arr = ptr_to_carray(&ptr);
+    zeros(&arr, (int)x, (int)y);
+    object_init(return_value);
+    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
+}
+
 
 
 PHP_METHOD(CArray, fromArray)
@@ -86,7 +107,9 @@ PHP_METHOD(CArray, toArray)
 static zend_function_entry phpsci_class_methods[] =
 {
    PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
-   PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+    PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, zeros, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   // CONVERT SECTION
    PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, fromArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }

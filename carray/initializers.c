@@ -24,11 +24,40 @@
  *
  * @author Henrique Borba <henrique.borba.dev>
  */
-void identity(CArray * carray, int m) {
+void identity(CArray * carray, int xy) {
     int i, j;
-    for(i = 0; i < m; i++) {
-        for(j = 0; j < m; j++) {
+    for(i = 0; i < xy; i++) {
+        for(j = 0; j < xy; j++) {
             carray->array2d[i][j] = j == i ? 1.0 : 0.0;
+        }
+    }
+}
+
+/**
+ * Create CArray full of zeros
+ *
+ * @author Henrique Borba <henrique.borba.dev>
+ */
+void zeros(CArray * carray, int x, int y) {
+    if(x > 0 && y > 0) {
+        zeros2d(carray, x, y);
+    }
+    if(x > 0 && y == 0) {
+        zeros1d(carray, x);
+    }
+
+}
+void zeros1d(CArray * carray, int x) {
+    int i;
+    for(i = 0; i < x; i++) {
+        carray->array1d[i] = 0.0;
+    }
+}
+void zeros2d(CArray * carray, int x, int y) {
+    int i, j;
+    for(i = 0; i < x; i++) {
+        for(j = 0; j < y; j++) {
+            carray->array2d[i][j] = 0.0;
         }
     }
 }
