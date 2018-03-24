@@ -85,6 +85,7 @@ void add_to_stack(MemoryPointer * ptr, struct CArray array, size_t size) {
         PHPSCI_MAIN_MEM_STACK.buffer[PHPSCI_MAIN_MEM_STACK.size].array2d = array.array2d;
     } else {
         PHPSCI_MAIN_MEM_STACK.buffer[PHPSCI_MAIN_MEM_STACK.last_deleted_uuid].array2d = array.array2d;
+        PHPSCI_MAIN_MEM_STACK.last_deleted_uuid = NULL;
     }
 
     // Associate CArray unique id
