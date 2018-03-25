@@ -65,7 +65,7 @@ Remember that this may require considerable time depending on the size of your C
 before converting to a PHP Array, and only, if needed of course.
 
 ```php
-$php_array = CArray::toArray($a->uuid, 10, 10);
+$php_array = CArray::toArray($a->uuid, 2, 2);
 print_r($php_array);
 ```
 > The `toArray()` static method receive 3 arguments: `public static toArray(int uuid, int rows, int cols);`. **For now, It's your
