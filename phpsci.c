@@ -22,6 +22,7 @@
 
 #include "phpsci.h"
 #include "carray/initializers.h"
+#include "carray/linalg.h"
 #include "carray/transformations.h"
 #include "kernel/memory_manager.h"
 #include "php.h"
@@ -131,15 +132,39 @@ PHP_METHOD(CArray, toArray)
     carray_to_array(arr, return_value, rows, cols);
 }
 
+PHP_METHOD(CArray, matmul)
+{
+    long a_uuid, a_rows, a_cols, b_uuid, b_rows, b_cols;
+    MemoryPointer a_ptr, b_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(5, 5)
+        Z_PARAM_LONG(a_uuid)
+        Z_PARAM_LONG(a_rows)
+        Z_PARAM_LONG(a_cols)
+        Z_PARAM_LONG(b_uuid)
+        Z_PARAM_LONG(b_cols)
+    ZEND_PARSE_PARAMETERS_END();
+    a_ptr.uuid = (int)a_uuid;
+    b_ptr.uuid = (int)b_uuid;
+    matmul(&rtn_ptr, (int)a_rows, (int)a_cols, &a_ptr, (int)b_cols, &b_ptr);
+    object_init(return_value);
+    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, rtn_ptr.uuid);
+}
+
+
 /**
  * CLASS METHODS
  */
 static zend_function_entry phpsci_class_methods[] =
 {
    PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
+   // TRANSFORMATIONS SECTION
    PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
-   PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   // PRODUCTS SECTION
+   PHP_ME(CArray, matmul, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   // CARRAY MEMORY MANAGEMENT SECTION
    PHP_ME(CArray, destroy, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   // INITIALIZERS SECTION
+   PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, zeros, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    // CONVERT SECTION
    PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
