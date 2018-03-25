@@ -23,9 +23,19 @@ It's really easy to compile this extension using Linux environments.
 #### Compiling
 
 Clone the repository, `cd` to the source folder and:
-```php
+```commandline
 $ phpize
 $ ./configure
+```
+Change the `CFLAGS` within Makefile from
+```cmake
+CFLAGS = -g -O0
+```
+to
+```cmake
+CFLAGS = -g -O0 -lopenblas
+```
+```commandline
 $ make clean
 $ make
 $ make install
