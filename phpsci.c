@@ -85,6 +85,8 @@ PHP_METHOD(CArray, fromArray)
     array_to_carray_ptr(&ptr, array, &a_rows, &a_cols);
     object_init(return_value);
     zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "rows", sizeof("rows") - 1, a_rows);
+    zend_update_property_long(phpsci_sc_entry, return_value, "cols", sizeof("cols") - 1, a_cols);
 }
 
 
