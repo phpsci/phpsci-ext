@@ -22,6 +22,7 @@
 
 #include "phpsci.h"
 #include "carray/initializers.h"
+#include "carray/transformations.h"
 #include "kernel/memory_manager.h"
 #include "php.h"
 
@@ -99,6 +100,21 @@ PHP_METHOD(CArray, destroy)
         destroy_carray((int)uuid, (int) rows, (int) cols);
     }
 }
+PHP_METHOD(CArray, transpose)
+{
+    long uuid, rows, cols;
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+        Z_PARAM_LONG(uuid)
+        Z_PARAM_LONG(rows)
+        Z_PARAM_LONG(cols)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    MemoryPointer rtn;
+    ptr.uuid = (int)uuid;
+    transpose(&rtn, &ptr, (int)rows, (int)cols);
+    object_init(return_value);
+    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, rtn.uuid);
+}
 
 PHP_METHOD(CArray, toArray)
 {
@@ -121,6 +137,7 @@ PHP_METHOD(CArray, toArray)
 static zend_function_entry phpsci_class_methods[] =
 {
    PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, destroy, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, zeros, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
