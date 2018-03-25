@@ -9,6 +9,7 @@ Although it is not necessary, or you want to create your own library of arrays, 
 
 > **ATENTTION:** Misuse of this extension can cause excessive memory consumption and consequently system crash. See the CArray internals section if you want to know more about the internal operation of the extension.
 
+> **ATTENTION:** Memory allocation from this library dosen't talk with memory_limit directive, it WILL consume as much as you ask for.
 ## Building
 
 It's really easy to compile this extension using Linux environments.
@@ -154,3 +155,40 @@ CArray::destroy($c->uuid);
 > In small cases, this may not cause trouble, but in larger scales if you
 don't destroy temporary CArrays, they will stay in memory until PHP runtime 
 send the shutdown signal.
+
+## How it works?
+Internally CArrays are just C structures that can handle multiple arrays of
+data.
+
+```C                    
+/*************          /*************** /***************
+/*  CARRAY   *  ====>   /*   array1d   * /*  double[]   *
+/*************          /*************** /***************
+                        /*************** /*************** /************
+                        /*   array2d   * /*   array1d   * /*  double  *
+                        /*************** /*************** /************
+                                     ...      
+```
+A buffer called `MemoryStack` handles all CArrays storage within your PC memory:
+```php
+/**********************           /*******************
+/*   MEMORYSTACK      *           /   CArray UUID 0  *
+/* Dynamic Allocated  *   =====>  /*******************
+/*     Buffer         *           /*  CArray UUID 1  *
+/**********************           /*******************
+                                  /*  CArray UUID 2  *
+                                  /*******************
+                                                   ...
+```
+CArray talks with PHP frontend using only the `MemoryPointer` object, it's the
+`stdClass` you see returned during use and contains the `uuid` property with
+the position of your `CArray` inside the `MemoryStack`
+
+So, when you do operations like `transpose`, the operation itself is only performed
+with `C` objects and absolutely no PHP arrays are involved in the process.
+
+That's what makes PHPSci so much faster them PHP Arrays.
+
+# Methods
+
+`UNDER CONSTRUCTION`

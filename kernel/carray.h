@@ -25,11 +25,11 @@
  *
  * Currently working with shaped 2D, 1D and 0D.
  */
-typedef struct CArray {
-    double **  array2d;
-    double *   array1d;
-    double     array0d;
-} CArray;
+    typedef struct CArray {
+        double **  array2d;
+        double *   array1d;
+        double     array0d;
+    } CArray;
 
 /**
  * The only thing between PHP and the extension
