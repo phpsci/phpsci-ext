@@ -13,6 +13,7 @@ PHP_NEW_EXTENSION(phpsci,
 	  kernel/exceptions.c \
 	  kernel/memory_manager.c \
 	  carray/initializers.c \
+	  carray/linalg.c \
 	  carray/transformations.c,
 	  $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
   PHP_INSTALL_HEADERS([ext/phpsci], [phpsci.h])
