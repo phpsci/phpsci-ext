@@ -33,7 +33,6 @@ $ make install
 > **Apache/NGINX Users:** Don't forget to restart your services.
 
 ## Using CArrays
-Here are some examples of CArrays:
 
 ### Creating CArrays
 
@@ -65,7 +64,7 @@ Remember that this may require considerable time depending on the size of your C
 before converting to a PHP Array, and only, if needed of course.
 
 ```php
-$php_array = CArray::toArray($a->uuid, 10, 10);
+$php_array = CArray::toArray($a->uuid, 2, 2);
 print_r($php_array);
 ```
 > The `toArray()` static method receive 3 arguments: `public static toArray(int uuid, int rows, int cols);`. **For now, It's your
@@ -89,3 +88,69 @@ Array
 )
 ```
 Now we can see our array and use it with other PHP general libraries.
+
+### Creating from PHP Arrays
+
+You also create CArrays from PHP Arrays, use the static `toArray()` method
+to create a CArray from PHP Array:
+
+```php
+$a = CArray::fromArray([[0,1],[2,3]]);
+print_r(CArray::toArray($a);
+```
+```php
+Array
+(
+    [0] => Array
+        (
+            [0] => 0
+            [1] => 1
+        )
+
+    [1] => Array
+        (
+            [0] => 2
+            [1] => 3
+        )
+
+)
+```
+
+### Basic Operations
+
+Let's tranpose the CArray (matrix) we created above:
+
+```php
+$c = CArray::transpose($a->uuid, 2,2);
+print_r(CArray::toArray($c->uuid,2,2));
+```
+```php
+Array
+(
+    [0] => Array
+        (
+            [0] => 0
+            [1] => 2
+        )
+
+    [1] => Array
+        (
+            [0] => 1
+            [1] => 3
+        )
+
+)
+```
+### Destroying CArrays [IMPORTANT]
+After we are done with some CArrays or temporary ones, it's good to
+destroy them by calling the `destroy()` static method.
+
+```php
+CArray::destroy($a->uuid);
+CArray::destroy($b->uuid);
+CArray::destroy($c->uuid);
+```
+
+> In small cases, this may not cause trouble, but in larger scales if you
+don't destroy temporary CArrays, they will stay in memory until PHP runtime 
+send the shutdown signal.
