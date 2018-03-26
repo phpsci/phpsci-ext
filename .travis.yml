@@ -3,7 +3,7 @@ dist: trusty
 addons:
   apt:
     packages:
-      - php7.2-dev
+      - php-dev
       - libopenblas-dev
       - libopenblas-base
 cache:
