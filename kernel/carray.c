@@ -53,6 +53,21 @@ void carray_init1d(int width, MemoryPointer * ptr) {
     add_to_stack(ptr, x,(width * sizeof(float)) + 64);
 }
 
+/**
+ * Initialize CArray 0D
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param rows Width
+ * @param ptr  MemoryPointer of new CArray
+ */
+void carray_init0d(MemoryPointer * ptr) {
+    CArray x;
+    int j, i;
+    x.array0d = (float*)malloc(sizeof(float) + 64);
+    add_to_stack(ptr, x,sizeof(float) + 64);
+}
+
+
 
 /**
  *  Get CArray from MemoryPointer

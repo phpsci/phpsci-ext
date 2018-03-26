@@ -134,6 +134,19 @@ PHP_METHOD(CArray, toArray)
     carray_to_array(arr, return_value, rows, cols);
 }
 
+PHP_METHOD(CArray, toDouble)
+{
+    long uuid;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_LONG(uuid)
+    ZEND_PARSE_PARAMETERS_END();
+
+    MemoryPointer ptr;
+    ptr.uuid = (int)uuid;
+    CArray arr = ptr_to_carray(&ptr);
+    ZVAL_DOUBLE(return_value, (double)arr.array0d[0]);
+}
+
 PHP_METHOD(CArray, matmul)
 {
     long a_uuid, a_rows, a_cols, b_uuid, b_rows, b_cols;
@@ -171,6 +184,7 @@ static zend_function_entry phpsci_class_methods[] =
    // CONVERT SECTION
    PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, fromArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, toDouble, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }
 };
 
