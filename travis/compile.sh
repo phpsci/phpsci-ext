@@ -1,7 +1,7 @@
 #!/bin/bash
 
 phpize
-./configure
+../configure
 make clean
 make
 make install

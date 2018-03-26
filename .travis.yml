@@ -15,7 +15,7 @@ before_script:
 
 
 script:
-    - ./compiler.sh
+    - ./travis/compile.sh
 
 after_success:
     - ccache --show-stats
