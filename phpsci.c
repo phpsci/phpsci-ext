@@ -24,6 +24,7 @@
 #include "carray/initializers.h"
 #include "carray/linalg.h"
 #include "carray/transformations.h"
+#include "carray/ranges.h"
 #include "kernel/memory_manager.h"
 #include "php.h"
 
@@ -70,9 +71,6 @@ PHP_METHOD(CArray, zeros)
     object_init(return_value);
     zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
 }
-
-
-
 PHP_METHOD(CArray, fromArray)
 {
     zval * array;
@@ -89,8 +87,6 @@ PHP_METHOD(CArray, fromArray)
     zend_update_property_long(phpsci_sc_entry, return_value, "rows", sizeof("rows") - 1, a_rows);
     zend_update_property_long(phpsci_sc_entry, return_value, "cols", sizeof("cols") - 1, a_cols);
 }
-
-
 PHP_METHOD(CArray, destroy)
 {
     long uuid, rows, cols;
@@ -119,7 +115,6 @@ PHP_METHOD(CArray, transpose)
     object_init(return_value);
     zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, rtn.uuid);
 }
-
 PHP_METHOD(CArray, toArray)
 {
     long uuid, rows, cols;
@@ -133,7 +128,6 @@ PHP_METHOD(CArray, toArray)
     CArray arr = ptr_to_carray(&ptr);
     carray_to_array(arr, return_value, rows, cols);
 }
-
 PHP_METHOD(CArray, toDouble)
 {
     long uuid;
@@ -146,7 +140,6 @@ PHP_METHOD(CArray, toDouble)
     CArray arr = ptr_to_carray(&ptr);
     ZVAL_DOUBLE(return_value, (double)arr.array0d[0]);
 }
-
 PHP_METHOD(CArray, matmul)
 {
     long a_uuid, a_rows, a_cols, b_uuid, b_rows, b_cols;
@@ -164,7 +157,22 @@ PHP_METHOD(CArray, matmul)
     object_init(return_value);
     zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, rtn_ptr.uuid);
 }
-
+PHP_METHOD(CArray, arange)
+{
+    double start, stop, step;
+    int width;
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+        Z_PARAM_DOUBLE(start)
+        Z_PARAM_DOUBLE(stop)
+        Z_PARAM_DOUBLE(step)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer * ptr;
+    arange(ptr, start, stop, step, &width);
+    object_init(return_value);
+    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr->uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "rows", sizeof("rows") - 1, width);
+    zend_update_property_long(phpsci_sc_entry, return_value, "cols", sizeof("cols") - 1, 0);
+}
 
 /**
  * CLASS METHODS
@@ -172,6 +180,8 @@ PHP_METHOD(CArray, matmul)
 static zend_function_entry phpsci_class_methods[] =
 {
    PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
+   // RANGES SECTION
+   PHP_ME(CArray, arange, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    // TRANSFORMATIONS SECTION
    PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    // PRODUCTS SECTION
