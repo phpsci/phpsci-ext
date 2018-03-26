@@ -1,10 +1,9 @@
 site_name: PHPSci CArray
 theme: readthedocs
-docs_dir: sources
 repo_url: http://github.com/phpsci/phpsci-ext
 site_url: http://phpsci-carray.readthedocs.io/
 site_description: 'Documentation for PHPSci CArray Extension for PHP.'
-
+docs_dir: docs/
 dev_addr: '0.0.0.0:8000'
 
 pages:
