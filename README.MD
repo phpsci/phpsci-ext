@@ -1,4 +1,5 @@
 # PHPSci CArray Extension
+[![Build Status](https://travis-ci.org/phpsci/phpsci-ext.svg?branch=master)](https://travis-ci.org/phpsci/phpsci-ext)
 [![Documentation Status](https://readthedocs.org/projects/php-learn/badge/?version=latest)](http://php-learn.readthedocs.io/en/latest/?badge=latest)
 
 This is the extension used by [PHPSci](https://www.github.com/phpsci/phpsci). 
