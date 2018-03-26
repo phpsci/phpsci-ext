@@ -1,0 +1,18 @@
+site_name: PHPSci CArray
+theme: readthedocs
+docs_dir: sources
+repo_url: http://github.com/phpsci/phpsci-ext
+site_url: http://phpsci-carray.readthedocs.io/
+site_description: 'Documentation for PHPSci CArray Extension for PHP.'
+
+dev_addr: '0.0.0.0:8000'
+
+pages:
+- Home: index.md
+- Initializers: initializers.md
+- Transformations: transformations.md
+- Operations:
+  - Linear Algebra: linear_algebra.md
+  - Blas: blas.md
+- PHP Array with CArrays: phparray_ops.md
+- Performance: performance.md

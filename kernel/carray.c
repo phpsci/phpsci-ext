@@ -31,10 +31,10 @@
 void carray_init(int rows, int cols, MemoryPointer * ptr) {
     CArray x;
     int j, i;
-    x.array2d = (double**)malloc(rows * sizeof(double*));
+    x.array2d = (float**)malloc(rows * sizeof(float*) + 64);
     for (i = 0; i < rows; ++i)
-        x.array2d[i] = (double*)malloc(cols * sizeof(double));
-    add_to_stack(ptr, x,(rows * cols * sizeof(double)));
+        x.array2d[i] = (float*)malloc(cols * sizeof(float));
+    add_to_stack(ptr, x,(rows * cols * sizeof(float)) + 64);
 }
 
 /**
@@ -88,7 +88,7 @@ void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * co
         if (Z_TYPE_P(row) == IS_ARRAY) {
             ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(row), col) {
                 convert_to_double(col);
-                temp.array2d[i][j] = (double)Z_DVAL_P(col);
+                temp.array2d[i][j] = (float)Z_DVAL_P(col);
                 ++j;
             } ZEND_HASH_FOREACH_END();
         }
@@ -109,7 +109,7 @@ void carray_to_array(CArray carray, zval * rtn_array, int m, int n) {
     for( rows = 0; rows < m; rows++ ) {
         array_init(&inner);
         for( cols = 0; cols < n; cols++ ) {
-            add_next_index_double(&inner, carray.array2d[rows][cols]);
+            add_next_index_double(&inner, (float)carray.array2d[rows][cols]);
         }
         add_next_index_zval(rtn_array, &inner);
     }
