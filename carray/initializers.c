@@ -60,6 +60,7 @@ void zeros1d(CArray * carray, int x) {
 }
 void zeros2d(CArray * carray, int x, int y) {
     int i, j;
+    #pragma omp parallel for
     for(i = 0; i < x; i++) {
         for(j = 0; j < y; j++) {
             carray->array2d[i][j] = 0.0;
