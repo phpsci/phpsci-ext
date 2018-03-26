@@ -31,6 +31,17 @@
 
 
 /**
+ *
+ *
+ * Henrique Borba <henrique.borba.dev>
+ * @param obj
+ * @param uuid
+ */
+void set_obj_uuid(zval * obj, long uuid) {
+    zend_update_property_long(phpsci_sc_entry, obj, "uuid", sizeof("uuid") - 1, uuid);
+}
+
+/**
  * PHPSci Constructor
  */
 PHP_METHOD(CArray, __construct)
@@ -54,7 +65,7 @@ PHP_METHOD(CArray, identity)
     CArray arr = ptr_to_carray(&ptr);
     identity(&arr, (int)m);
     object_init(return_value);
-    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
+    set_obj_uuid(return_value, ptr.uuid);
 }
 PHP_METHOD(CArray, zeros)
 {
@@ -69,7 +80,7 @@ PHP_METHOD(CArray, zeros)
     CArray arr = ptr_to_carray(&ptr);
     zeros(&arr, (int)x, (int)y);
     object_init(return_value);
-    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
+    set_obj_uuid(return_value, ptr.uuid);
 }
 PHP_METHOD(CArray, fromArray)
 {
@@ -83,9 +94,9 @@ PHP_METHOD(CArray, fromArray)
     ptr.uuid = NULL;
     array_to_carray_ptr(&ptr, array, &a_rows, &a_cols);
     object_init(return_value);
-    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "rows", sizeof("rows") - 1, a_rows);
-    zend_update_property_long(phpsci_sc_entry, return_value, "cols", sizeof("cols") - 1, a_cols);
+    set_obj_uuid(return_value, ptr.uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, a_rows);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, a_cols);
 }
 PHP_METHOD(CArray, destroy)
 {
@@ -113,7 +124,7 @@ PHP_METHOD(CArray, transpose)
     ptr.uuid = (int)uuid;
     transpose(&rtn, &ptr, (int)rows, (int)cols);
     object_init(return_value);
-    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, rtn.uuid);
+    set_obj_uuid(return_value, rtn.uuid);
 }
 PHP_METHOD(CArray, toArray)
 {
@@ -127,6 +138,22 @@ PHP_METHOD(CArray, toArray)
     ptr.uuid = (int)uuid;
     CArray arr = ptr_to_carray(&ptr);
     carray_to_array(arr, return_value, rows, cols);
+}
+PHP_METHOD(CArray, linspace)
+{
+    double start, stop;
+    long num;
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+        Z_PARAM_DOUBLE(start)
+        Z_PARAM_DOUBLE(stop)
+        Z_PARAM_LONG(num)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer * ptr;
+    linspace(ptr, (float)start, (float)stop, (float)num);
+    object_init(return_value);
+    set_obj_uuid(return_value, ptr->uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, 0);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, num);
 }
 PHP_METHOD(CArray, toDouble)
 {
@@ -155,7 +182,7 @@ PHP_METHOD(CArray, matmul)
     b_ptr.uuid = (int)b_uuid;
     matmul(&rtn_ptr, (int)a_rows, (int)a_cols, &a_ptr, (int)b_cols, &b_ptr);
     object_init(return_value);
-    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, rtn_ptr.uuid);
+    set_obj_uuid(return_value, rtn_ptr.uuid);
 }
 PHP_METHOD(CArray, arange)
 {
@@ -169,9 +196,9 @@ PHP_METHOD(CArray, arange)
     MemoryPointer * ptr;
     arange(ptr, start, stop, step, &width);
     object_init(return_value);
-    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr->uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "rows", sizeof("rows") - 1, width);
-    zend_update_property_long(phpsci_sc_entry, return_value, "cols", sizeof("cols") - 1, 0);
+    set_obj_uuid(return_value, ptr->uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, 0);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, width);
 }
 
 /**
@@ -182,6 +209,7 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
    // RANGES SECTION
    PHP_ME(CArray, arange, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, linspace, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    // TRANSFORMATIONS SECTION
    PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    // PRODUCTS SECTION

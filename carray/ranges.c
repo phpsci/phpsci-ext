@@ -41,3 +41,25 @@ void arange(MemoryPointer * new_ptr, float start, float stop, float step, int * 
         }
     }
 }
+
+/**
+ * Return CArray 1D with evenly spaced numbers over a specified interval.
+ *
+ * @author  Henrique Borba <henrique.borba.dev>
+ * @param ptr   MemoryPointer
+ * @param start The starting value of the sequence.
+ * @param stop  The end value of the sequence
+ * @param num   Number of samples to generate.
+ * @return void
+ */
+void linspace(MemoryPointer * ptr, float start, float stop, int num)
+{
+    float step = (stop - start) / (num - 1);
+    int i;
+    carray_init1d(num, ptr);
+    CArray new_array = ptr_to_carray(ptr);
+    for(i = 0;i < num; i++) {
+        new_array.array1d[i] = start + (i * step);
+    }
+    new_array.array1d[num - 1] = stop;
+}
