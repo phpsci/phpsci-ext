@@ -5,7 +5,7 @@ if test "$PHP_PHPSCI" != "no"; then
   AC_DEFINE([HAVE_PHPSCI],1 ,[whether to enable  PHPSci computing library])
   AC_HEADER_STDC
 
-
+PHP_ADD_INCLUDE(/opt/OpenBLAS/include/)
 
 PHP_NEW_EXTENSION(phpsci,
 	  phpsci.c \
@@ -20,3 +20,5 @@ PHP_NEW_EXTENSION(phpsci,
   PHP_INSTALL_HEADERS([ext/phpsci], [phpsci.h])
   PHP_SUBST(PHPSCI_SHARED_LIBADD)
 fi
+
+
