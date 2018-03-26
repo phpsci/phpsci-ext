@@ -1,11 +1,9 @@
-language: C
+language: php
 dist: trusty
-addons:
-  apt:
-    packages:
-      - php7.0-dev
-      - libopenblas-dev
-      - libopenblas-base
+php:
+  - 7.2
+  - 7.1.9
+
 cache:
     apt: true
     ccache: true
