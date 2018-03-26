@@ -1,5 +1,10 @@
 language: php
 sudo: false
+addons:
+  apt:
+    packages:
+      - libopenblas-dev
+      - libopenblas-base
 dist: trusty
 php:
   - 7.2
