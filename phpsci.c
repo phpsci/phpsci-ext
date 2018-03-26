@@ -152,8 +152,8 @@ PHP_METHOD(CArray, linspace)
     linspace(ptr, (float)start, (float)stop, (float)num);
     object_init(return_value);
     set_obj_uuid(return_value, ptr->uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, 0);
-    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, num);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, num);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
 }
 PHP_METHOD(CArray, toDouble)
 {
@@ -197,8 +197,8 @@ PHP_METHOD(CArray, arange)
     arange(ptr, start, stop, step, &width);
     object_init(return_value);
     set_obj_uuid(return_value, ptr->uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, 0);
-    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, width);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, width);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
 }
 
 /**
