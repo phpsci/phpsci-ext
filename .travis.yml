@@ -1,0 +1,23 @@
+language: C
+dist: trusty
+addons:
+  apt:
+    packages:
+      - php7.0-dev
+      - libopenblas-dev
+      - libopenblas-base
+cache:
+    apt: true
+    ccache: true
+
+before_script:
+    - ccache --version
+    - ccache --zero-stats
+    - export USE_CCACHE=1
+
+
+script:
+    - ./compiler.sh
+
+after_success:
+    - ccache --show-stats
