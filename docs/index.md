@@ -9,8 +9,6 @@ Although it is not necessary, or you want to create your own library of arrays, 
 
 > **ATTENTION:** Misuse of this extension can cause excessive memory consumption and consequently system crash. See the CArray internals section if you want to know more about the internal operation of the extension.
 
-> **ATTENTION:** Memory allocation from this library dosen't talk with memory_limit directive, it WILL consume as much as you ask for.
-
 ---
 
 ## Building
