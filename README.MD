@@ -1,4 +1,5 @@
 # PHPSci CArray Extension
+[![Documentation Status](https://readthedocs.org/projects/php-learn/badge/?version=latest)](http://php-learn.readthedocs.io/en/latest/?badge=latest)
 
 This is the extension used by [PHPSci](https://www.github.com/phpsci/phpsci). 
 It offers the CArray object in place of PHP arrays to make scientific calculations faster.

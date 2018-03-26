@@ -82,6 +82,7 @@ PHP_METHOD(CArray, fromArray)
         Z_PARAM_ARRAY(array)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
+    ptr.uuid = NULL;
     array_to_carray_ptr(&ptr, array, &a_rows, &a_cols);
     object_init(return_value);
     zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr.uuid);
@@ -130,7 +131,6 @@ PHP_METHOD(CArray, toArray)
     MemoryPointer ptr;
     ptr.uuid = (int)uuid;
     CArray arr = ptr_to_carray(&ptr);
-    array_init(return_value);
     carray_to_array(arr, return_value, rows, cols);
 }
 
