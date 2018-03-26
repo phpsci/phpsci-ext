@@ -68,4 +68,9 @@ void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_p
             rtn.array1d[i] = cblas_sdot(n_a_rows, bT.array2d[i], 1,a.array1d, 1);
         }
     }
+    if(n_b_cols == 0 && n_a_cols == 0) {
+        carray_init0d(ptr);
+        CArray rtn = ptr_to_carray(ptr);
+        rtn.array0d[0] = cblas_sdot(n_a_rows, a.array1d, 1, b.array1d, 1);
+    }
 }

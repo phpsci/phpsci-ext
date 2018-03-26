@@ -25,11 +25,11 @@
  *
  * Currently working with shaped 2D, 1D and 0D.
  */
-    typedef struct CArray {
-        float **  array2d;
-        float *   array1d;
-        float     array0d;
-    } CArray;
+typedef struct CArray {
+    float **  array2d;
+    float *   array1d;
+    float *   array0d;
+} CArray;
 
 /**
  * The only thing between PHP and the extension
@@ -41,6 +41,7 @@ typedef struct MemoryPointer {
 
 void carray_init(int rows, int cols, MemoryPointer * ptr);
 void carray_init1d(int width, MemoryPointer * ptr);
+void carray_init0d(MemoryPointer * ptr);
 void destroy_carray(int uuid, int rows, int cols);
 
 void array_to_carray_ptr(MemoryPointer * ptr, zval * inarray, int * rows, int * cols);
