@@ -167,6 +167,23 @@ PHP_METHOD(CArray, linspace)
     zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, num);
     zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
 }
+PHP_METHOD(CArray, logspace)
+{
+    double start, stop, base;
+    long num;
+    ZEND_PARSE_PARAMETERS_START(4, 4)
+        Z_PARAM_DOUBLE(start)
+        Z_PARAM_DOUBLE(stop)
+        Z_PARAM_LONG(num)
+        Z_PARAM_DOUBLE(base)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer * ptr;
+    logspace(ptr, (float)start, (float)stop, num, (float)base);
+    object_init(return_value);
+    set_obj_uuid(return_value, ptr->uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, num);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
+}
 PHP_METHOD(CArray, toDouble)
 {
     long uuid;
@@ -222,6 +239,7 @@ static zend_function_entry phpsci_class_methods[] =
    // RANGES SECTION
    PHP_ME(CArray, arange, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, linspace, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, logspace, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    // TRANSFORMATIONS SECTION
    PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    // PRODUCTS SECTION
