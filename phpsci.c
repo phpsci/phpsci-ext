@@ -30,11 +30,8 @@
 #include "php.h"
 
 
-
 /**
- *
- *
- * Henrique Borba <henrique.borba.dev>
+ * @author Henrique Borba <henrique.borba.dev>
  * @param obj
  * @param uuid
  */
@@ -43,11 +40,29 @@ void set_obj_uuid(zval * obj, long uuid) {
 }
 
 /**
+ * @author Henrique Borba <henrique.borba.dev>
+ * @param rtn
+ * @param x_rows_width
+ * @param y_cols
+ */
+void generate_carray_object(zval * rtn, long uuid, long x_rows_width,  long y_cols) {
+}
+
+/**
  * PHPSci Constructor
  */
 PHP_METHOD(CArray, __construct)
 {
-    array_init(return_value);
+    long uuid, x, y;
+    ZEND_PARSE_PARAMETERS_START(3,3)
+        Z_PARAM_LONG(uuid)
+        Z_PARAM_LONG(x)
+        Z_PARAM_LONG(y)
+    ZEND_PARSE_PARAMETERS_END();
+    zval * obj = getThis();
+    set_obj_uuid(obj, uuid);
+    zend_update_property_long(phpsci_sc_entry, obj, "x", sizeof("x") - 1, x);
+    zend_update_property_long(phpsci_sc_entry, obj, "y", sizeof("y") - 1, y);
 }
 
 /**
@@ -65,8 +80,10 @@ PHP_METHOD(CArray, identity)
     carray_init((int)m, (int)m, &ptr);
     CArray arr = ptr_to_carray(&ptr);
     identity(&arr, (int)m);
-    object_init(return_value);
+    object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, ptr.uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, m);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, m);
 }
 PHP_METHOD(CArray, zeros)
 {
@@ -80,7 +97,7 @@ PHP_METHOD(CArray, zeros)
     carray_init((int)x, (int)y, &ptr);
     CArray arr = ptr_to_carray(&ptr);
     zeros(&arr, (int)x, (int)y);
-    object_init(return_value);
+    object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, ptr.uuid);
 }
 PHP_METHOD(CArray, fromArray)
@@ -94,7 +111,7 @@ PHP_METHOD(CArray, fromArray)
     MemoryPointer ptr;
     ptr.uuid = NULL;
     array_to_carray_ptr(&ptr, array, &a_rows, &a_cols);
-    object_init(return_value);
+    object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, ptr.uuid);
     zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, a_rows);
     zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, a_cols);
@@ -124,7 +141,7 @@ PHP_METHOD(CArray, transpose)
     MemoryPointer rtn;
     ptr.uuid = (int)uuid;
     transpose(&rtn, &ptr, (int)rows, (int)cols);
-    object_init(return_value);
+    object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, rtn.uuid);
 }
 PHP_METHOD(CArray, print_r) {
@@ -162,7 +179,7 @@ PHP_METHOD(CArray, linspace)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer * ptr;
     linspace(ptr, (float)start, (float)stop, (float)num);
-    object_init(return_value);
+    object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, ptr->uuid);
     zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, num);
     zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
@@ -179,7 +196,7 @@ PHP_METHOD(CArray, logspace)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer * ptr;
     logspace(ptr, (float)start, (float)stop, num, (float)base);
-    object_init(return_value);
+    object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, ptr->uuid);
     zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, num);
     zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
@@ -210,7 +227,7 @@ PHP_METHOD(CArray, matmul)
     a_ptr.uuid = (int)a_uuid;
     b_ptr.uuid = (int)b_uuid;
     matmul(&rtn_ptr, (int)a_rows, (int)a_cols, &a_ptr, (int)b_cols, &b_ptr);
-    object_init(return_value);
+    object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, rtn_ptr.uuid);
 }
 PHP_METHOD(CArray, arange)
@@ -224,7 +241,7 @@ PHP_METHOD(CArray, arange)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer * ptr;
     arange(ptr, start, stop, step, &width);
-    object_init(return_value);
+    object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, ptr->uuid);
     zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, width);
     zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
@@ -235,7 +252,7 @@ PHP_METHOD(CArray, arange)
  */
 static zend_function_entry phpsci_class_methods[] =
 {
-   PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
+   // PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
    // RANGES SECTION
    PHP_ME(CArray, arange, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, linspace, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
