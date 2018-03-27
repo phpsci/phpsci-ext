@@ -15,6 +15,7 @@ PHP_NEW_EXTENSION(phpsci,
 	  carray/initializers.c \
 	  carray/linalg.c \
 	  carray/ranges.c \
+	  kernel/carray_printer.c \
 	  carray/transformations.c,
 	  $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
   PHP_INSTALL_HEADERS([ext/phpsci], [phpsci.h])

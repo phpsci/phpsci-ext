@@ -25,6 +25,7 @@
 #include "carray/linalg.h"
 #include "carray/transformations.h"
 #include "carray/ranges.h"
+#include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
 #include "php.h"
 
@@ -126,6 +127,17 @@ PHP_METHOD(CArray, transpose)
     object_init(return_value);
     set_obj_uuid(return_value, rtn.uuid);
 }
+PHP_METHOD(CArray, print_r) {
+    long uuid, x, y;
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+        Z_PARAM_LONG(uuid)
+        Z_PARAM_LONG(x)
+        Z_PARAM_LONG(y)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    ptr.uuid = (int)uuid;
+    print_carray(&ptr, x, y);
+}
 PHP_METHOD(CArray, toArray)
 {
     long uuid, rows, cols;
@@ -223,6 +235,8 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, fromArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, toDouble, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   // VISUALIZATION
+   PHP_ME(CArray, print_r, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }
 };
 

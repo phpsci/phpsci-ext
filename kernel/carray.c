@@ -83,9 +83,9 @@ CArray ptr_to_carray(MemoryPointer * ptr) {
  * Destroy target CArray and set last_deleted_uuid for posterior
  * allocation.
  *
- * @param uuid
- * @param rows
- * @param cols
+ * @param uuid  UUID of CArray to be destroyed
+ * @param rows  Number of rows in CArray to be destroyed
+ * @param cols  Number os cols in CArray to be destroyed
  */
 void destroy_carray(int uuid, int rows, int cols) {
     free(PHPSCI_MAIN_MEM_STACK.buffer[uuid].array2d[0]);
