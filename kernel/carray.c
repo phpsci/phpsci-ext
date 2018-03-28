@@ -35,7 +35,6 @@ void carray_init(int rows, int cols, MemoryPointer * ptr) {
     x.array2d = (float**)malloc(rows * sizeof(float*));
     for (i = 0; i < rows; ++i)
         x.array2d[i] = (float*)malloc(cols * sizeof(float));
-    memset(x.array2d[0], 0, cols * sizeof(float));
     x.array1d = UNINITIALIZED;
     x.array0d = UNINITIALIZED;
     add_to_stack(ptr, x,(rows * cols * sizeof(float)));

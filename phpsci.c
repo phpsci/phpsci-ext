@@ -23,6 +23,7 @@
 #include "phpsci.h"
 #include "carray/initializers.h"
 #include "carray/linalg.h"
+#include "carray/basic_operations.h"
 #include "carray/transformations.h"
 #include "carray/random.h"
 #include "carray/ranges.h"
@@ -240,6 +241,30 @@ PHP_METHOD(CArray, toDouble)
     CArray arr = ptr_to_carray(&ptr);
     ZVAL_DOUBLE(return_value, (double)arr.array0d[0]);
 }
+PHP_METHOD(CArray, sum)
+{
+    long uuid, x, y, axis;
+    ZEND_PARSE_PARAMETERS_START(3, 4)
+        Z_PARAM_LONG(uuid)
+        Z_PARAM_LONG(x)
+        Z_PARAM_LONG(y)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    ptr.uuid = (int)uuid;
+    MemoryPointer target_ptr;
+    if (ZEND_NUM_ARGS() == 3) {
+        sum_noaxis(&ptr, &target_ptr, (int)x,(int) y);
+    }
+    if (ZEND_NUM_ARGS() == 4) {
+        sum_axis(&ptr, &target_ptr,(int)x,(int) y, (int)axis);
+    }
+    object_init_ex(return_value, phpsci_sc_entry);
+    set_obj_uuid(return_value, target_ptr.uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, 0);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
+}
 PHP_METHOD(CArray, matmul)
 {
     long a_uuid, a_rows, a_cols, b_uuid, b_rows, b_cols;
@@ -295,6 +320,8 @@ static zend_function_entry phpsci_class_methods[] =
    // INITIALIZERS SECTION
    PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, zeros, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   // BASIC OPERATIONS
+   PHP_ME(CArray, sum, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    // CONVERT SECTION
    PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, fromArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
@@ -344,9 +371,6 @@ static PHP_MSHUTDOWN_FUNCTION(phpsci)
 {
     int i;
     for(i = 0; i < PHPSCI_MAIN_MEM_STACK.size; i++) {
-        if(PHPSCI_MAIN_MEM_STACK.buffer[i].array0d != UNINITIALIZED) {
-            free(PHPSCI_MAIN_MEM_STACK.buffer[i].array0d);
-        }
         if(PHPSCI_MAIN_MEM_STACK.buffer[i].array1d != UNINITIALIZED) {
             free(PHPSCI_MAIN_MEM_STACK.buffer[i].array1d);
         }

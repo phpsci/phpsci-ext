@@ -61,7 +61,7 @@ void print1d(CArray target, int x) {
  * @param target
  */
 void print0d(CArray target) {
-    php_printf("%f", target.array0d);
+    php_printf("%f", target.array0d[0]);
 }
 
 
