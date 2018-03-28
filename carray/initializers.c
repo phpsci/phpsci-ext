@@ -38,23 +38,6 @@ void identity(CArray * carray, int xy) {
 
 
 
-/**
- * Return numbers spaced evenly on a log scale.
- *
- * @author Henrique Borba <henrique.borba.dev>
- */
-void logspace(MemoryPointer * ptr, float start, float stop, int num, float base) {
-    int i;
-    float step = (stop - start)/(num - 1);
-    carray_init1d(num, ptr);
-    CArray new_array = ptr_to_carray(ptr);
-    for(i = 0; i < num; ++i) {
-        new_array.array1d[i] = pow(base, (start + (i*step)));
-    }
-}
-
-
-
 
 /**
  * Create CArray full of zeros

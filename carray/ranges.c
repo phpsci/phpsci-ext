@@ -23,7 +23,7 @@
 
 
 /**
- * Create 2D Identity CArray with shape (m,m)
+ * Return evenly spaced values within a given interval.
  *
  * @author Henrique Borba <henrique.borba.dev>
  */
@@ -62,4 +62,19 @@ void linspace(MemoryPointer * ptr, float start, float stop, int num)
         new_array.array1d[i] = start + (i * step);
     }
     new_array.array1d[num - 1] = stop;
+}
+
+/**
+ * Return numbers spaced evenly on a log scale.
+ *
+ * @author Henrique Borba <henrique.borba.dev>
+ */
+void logspace(MemoryPointer * ptr, float start, float stop, int num, float base) {
+    int i;
+    float step = (stop - start)/(num - 1);
+    carray_init1d(num, ptr);
+    CArray new_array = ptr_to_carray(ptr);
+    for(i = 0; i < num; ++i) {
+        new_array.array1d[i] = pow(base, (start + (i*step)));
+    }
 }

@@ -17,6 +17,5 @@ Sum of CArray elements over a given axis.
 - `int` $axis `OPTIONAL` - If null, will sum all elements of input CArray. 
 ###### Return
 
-- `CArray` - MemoryPointer with CArray full of zeros
-
+- `CArray` - CArray with sum result. If `axis = null` returns 0D.
 ---

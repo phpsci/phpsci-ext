@@ -21,7 +21,6 @@
 #include "../phpsci.h"
 #include "../kernel/carray.h"
 void identity(CArray * carray, int xy);
-void logspace(MemoryPointer * ptr, float start, float stop, int num, float base);
 
 void zeros2d(CArray * carray, int x, int y);
 void zeros(CArray * carray, int x, int y);
