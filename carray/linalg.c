@@ -51,7 +51,7 @@ void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_p
                 rtn.array2d[i][j] = cblas_sdot(n_a_cols, a.array2d[i], 1, bT.array2d[j], 1);
             }
         }
-      
+
         return;
     }
     if(n_b_cols == 0 && n_a_cols > 0) {
@@ -60,7 +60,7 @@ void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_p
         for (i = 0; i < n_a_rows; ++i) {
             rtn.array1d[i] = cblas_sdot(n_a_cols, a.array2d[i], 1, b.array1d, 1);
         }
-      
+
         return;
     }
     if(n_b_cols > 0 && n_a_cols == 0) {
@@ -71,14 +71,14 @@ void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_p
         for (i = 0; i < n_a_rows; ++i) {
             rtn.array1d[i] = cblas_sdot(n_a_rows, bT.array2d[i], 1,a.array1d, 1);
         }
-      
+
         return;
     }
     if(n_b_cols == 0 && n_a_cols == 0) {
         carray_init0d(ptr);
         CArray rtn = ptr_to_carray(ptr);
         rtn.array0d[0] = cblas_sdot(n_a_rows, a.array1d, 1, b.array1d, 1);
-      
+
         return;
     }
 }

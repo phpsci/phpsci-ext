@@ -24,6 +24,7 @@
 #include "carray/initializers.h"
 #include "carray/linalg.h"
 #include "carray/transformations.h"
+#include "carray/random.h"
 #include "carray/ranges.h"
 #include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
@@ -99,6 +100,32 @@ PHP_METHOD(CArray, zeros)
     zeros(&arr, (int)x, (int)y);
     object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, ptr.uuid);
+}
+PHP_METHOD(CArray, standard_normal)
+{
+    long x, y, seed;
+    ZEND_PARSE_PARAMETERS_START(2, 3)
+        Z_PARAM_LONG(seed)
+        Z_PARAM_LONG(x)
+        Z_PARAM_LONG(y)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer * ptr;
+    if(y > 0) {
+        standard_normal(ptr,(int)seed, (int)x, (int)y);
+        object_init_ex(return_value, phpsci_sc_entry);
+        set_obj_uuid(return_value, ptr->uuid);
+        zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, x);
+        zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, y);
+        return;
+    }
+    if(y == 0) {
+        standard_normal(ptr,(int)seed, (int)x, 0);
+        object_init_ex(return_value, phpsci_sc_entry);
+        set_obj_uuid(return_value, ptr->uuid);
+        zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, x);
+        zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
+        return;
+    }
 }
 PHP_METHOD(CArray, fromArray)
 {
@@ -229,6 +256,8 @@ PHP_METHOD(CArray, matmul)
     matmul(&rtn_ptr, (int)a_rows, (int)a_cols, &a_ptr, (int)b_cols, &b_ptr);
     object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, rtn_ptr.uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, a_rows);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, b_cols);
 }
 PHP_METHOD(CArray, arange)
 {
@@ -272,6 +301,8 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, toDouble, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    // VISUALIZATION
    PHP_ME(CArray, print_r, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   // RANDOM SECTION
+   PHP_ME(CArray, standard_normal, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }
 };
 
