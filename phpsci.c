@@ -265,6 +265,30 @@ PHP_METHOD(CArray, sum)
     zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, 0);
     zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
 }
+PHP_METHOD(CArray, sub)
+{
+    long uuid, x, y, axis;
+    ZEND_PARSE_PARAMETERS_START(3, 4)
+        Z_PARAM_LONG(uuid)
+        Z_PARAM_LONG(x)
+        Z_PARAM_LONG(y)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    ptr.uuid = (int)uuid;
+    MemoryPointer target_ptr;
+    if (ZEND_NUM_ARGS() == 3) {
+        sub_noaxis(&ptr, &target_ptr, (int)x, (int) y);
+    }
+    if (ZEND_NUM_ARGS() == 4) {
+        sub_axis(&ptr, &target_ptr, (int)x, (int)y, (int)axis);
+    }
+    object_init_ex(return_value, phpsci_sc_entry);
+    set_obj_uuid(return_value, target_ptr.uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, 0);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
+}
 PHP_METHOD(CArray, matmul)
 {
     long a_uuid, a_rows, a_cols, b_uuid, b_rows, b_cols;
@@ -311,23 +335,32 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, arange, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, linspace, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, logspace, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   
    // TRANSFORMATIONS SECTION
    PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   
    // PRODUCTS SECTION
    PHP_ME(CArray, matmul, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   
    // CARRAY MEMORY MANAGEMENT SECTION
    PHP_ME(CArray, destroy, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   
    // INITIALIZERS SECTION
    PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, zeros, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   
    // BASIC OPERATIONS
    PHP_ME(CArray, sum, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, sub, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   
    // CONVERT SECTION
    PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, fromArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, toDouble, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   
    // VISUALIZATION
    PHP_ME(CArray, print_r, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   
    // RANDOM SECTION
    PHP_ME(CArray, standard_normal, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }
