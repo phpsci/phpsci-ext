@@ -265,6 +265,30 @@ PHP_METHOD(CArray, sum)
     zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, 0);
     zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
 }
+PHP_METHOD(CArray, sub)
+{
+    long uuid, x, y, axis;
+    ZEND_PARSE_PARAMETERS_START(3, 4)
+        Z_PARAM_LONG(uuid)
+        Z_PARAM_LONG(x)
+        Z_PARAM_LONG(y)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    ptr.uuid = (int)uuid;
+    MemoryPointer target_ptr;
+    if (ZEND_NUM_ARGS() == 3) {
+        sub_noaxis(&ptr, &target_ptr, (int)x, (int) y);
+    }
+    if (ZEND_NUM_ARGS() == 4) {
+        sub_axis(&ptr, &target_ptr, (int)x, (int)y, (int)axis);
+    }
+    object_init_ex(return_value, phpsci_sc_entry);
+    set_obj_uuid(return_value, target_ptr.uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, 0);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
+}
 PHP_METHOD(CArray, matmul)
 {
     long a_uuid, a_rows, a_cols, b_uuid, b_rows, b_cols;
