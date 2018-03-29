@@ -59,7 +59,6 @@ void sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
  */
 void sum_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int axis) {
 
-
 }
 
 void sub_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
@@ -89,4 +88,8 @@ void sub_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
 
         return;
     }
+}
+
+void sub_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int axis) {
+
 }
