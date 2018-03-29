@@ -15,14 +15,10 @@
   | Author: Henrique Borba <henrique.borba.dev@gmail.com>                |
   +----------------------------------------------------------------------+
 */
-#include "../phpsci.h"
-#include "../kernel/carray.h"
-
-#ifndef PHPSCI_EXT_RANGES_H
-#define PHPSCI_EXT_RANGES_H
+#ifndef PHPSCI_EXT_RANDOM_H
+#define PHPSCI_EXT_RANDOM_H
 #include "../kernel/memory_manager.h"
 
-void logspace(MemoryPointer * ptr, float start, float stop, int num, float base);
-void arange(MemoryPointer * new_ptr, float start, float stop, float step, int * width);
-void linspace(MemoryPointer * ptr, float start, float stop, int num);
-#endif //PHPSCI_EXT_RANGES_H
+float _randn (double mu, double sigma);
+void standard_normal(MemoryPointer * ptr, int seed, int x, int y);
+#endif //PHPSCI_EXT_RANDOM_H

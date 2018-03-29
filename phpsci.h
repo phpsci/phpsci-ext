@@ -48,4 +48,7 @@ extern zend_module_entry phpsci_module_entry;
 		zend_throw_exception(phpsci_exception_sc_entry, message, (long)code TSRMLS_CC); \
 		return;
 
+void set_obj_uuid(zval * obj, long uuid);
+void generate_carray_object(zval * rtn, long uuid, long x_rows_width,  long y_cols);
+
 #endif //PHPSCI_EXT_PHPSCI_H

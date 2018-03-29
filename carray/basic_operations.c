@@ -15,14 +15,49 @@
   | Author: Henrique Borba <henrique.borba.dev@gmail.com>                |
   +----------------------------------------------------------------------+
 */
+
+#include "basic_operations.h"
 #include "../phpsci.h"
 #include "../kernel/carray.h"
 
-#ifndef PHPSCI_EXT_RANGES_H
-#define PHPSCI_EXT_RANGES_H
-#include "../kernel/memory_manager.h"
+/**
+ * Sum of CArray elements.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param ptr
+ * @param x
+ * @param y
+ * @param axis
+ */
+void sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
+    int i, j;
+    carray_init0d(target_ptr);
+    CArray rtn_arr = ptr_to_carray(target_ptr);
+    CArray new_arr = ptr_to_carray(ptr);
+    rtn_arr.array0d[0] = 0;
+    if(x > 0 && y > 0) {
+        for(i = 0; i < x; i++) {
+            for(j = 0; j < y; j++) {
+                rtn_arr.array0d[0] += new_arr.array2d[i][j];
+            }
+        }
+    }
+    if(x > 0 && y == 0) {
+        for(i = 0; i < x; i++) {
+            rtn_arr.array0d[0] += new_arr.array1d[i];
+        }
+    }
+}
+/**
+ * Sum of CArray elements over a given axis.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param ptr
+ * @param x
+ * @param y
+ * @param axis
+ */
+void sum_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int axis) {
 
-void logspace(MemoryPointer * ptr, float start, float stop, int num, float base);
-void arange(MemoryPointer * new_ptr, float start, float stop, float step, int * width);
-void linspace(MemoryPointer * ptr, float start, float stop, int num);
-#endif //PHPSCI_EXT_RANGES_H
+
+}

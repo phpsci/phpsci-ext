@@ -1,0 +1,29 @@
+language: php
+sudo: false
+addons:
+  apt:
+    packages:
+      - libopenblas-dev
+      - libopenblas-base
+dist: trusty
+php:
+  - 7.0
+  - 7.1
+  - 7.2
+  - nightly
+
+cache:
+    apt: true
+    ccache: true
+
+
+before_script:
+    - ccache --version
+    - ccache --zero-stats
+    - export USE_CCACHE=1
+
+script:
+    - ./travis/compile.sh
+
+after_success:
+    - ccache --show-stats

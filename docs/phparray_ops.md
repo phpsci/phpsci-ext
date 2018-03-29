@@ -23,4 +23,19 @@ PHP Array.
 
 - `array` - PHP Array with same shape em values of target CArray
 
+---
 
+### toDouble
+
+```php
+public static function toArray(int $uuid);
+```
+Convert CArray (0D only) to double.
+
+##### Parameters
+
+- `int` $uuid - Memory Pointer of target CArray
+
+##### Return
+
+- `double` - Double representation of CArray 0D

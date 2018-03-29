@@ -1,4 +1,5 @@
 # PHPSci CArray Extension
+[![Build Status](https://travis-ci.org/phpsci/phpsci-ext.svg?branch=master)](https://travis-ci.org/phpsci/phpsci-ext)
 [![Documentation Status](https://readthedocs.org/projects/php-learn/badge/?version=latest)](http://php-learn.readthedocs.io/en/latest/?badge=latest)
 
 This is the extension used by [PHPSci](https://www.github.com/phpsci/phpsci). 
@@ -26,19 +27,8 @@ Clone the repository, `cd` to the source folder and:
 ```commandline
 $ phpize
 $ ./configure
-```
-Change the `CFLAGS` within Makefile from
-```cmake
-CFLAGS = -g -O0
-```
-to
-```cmake
-CFLAGS = -g -O0 -lopenblas
-```
-
-```commandline
-$ make clean
-$ make
+$ make CFLAGS=-lopenblas
+$ make test
 $ make install
 ```
 > Don't forget to check if the extension is enabled in your php.ini file.
@@ -58,13 +48,17 @@ print_r($a);
 print_r($b);
 ```
 ```php
-stdClass Object
+CArray Object
 (
     [uuid] => 0
+    [x] => 2
+    [y] => 2
 )
-stdClass Object
+CArray Object
 (
     [uuid] => 1
+    [x] => 4
+    [y] => 4
 )
 ```
 It sounds strange, but calm down! You will not be able to view your array using
@@ -193,7 +187,7 @@ A buffer called `MemoryStack` handles all CArrays storage within your PC memory:
                                                    ...
 ```
 CArray talks with PHP frontend using only the `MemoryPointer` object, it's the
-`stdClass` you see returned during use and contains the `uuid` property with
+`CArray Object` you see returned during use and contains the `uuid` property with
 the position of your `CArray` inside the `MemoryStack`
 
 So, when you do operations like `transpose`, the operation itself is only performed

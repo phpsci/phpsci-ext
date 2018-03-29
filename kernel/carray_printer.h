@@ -15,14 +15,16 @@
   | Author: Henrique Borba <henrique.borba.dev@gmail.com>                |
   +----------------------------------------------------------------------+
 */
-#include "../phpsci.h"
-#include "../kernel/carray.h"
 
-#ifndef PHPSCI_EXT_RANGES_H
-#define PHPSCI_EXT_RANGES_H
-#include "../kernel/memory_manager.h"
+#ifndef PHPSCI_EXT_CARRAY_PRINTER_H
+#define PHPSCI_EXT_CARRAY_PRINTER_H
 
-void logspace(MemoryPointer * ptr, float start, float stop, int num, float base);
-void arange(MemoryPointer * new_ptr, float start, float stop, float step, int * width);
-void linspace(MemoryPointer * ptr, float start, float stop, int num);
-#endif //PHPSCI_EXT_RANGES_H
+#include "carray.h"
+
+void print_carray(MemoryPointer * ptr, int x, int y);
+void print0d(CArray target);
+void print1d(CArray target, int x);
+void print2d(CArray target, int x, int y);
+
+
+#endif //PHPSCI_EXT_CARRAY_PRINTER_H

@@ -80,16 +80,7 @@ void add_to_stack(MemoryPointer * ptr, struct CArray array, size_t size) {
     if((PHPSCI_MAIN_MEM_STACK.size+1) > PHPSCI_MAIN_MEM_STACK.capacity) {
         buffer_to_capacity((PHPSCI_MAIN_MEM_STACK.capacity+1),size);
     }
-    // Copy CArray to the MemoryStack Buffer, check if there are preallocated CArray pointers empty
-    if(array.array0d != NULL) {
-        PHPSCI_MAIN_MEM_STACK.buffer[PHPSCI_MAIN_MEM_STACK.size].array0d = array.array0d;
-    }
-    if(array.array1d != NULL) {
-        PHPSCI_MAIN_MEM_STACK.buffer[PHPSCI_MAIN_MEM_STACK.size].array1d = array.array1d;
-    }
-    if(array.array2d != NULL) {
-        PHPSCI_MAIN_MEM_STACK.buffer[PHPSCI_MAIN_MEM_STACK.size].array2d = array.array2d;
-    }
+    PHPSCI_MAIN_MEM_STACK.buffer[PHPSCI_MAIN_MEM_STACK.size] = array;
 
     // Associate CArray unique id
     ptr->uuid = (int)PHPSCI_MAIN_MEM_STACK.size;

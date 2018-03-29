@@ -18,6 +18,7 @@
 
 #include "initializers.h"
 #include "../phpsci.h"
+#include <math.h>
 
 
 /**
@@ -34,6 +35,9 @@ void identity(CArray * carray, int xy) {
         }
     }
 }
+
+
+
 
 /**
  * Create CArray full of zeros
