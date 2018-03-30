@@ -36,7 +36,7 @@ void arange(MemoryPointer * new_ptr, float start, float stop, float step, int * 
         *width = ceil(((stop-start) / step));
         carray_init1d(*width, new_ptr);
         CArray new_array = ptr_to_carray(new_ptr);
-        for(i = 0; i < *width; i++) {
+        for(i = 0; i < *width; ++i) {
             new_array.array1d[i] = start + (i * step);
         }
     }

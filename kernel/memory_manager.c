@@ -80,6 +80,7 @@ void add_to_stack(MemoryPointer * ptr, struct CArray array, size_t size) {
     if((PHPSCI_MAIN_MEM_STACK.size+1) > PHPSCI_MAIN_MEM_STACK.capacity) {
         buffer_to_capacity((PHPSCI_MAIN_MEM_STACK.capacity+1),size);
     }
+
     PHPSCI_MAIN_MEM_STACK.buffer[PHPSCI_MAIN_MEM_STACK.size] = array;
 
     // Associate CArray unique id
