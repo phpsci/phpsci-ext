@@ -17,6 +17,7 @@ PHP_NEW_EXTENSION(phpsci,
 	  carray/ranges.c \
 	  carray/basic_operations.c \
 	  carray/random.c \
+	  carray/arithmetic.c \
 	  kernel/carray_printer.c \
 	  carray/transformations.c,
 	  $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
