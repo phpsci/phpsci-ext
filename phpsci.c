@@ -27,6 +27,7 @@
 #include "carray/transformations.h"
 #include "carray/random.h"
 #include "carray/ranges.h"
+#include "carray/arithmetic.h"
 #include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
 #include "php.h"
@@ -50,9 +51,7 @@ void set_obj_uuid(zval * obj, long uuid) {
 void generate_carray_object(zval * rtn, long uuid, long x_rows_width,  long y_cols) {
 }
 
-/**
- * PHPSci Constructor
- */
+
 PHP_METHOD(CArray, __construct)
 {
     long uuid, x, y;
@@ -66,12 +65,6 @@ PHP_METHOD(CArray, __construct)
     zend_update_property_long(phpsci_sc_entry, obj, "x", sizeof("x") - 1, x);
     zend_update_property_long(phpsci_sc_entry, obj, "y", sizeof("y") - 1, y);
 }
-
-/**
- *
- * INITIALIZERS SECTION
- *
- */
 PHP_METHOD(CArray, identity)
 {
     long m;
@@ -304,6 +297,42 @@ PHP_METHOD(CArray, arange)
     zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, width);
     zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
 }
+PHP_METHOD(CArray, add)
+{
+    long uuid_a, x_a, y_a, uuid_b, x_b, y_b;
+    int  size_x, size_y;
+    ZEND_PARSE_PARAMETERS_START(6, 6)
+        Z_PARAM_LONG(uuid_a)
+        Z_PARAM_LONG(x_a)
+        Z_PARAM_LONG(y_a)
+        Z_PARAM_LONG(uuid_b)
+        Z_PARAM_LONG(x_b)
+        Z_PARAM_LONG(y_b)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    MemoryPointer ptr_a;
+    MemoryPointer ptr_b;
+    ptr_a.uuid = (int)uuid_a;
+    ptr_b.uuid = (int)uuid_b;
+    add(&ptr_a, (int)x_a, (int)y_a, &ptr_b, (int)x_b, (int)y_b, &ptr, &size_x, &size_y);
+    object_init_ex(return_value, phpsci_sc_entry);
+    set_obj_uuid(return_value, ptr.uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, size_x);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, size_y);
+}
+PHP_METHOD(CArray, fromDouble)
+{
+    double input;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_DOUBLE(input)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    double_to_carray(input, &ptr);
+    object_init_ex(return_value, phpsci_sc_entry);
+    set_obj_uuid(return_value, ptr.uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, 0);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
+}
 
 /**
  * CLASS METHODS
@@ -315,7 +344,10 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, arange, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, linspace, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, logspace, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
-   
+
+   // ARITHMETIC
+   PHP_ME(CArray, add, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+
    // TRANSFORMATIONS SECTION
    PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    
@@ -336,6 +368,7 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, fromArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, toDouble, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, fromDouble, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    
    // VISUALIZATION
    PHP_ME(CArray, print_r, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)

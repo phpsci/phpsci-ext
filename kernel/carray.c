@@ -21,6 +21,24 @@
 #include "memory_manager.h"
 #include "php.h"
 
+
+/**
+ * Get CArray dimensions based on X and Y
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param x
+ * @param y
+ */
+int GET_DIM(int x, int y)
+{
+    if(x == 0 && y == 0)
+        return 0;
+    if(x > 0 && y == 0)
+        return 1;
+    if(x > 0 && y > 0)
+        return 2;
+}
+
 /**
  * Initialize CArray space with (rows, cols), if cols = 0, them CArray is treated
  * as array1d.
@@ -29,7 +47,8 @@
  * @param rows  Number of rows
  * @param cols  Number of columns
  */
-void carray_init(int rows, int cols, MemoryPointer * ptr) {
+void carray_init(int rows, int cols, MemoryPointer * ptr)
+{
     CArray x;
     int j, i;
     x.array2d = (float**)malloc(rows * sizeof(float*));
@@ -48,7 +67,8 @@ void carray_init(int rows, int cols, MemoryPointer * ptr) {
  * @param rows Width
  * @param ptr  MemoryPointer of new CArray
  */
-void carray_init1d(int width, MemoryPointer * ptr) {
+void carray_init1d(int width, MemoryPointer * ptr)
+{
     CArray x;
     int j, i;
     x.array0d = UNINITIALIZED;
@@ -64,7 +84,8 @@ void carray_init1d(int width, MemoryPointer * ptr) {
  * @param rows Width
  * @param ptr  MemoryPointer of new CArray
  */
-void carray_init0d(MemoryPointer * ptr) {
+void carray_init0d(MemoryPointer * ptr)
+{
     CArray x;
     int j, i;
     x.array1d = UNINITIALIZED;
@@ -78,10 +99,12 @@ void carray_init0d(MemoryPointer * ptr) {
 /**
  *  Get CArray from MemoryPointer
  *
+ *  @author Henrique Borba <henrique.borba.dev@gmail.com>
  *  @param ptr      MemoryPointer with target CArray
  *  @return CArray  target CArray
  */
-CArray ptr_to_carray(MemoryPointer * ptr) {
+CArray ptr_to_carray(MemoryPointer * ptr)
+{
     return PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid];
 }
 
@@ -89,11 +112,13 @@ CArray ptr_to_carray(MemoryPointer * ptr) {
  * Destroy target CArray and set last_deleted_uuid for posterior
  * allocation.
  *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param uuid  UUID of CArray to be destroyed
  * @param rows  Number of rows in CArray to be destroyed
  * @param cols  Number os cols in CArray to be destroyed
  */
-void destroy_carray(int uuid, int rows, int cols) {
+void destroy_carray(int uuid, int rows, int cols)
+{
     free(PHPSCI_MAIN_MEM_STACK.buffer[uuid].array2d[0]);
     free(PHPSCI_MAIN_MEM_STACK.buffer[uuid].array2d);
     PHPSCI_MAIN_MEM_STACK.size--;
@@ -101,12 +126,14 @@ void destroy_carray(int uuid, int rows, int cols) {
 }
 
 /**
- *  Create MemoryPointer from ZVAL
+ * Create MemoryPointer from ZVAL
  *
- *  @param arr zval *           PHP Array to convert
- *  @param pt MemoryPointer *   MemoryPointer
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param arr zval *           PHP Array to convert
+ * @param pt MemoryPointer *   MemoryPointer
  */
-void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * cols) {
+void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * cols)
+{
     zval * row, * col;
     CArray temp;
     int i =0, j=0;
@@ -149,10 +176,12 @@ void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * co
 /**
  * Create ZVAL_ARR from CArray
  *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param carray    CArray to convert
  * @param rtn_array Target ZVAL object
  */
-void carray_to_array(CArray carray, zval * rtn_array, int m, int n) {
+void carray_to_array(CArray carray, zval * rtn_array, int m, int n)
+{
     int rows, cols;
     zval inner;
     array_init(rtn_array);
@@ -170,4 +199,18 @@ void carray_to_array(CArray carray, zval * rtn_array, int m, int n) {
             add_next_index_double(rtn_array, (float)carray.array1d[rows]);
         }
     }
+}
+
+/**
+ * Create CArray from Double
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param carray
+ * @param rtn_array
+ */
+void double_to_carray(double input, MemoryPointer * rtn_ptr)
+{
+    carray_init0d(rtn_ptr);
+    CArray rtn_arr = ptr_to_carray(rtn_ptr);
+    rtn_arr.array0d[0] = input;
 }

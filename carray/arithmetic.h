@@ -16,39 +16,14 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_CARRAY_H
-#define PHPSCI_EXT_CARRAY_H
-#include "../phpsci.h"
+#ifndef PHPSCI_EXT_ARITHMETIC_H
+#define PHPSCI_EXT_ARITHMETIC_H
 
+#include "../kernel/memory_manager.h"
 
+void add(MemoryPointer * ptr_a, int x_a, int y_a, MemoryPointer * ptr_b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
+void add_carray_0d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
+void add_carray_1d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
+void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
 
-/**
- * PHPSci internal array structure
- *
- * Currently working with shaped 2D, 1D and 0D.
- */
-typedef struct CArray {
-    float **  array2d;
-    float *   array1d;
-    float *   array0d;
-} CArray;
-
-/**
- * The only thing between PHP and the extension
- */
-typedef struct MemoryPointer {
-    int uuid;
-} MemoryPointer;
-
-int GET_DIM(int x, int y);
-void carray_init(int rows, int cols, MemoryPointer * ptr);
-void carray_init1d(int width, MemoryPointer * ptr);
-void carray_init0d(MemoryPointer * ptr);
-void destroy_carray(int uuid, int rows, int cols);
-
-void array_to_carray_ptr(MemoryPointer * ptr, zval * inarray, int * rows, int * cols);
-CArray ptr_to_carray(MemoryPointer * ptr);
-
-void carray_to_array(CArray carray, zval * rtn_array, int m, int n);
-
-#endif //PHPSCI_EXT_CARRAY_H
+#endif //PHPSCI_EXT_ARITHMETIC_H
