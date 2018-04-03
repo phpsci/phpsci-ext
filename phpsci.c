@@ -414,16 +414,6 @@ static PHP_MINFO_FUNCTION(phpsci)
  */
 static PHP_MSHUTDOWN_FUNCTION(phpsci)
 {
-    int i;
-    for(i = 0; i < PHPSCI_MAIN_MEM_STACK.size; i++) {
-        if(PHPSCI_MAIN_MEM_STACK.buffer[i].array1d != UNINITIALIZED) {
-            free(PHPSCI_MAIN_MEM_STACK.buffer[i].array1d);
-        }
-        if(PHPSCI_MAIN_MEM_STACK.buffer[i].array2d != UNINITIALIZED) {
-            free(PHPSCI_MAIN_MEM_STACK.buffer[i].array2d[0]);
-            free(PHPSCI_MAIN_MEM_STACK.buffer[i].array2d);
-        }
-    }
     UNREGISTER_INI_ENTRIES();
     return SUCCESS;
 }

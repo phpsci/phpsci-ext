@@ -51,9 +51,9 @@ void carray_init(int rows, int cols, MemoryPointer * ptr)
 {
     CArray x;
     int j, i;
-    x.array2d = (float**)malloc(rows * sizeof(float*));
+    x.array2d = (float**)safe_emalloc(rows, sizeof(float*), 0);
     for (i = 0; i < rows; ++i)
-        x.array2d[i] = (float*)malloc(cols * sizeof(float));
+        x.array2d[i] = (float*)safe_emalloc(cols, sizeof(float), 0);
     x.array1d = UNINITIALIZED;
     x.array0d = UNINITIALIZED;
     add_to_stack(ptr, x,(rows * cols * sizeof(float)));
@@ -73,7 +73,7 @@ void carray_init1d(int width, MemoryPointer * ptr)
     int j, i;
     x.array0d = UNINITIALIZED;
     x.array2d = UNINITIALIZED;
-    x.array1d = (float*)malloc(width * sizeof(float) + 64);
+    x.array1d = (float*)safe_emalloc(width, sizeof(float), 0);
     add_to_stack(ptr, x,(width * sizeof(float)) + 64);
 }
 
@@ -90,7 +90,7 @@ void carray_init0d(MemoryPointer * ptr)
     int j, i;
     x.array1d = UNINITIALIZED;
     x.array2d = UNINITIALIZED;
-    x.array0d = (float*)malloc(sizeof(float) + 64);
+    x.array0d = (float*)safe_emalloc(1, sizeof(float), 0);
     add_to_stack(ptr, x,sizeof(float) + 64);
 }
 
