@@ -51,9 +51,9 @@ void carray_init(int rows, int cols, MemoryPointer * ptr)
 {
     CArray x;
     int j, i;
-    x.array2d = (float**)safe_emalloc(rows, sizeof(float*), 0);
+    x.array2d = (float**)malloc(rows * sizeof(float*));
     for (i = 0; i < rows; ++i)
-        x.array2d[i] = (float*)safe_emalloc(cols, sizeof(float), 0);
+        x.array2d[i] = (float*)malloc(cols * sizeof(float));
     x.array1d = UNINITIALIZED;
     x.array0d = UNINITIALIZED;
     add_to_stack(ptr, x,(rows * cols * sizeof(float)));
@@ -73,7 +73,7 @@ void carray_init1d(int width, MemoryPointer * ptr)
     int j, i;
     x.array0d = UNINITIALIZED;
     x.array2d = UNINITIALIZED;
-    x.array1d = (float*)safe_emalloc(width, sizeof(float), 0);
+    x.array1d = (float*)malloc(width * sizeof(float) + 64);
     add_to_stack(ptr, x,(width * sizeof(float)) + 64);
 }
 
@@ -90,7 +90,7 @@ void carray_init0d(MemoryPointer * ptr)
     int j, i;
     x.array1d = UNINITIALIZED;
     x.array2d = UNINITIALIZED;
-    x.array0d = (float*)safe_emalloc(1, sizeof(float), 0);
+    x.array0d = (float*)malloc(sizeof(float) + 64);
     add_to_stack(ptr, x,sizeof(float) + 64);
 }
 
@@ -157,17 +157,17 @@ void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * co
     } ZEND_HASH_FOREACH_END();
     ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(array), row) {
         ZVAL_DEREF(row);
-            if (Z_TYPE_P(row) == IS_ARRAY) {
-                ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(row), col) {
-                    convert_to_double(col);
-                    temp.array2d[i][j] = (float)Z_DVAL_P(col);
-                    ++j;
-                } ZEND_HASH_FOREACH_END();
-            } else {
-                convert_to_double(row);
-                temp.array1d[i] = (float)Z_DVAL_P(row);
-            }
-            j = 0;
+        if (Z_TYPE_P(row) == IS_ARRAY) {
+            ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(row), col) {
+                convert_to_double(col);
+                temp.array2d[i][j] = (float)Z_DVAL_P(col);
+                ++j;
+            } ZEND_HASH_FOREACH_END();
+        } else {
+            convert_to_double(row);
+            temp.array1d[i] = (float)Z_DVAL_P(row);
+        }
+        j = 0;
         ++i;
     } ZEND_HASH_FOREACH_END();
 }
