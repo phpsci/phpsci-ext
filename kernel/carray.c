@@ -142,12 +142,13 @@ void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * co
     ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(array), row) {
         ZVAL_DEREF(row);
         if (Z_TYPE_P(row) == IS_ARRAY) {
+            *cols = zend_hash_num_elements(Z_ARRVAL_P(row));
             if (ptr->uuid == NULL) {
                 carray_init(*rows, *cols, ptr);
                 temp = ptr_to_carray(ptr);
             }
             convert_to_array(row);
-            *cols = zend_hash_num_elements(Z_ARRVAL_P(row));
+
         } else  {
             if (ptr->uuid == NULL) {
                 carray_init1d(*rows, ptr);
