@@ -261,7 +261,27 @@ PHP_METHOD(CArray, sum)
     zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, size_x);
     zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, size_y);
 }
-
+PHP_METHOD(CArray, inner)
+{
+    long a_uuid, a_x, a_y, b_uuid, b_x, b_y;
+    MemoryPointer a_ptr, b_ptr, rtn_ptr;
+    int rtn_x = 0, rtn_y = 0;
+    ZEND_PARSE_PARAMETERS_START(6, 6)
+        Z_PARAM_LONG(a_uuid)
+        Z_PARAM_LONG(a_x)
+        Z_PARAM_LONG(a_y)
+        Z_PARAM_LONG(b_uuid)
+        Z_PARAM_LONG(b_x)
+        Z_PARAM_LONG(b_y)
+    ZEND_PARSE_PARAMETERS_END();
+    a_ptr.uuid = (int)a_uuid;
+    b_ptr.uuid = (int)b_uuid;
+    inner(&rtn_x, &rtn_y, &rtn_ptr, (int)a_x, (int)a_y, &a_ptr, (int)b_x, (int)b_y, &b_ptr);
+    object_init_ex(return_value, phpsci_sc_entry);
+    set_obj_uuid(return_value, rtn_ptr.uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, rtn_x);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, rtn_y);
+}
 PHP_METHOD(CArray, matmul)
 {
     long a_uuid, a_rows, a_cols, b_uuid, b_rows, b_cols;
@@ -353,6 +373,7 @@ static zend_function_entry phpsci_class_methods[] =
    
    // PRODUCTS SECTION
    PHP_ME(CArray, matmul, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, inner, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    
    // CARRAY MEMORY MANAGEMENT SECTION
    PHP_ME(CArray, destroy, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)

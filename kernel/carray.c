@@ -40,6 +40,42 @@ int GET_DIM(int x, int y)
 }
 
 /**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param x
+ * @param y
+ */
+int IS_0D(int x, int y)
+{
+    if(x == 0 && y == 0)
+        return 1;
+    return 0;
+}
+
+/**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param x
+ * @param y
+ */
+int IS_1D(int x, int y)
+{
+    if(x > 0 && y == 0)
+        return 1;
+    return 0;
+}
+
+/**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param x
+ * @param y
+ */
+int IS_2D(int x, int y)
+{
+    if(x > 0 && y > 0)
+        return 1;
+    return 0;
+}
+
+/**
  * Initialize CArray space with (rows, cols), if cols = 0, them CArray is treated
  * as array1d.
  *

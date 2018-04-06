@@ -41,6 +41,10 @@ typedef struct MemoryPointer {
 } MemoryPointer;
 
 int GET_DIM(int x, int y);
+int IS_0D(int x, int y);
+int IS_1D(int x, int y);
+int IS_2D(int x, int y);
+
 void carray_init(int rows, int cols, MemoryPointer * ptr);
 void carray_init1d(int width, MemoryPointer * ptr);
 void carray_init0d(MemoryPointer * ptr);

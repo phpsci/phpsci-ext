@@ -24,6 +24,66 @@
 
 
 /**
+ * Inner product of matrices
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param ptr
+ * @param a
+ * @param b
+ */
+void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPointer * a_ptr, int x_b, int y_b, MemoryPointer * b_ptr)
+{
+    int i, j;
+    CArray a = ptr_to_carray(a_ptr);
+    CArray b = ptr_to_carray(b_ptr);
+
+    if (IS_1D(x_a, y_a) && IS_1D(x_b, y_b)) {
+        carray_init0d(ptr);
+        CArray rtn_arr = ptr_to_carray(ptr);
+        rtn_arr.array0d[0] = 0;
+        for(i = 0; i < x_a; i++) {
+            rtn_arr.array0d[0] += a.array1d[i] * b.array1d[i];
+        }
+        return;
+    }
+    if (IS_1D(x_a, y_a) && IS_0D(x_b, y_b)) {
+        carray_init1d(x_a,  ptr);
+        CArray rtn_arr = ptr_to_carray(ptr);
+        for(i = 0; i < x_a; i++) {
+            rtn_arr.array0d[i] = a.array1d[i] * b.array1d[i];
+        }
+        *rtn_x = x_a;
+        return;
+    }
+    if (IS_2D(x_a, y_a) && IS_2D(x_b, y_b)) {
+        carray_init(x_a, y_a, ptr);
+        CArray rtn_arr = ptr_to_carray(ptr);
+        for(i = 0; i < x_a; i++) {
+            for(j = 0; j < y_a; j++) {
+                rtn_arr.array2d[i][j] = a.array2d[i][j] * b.array2d[i][j];
+            }
+        }
+        *rtn_x = x_a;
+        *rtn_y = y_a;
+        return;
+    }
+    if (IS_2D(x_a, y_a) && IS_0D(x_b, y_b)) {
+        carray_init(x_a, y_a, ptr);
+        CArray rtn_arr = ptr_to_carray(ptr);
+        for(i = 0; i < x_a; i++) {
+            for(j = 0; j < y_a; j++) {
+                rtn_arr.array2d[i][j] = a.array2d[i][j] * b.array0d[0];
+            }
+        }
+        *rtn_x = x_a;
+        *rtn_y = y_a;
+        return;
+    }
+}
+
+
+
+/**
  * Matrix product of two arrays.
  *
  * If both CArrays are 2-D they are multiplied like conventional matrices.
