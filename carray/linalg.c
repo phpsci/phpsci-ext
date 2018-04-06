@@ -44,7 +44,7 @@ void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, Memo
         for(i = 0; i < x_a; i++) {
             rtn_arr.array0d[0] += a.array1d[i] * b.array1d[i];
         }
-        *rtn_x = x_a;
+        *rtn_x = 0;
         return;
     }
     if (IS_1D(x_a, y_a) && IS_0D(x_b, y_b)) {
