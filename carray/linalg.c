@@ -33,7 +33,7 @@
  */
 void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPointer * a_ptr, int x_b, int y_b, MemoryPointer * b_ptr)
 {
-    int i, j;
+    int i, j, k;
     CArray a = ptr_to_carray(a_ptr);
     CArray b = ptr_to_carray(b_ptr);
 
@@ -56,22 +56,25 @@ void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, Memo
         return;
     }
     if (IS_2D(x_a, y_a) && IS_2D(x_b, y_b)) {
-        carray_init(x_a, y_a, ptr);
+        carray_init(x_a, x_a, ptr);
         CArray rtn_arr = ptr_to_carray(ptr);
         for(i = 0; i < x_a; i++) {
-            for(j = 0; j < y_a; j++) {
-                rtn_arr.array2d[i][j] = a.array2d[i][j] * b.array2d[i][j];
+            for(j = 0; j < x_a; j++) {
+                rtn_arr.array2d[i][j] = 0;
+                for(k = 0; k < y_b; k++) {
+                    rtn_arr.array2d[i][j] += a.array2d[i][k] * b.array2d[j][k];
+                }
             }
         }
         *rtn_x = x_a;
-        *rtn_y = y_a;
+        *rtn_y = x_a;
         return;
     }
     if (IS_2D(x_a, y_a) && IS_0D(x_b, y_b)) {
         carray_init(x_a, y_a, ptr);
         CArray rtn_arr = ptr_to_carray(ptr);
         for(i = 0; i < x_a; i++) {
-            for(j = 0; j < y_a; j++) {
+            for(j = 0; j < x_a; j++) {
                 rtn_arr.array2d[i][j] = a.array2d[i][j] * b.array0d[0];
             }
         }
