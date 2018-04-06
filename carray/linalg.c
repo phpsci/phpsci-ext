@@ -44,13 +44,14 @@ void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, Memo
         for(i = 0; i < x_a; i++) {
             rtn_arr.array0d[0] += a.array1d[i] * b.array1d[i];
         }
+        *rtn_x = x_a;
         return;
     }
     if (IS_1D(x_a, y_a) && IS_0D(x_b, y_b)) {
         carray_init1d(x_a,  ptr);
         CArray rtn_arr = ptr_to_carray(ptr);
         for(i = 0; i < x_a; i++) {
-            rtn_arr.array0d[i] = a.array1d[i] * b.array1d[i];
+            rtn_arr.array1d[i] = a.array1d[i] * b.array0d[0];
         }
         *rtn_x = x_a;
         return;
@@ -74,7 +75,7 @@ void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, Memo
         carray_init(x_a, y_a, ptr);
         CArray rtn_arr = ptr_to_carray(ptr);
         for(i = 0; i < x_a; i++) {
-            for(j = 0; j < x_a; j++) {
+            for(j = 0; j < y_a; j++) {
                 rtn_arr.array2d[i][j] = a.array2d[i][j] * b.array0d[0];
             }
         }
