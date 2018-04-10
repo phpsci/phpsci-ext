@@ -103,7 +103,7 @@ to create a CArray from PHP Array:
 
 ```php
 $a = CArray::fromArray([[0,1],[2,3]]);
-print_r(CArray::toArray($a);
+print_r(CArray::toArray($a));
 ```
 ```php
 Array
