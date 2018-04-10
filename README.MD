@@ -27,7 +27,6 @@ Clone the repository, `cd` to the source folder and:
 ```commandline
 $ phpize
 $ ./configure
-$ make CFLAGS=-lopenblas
 $ make test
 $ make install
 ```

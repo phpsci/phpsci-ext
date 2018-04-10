@@ -7,6 +7,17 @@ if test "$PHP_PHPSCI" != "no"; then
 
 PHP_ADD_INCLUDE(/opt/OpenBLAS/include/)
 
+PHP_CHECK_LIBRARY(openblas,cblas_sdot,
+[
+  PHP_ADD_LIBRARY(openblas)
+],[
+  AC_MSG_ERROR([wrong openblas version or library not found])
+],[
+  -lopenblas
+])
+
+CFLAGS="$CFLAGS -lopenblas"
+
 PHP_NEW_EXTENSION(phpsci,
 	  phpsci.c \
 	  kernel/carray.c \

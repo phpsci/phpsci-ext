@@ -1,11 +1,11 @@
 language: php
 sudo: false
+
 addons:
   apt:
     packages:
       - libopenblas-dev
-      - libopenblas-base
-dist: trusty
+
 php:
   - 7.0
   - 7.1
@@ -13,17 +13,21 @@ php:
   - nightly
 
 cache:
-    apt: true
-    ccache: true
-
+  apt: true
+  ccache: true
 
 before_script:
-    - ccache --version
-    - ccache --zero-stats
-    - export USE_CCACHE=1
+  - ccache --version
+  - ccache --zero-stats
+  - export USE_CCACHE=1
+  - phpize
+  - ./configure
+  - make
+  - make install
+  - echo "extension=phpsci.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
-    - ./travis/compile.sh
+  - REPORT_EXIT_STATUS=1 php ./run-tests.php -P -q --show-diff
 
 after_success:
-    - ccache --show-stats
+  - ccache --show-stats
