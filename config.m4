@@ -5,7 +5,6 @@ if test "$PHP_PHPSCI" != "no"; then
   AC_DEFINE([HAVE_PHPSCI],1 ,[whether to enable  PHPSci computing library])
   AC_HEADER_STDC
 
-dnl Check CBLAS.H directory (may differ in Debian and RHEL envs)
 AC_CHECK_HEADERS (
     [/opt/OpenBLAS/include/cblas.h],
     [
