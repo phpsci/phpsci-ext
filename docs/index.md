@@ -27,8 +27,7 @@ Clone the repository, `cd` to the source folder and:
 ```commandline
 $ phpize
 $ ./configure
-$ make CFLAGS=-lopenblas
-$ make
+$ make test
 $ make install
 ```
 > Don't forget to check if the extension is enabled in your php.ini file.

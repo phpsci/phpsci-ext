@@ -3,5 +3,5 @@
 phpize
 ./configure
 make clean
-make CFLAGS=-lopenblas
+make
 make install

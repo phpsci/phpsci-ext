@@ -16,6 +16,8 @@ PHP_CHECK_LIBRARY(openblas,cblas_sdot,
   -lopenblas
 ])
 
+CFLAGS="$CFLAGS -lopenblas"
+
 PHP_NEW_EXTENSION(phpsci,
 	  phpsci.c \
 	  kernel/carray.c \
