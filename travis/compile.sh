@@ -4,4 +4,5 @@ set -e
 phpize
 ./configure
 make clean
-make test
+make
+make install
