@@ -5,7 +5,7 @@ if test "$PHP_PHPSCI" != "no"; then
   AC_DEFINE([HAVE_PHPSCI],1 ,[whether to enable  PHPSci computing library])
   AC_HEADER_STDC
 
-AC_CHECK_HEADERS (
+AC_CHECK_HEADERS(
     [/opt/OpenBLAS/include/cblas.h],
     [
         PHP_ADD_INCLUDE(/opt/OpenBLAS/include/)
@@ -13,7 +13,7 @@ AC_CHECK_HEADERS (
     ,
     [[#include "/opt/OpenBLAS/include/cblas.h"]]
 )
-AC_CHECK_HEADERS (
+AC_CHECK_HEADERS(
     [/usr/include/openblas/cblas.h],
     [
         PHP_ADD_INCLUDE(/usr/include/openblas/)
