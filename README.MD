@@ -194,13 +194,31 @@ with `C` objects and absolutely no PHP arrays are involved in the process.
 
 That's what makes PHPSci so much faster them PHP Arrays.
 
+# Roadmap [0.1]
 
-# Roadmap for version 1.0
-Before release, we need to finish the following:
+## General
+- Instantiate CArray instead of using multiple parameters
 
-1. Implement `sum`, `abs`, `add`, `subtract`, `multiply`,`exp` and `std` operations
-3. Implement `array1d` and `array0d` capabilities (allow 1-D and double operations and return)
-4. Implement `zeros_like`, `ones`, `ones_like`, `linspace`, `eye`, `empty`, `fill` and `arange` initializers
-5. Implement `ravel` and `flatten` transformations
-6. Implement `matrix_power`, `inner`, `outer`, `kron` and `matmul` product operations
-7. Implement `invert` from matrix inversion
+## Manipulation
+- CArray implements IteratorAggregate for iteration.
+- CArray `get` non-static method for data retrieve.
+
+## Transformations
+See: https://docs.scipy.org/doc/numpy/reference/routines.array-manipulation.html
+- **Transpose**: `transpose`
+- **Shape**: `reshape`, `ravel`, `flat`, `flatten`, `atleast_1d`, `atleast_2d`
+
+## Initializers (Matrix Creation)
+See: https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.array-creation.html
+- **Ones & Zeros**: `eye`, `identity`, `ones`, `ones_like`, `zeros`, `zeros_like`, `full`, `full_like`
+- **Native PHP**: `fromArray`
+- **Files**: `fromCSV`, `loadTxt`
+
+## Linear Algebra
+See: https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.linalg.html
+- **Products**: `matmul`, `inner`, `outer`, `dot`
+- **Decompositions**: `svd`
+- **Eigenvalues**: `eig`, `eigvals`
+- **Linear Equations**: `solve`
+- **Inverse**: `lstsq`, `inv`
+- **Others**: `norm`, `cond`, `det` 
