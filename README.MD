@@ -201,7 +201,7 @@ That's what makes PHPSci so much faster them PHP Arrays.
 
 ## Manipulation
 - CArray implements IteratorAggregate for iteration.
-- CArray `get` non-static method for data retrieve.
+- CArray `get` non-static method for data retrieval.
 
 ## Transformations
 See: https://docs.scipy.org/doc/numpy/reference/routines.array-manipulation.html
