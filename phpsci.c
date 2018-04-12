@@ -31,7 +31,7 @@
 #include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
 #include "php.h"
-
+#include "ext/standard/info.h"
 
 /**
  * @author Henrique Borba <henrique.borba.dev>
