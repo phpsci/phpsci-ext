@@ -20,6 +20,7 @@
 #include "../phpsci.h"
 #include "../kernel/carray.h"
 #include "initializers.h"
+#include "zend_exceptions.h"
 
 /**
  * Add arguments element-wise.

@@ -90,8 +90,8 @@ void carray_init(int rows, int cols, MemoryPointer * ptr)
     x.array2d = (float**)malloc(rows * sizeof(float*));
     for (i = 0; i < rows; ++i)
         x.array2d[i] = (float*)malloc(cols * sizeof(float));
-    x.array1d = UNINITIALIZED;
-    x.array0d = UNINITIALIZED;
+    x.array1d = NULL;
+    x.array0d = NULL;
     add_to_stack(ptr, x,(rows * cols * sizeof(float)));
 }
 
@@ -107,8 +107,8 @@ void carray_init1d(int width, MemoryPointer * ptr)
 {
     CArray x;
     int j, i;
-    x.array0d = UNINITIALIZED;
-    x.array2d = UNINITIALIZED;
+    x.array0d = NULL;
+    x.array2d = NULL;
     x.array1d = (float*)malloc(width * sizeof(float) + 64);
     add_to_stack(ptr, x,(width * sizeof(float)) + 64);
 }
@@ -124,8 +124,8 @@ void carray_init0d(MemoryPointer * ptr)
 {
     CArray x;
     int j, i;
-    x.array1d = UNINITIALIZED;
-    x.array2d = UNINITIALIZED;
+    x.array1d = NULL;
+    x.array2d = NULL;
     x.array0d = (float*)malloc(sizeof(float) + 64);
     add_to_stack(ptr, x,sizeof(float) + 64);
 }
@@ -179,14 +179,14 @@ void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * co
         ZVAL_DEREF(row);
         if (Z_TYPE_P(row) == IS_ARRAY) {
             *cols = zend_hash_num_elements(Z_ARRVAL_P(row));
-            if (ptr->uuid == NULL) {
+            if (ptr->uuid == UNINITIALIZED) {
                 carray_init(*rows, *cols, ptr);
                 temp = ptr_to_carray(ptr);
             }
             convert_to_array(row);
 
         } else  {
-            if (ptr->uuid == NULL) {
+            if (ptr->uuid == UNINITIALIZED) {
                 carray_init1d(*rows, ptr);
                 temp = ptr_to_carray(ptr);
             }

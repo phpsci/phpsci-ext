@@ -20,7 +20,7 @@
 #include "transformations.h"
 #include "../kernel/carray.h"
 #include <math.h>
-
+#include "zend_exceptions.h"
 
 /**
  * Return evenly spaced values within a given interval.

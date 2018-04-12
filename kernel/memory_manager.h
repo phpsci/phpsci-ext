@@ -18,7 +18,7 @@
 
 #ifndef PHPSCI_EXT_MEMORY_MANAGER_H
 #define PHPSCI_EXT_MEMORY_MANAGER_H
-#define UNINITIALIZED 0xcdcdcdcd
+#define UNINITIALIZED -1
 
 #include "carray.h"
 

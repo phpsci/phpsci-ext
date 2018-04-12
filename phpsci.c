@@ -31,7 +31,7 @@
 #include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
 #include "php.h"
-
+#include "ext/standard/info.h"
 
 /**
  * @author Henrique Borba <henrique.borba.dev>
@@ -130,7 +130,7 @@ PHP_METHOD(CArray, fromArray)
         Z_PARAM_ARRAY(array)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
-    ptr.uuid = NULL;
+    ptr.uuid = UNINITIALIZED;
     array_to_carray_ptr(&ptr, array, &a_rows, &a_cols);
     object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, ptr.uuid);

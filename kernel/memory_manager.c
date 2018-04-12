@@ -25,7 +25,7 @@
  *
  * CArrays Memory Buffer
  */
-struct MemoryStack PHPSCI_MAIN_MEM_STACK = {UNINITIALIZED,UNINITIALIZED,UNINITIALIZED, UNINITIALIZED};
+struct MemoryStack PHPSCI_MAIN_MEM_STACK = {NULL,UNINITIALIZED,UNINITIALIZED, UNINITIALIZED};
 
 /**
  * Initialize MemoryStack Buffer
@@ -36,7 +36,7 @@ struct MemoryStack PHPSCI_MAIN_MEM_STACK = {UNINITIALIZED,UNINITIALIZED,UNINITIA
 void stack_init(size_t size) {
     PHPSCI_MAIN_MEM_STACK.size = 0;
     PHPSCI_MAIN_MEM_STACK.capacity = 1;
-    PHPSCI_MAIN_MEM_STACK.last_deleted_uuid = NULL;
+    PHPSCI_MAIN_MEM_STACK.last_deleted_uuid = UNINITIALIZED;
     PHPSCI_MAIN_MEM_STACK.bsize = size;
     // Allocate first CArray struct to buffer
     if((PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)malloc(2 * sizeof(struct CArray))) == NULL){
@@ -72,7 +72,7 @@ void buffer_to_capacity(int new_capacity, size_t size) {
  */
 void add_to_stack(MemoryPointer * ptr, struct CArray array, size_t size) {
     // If current MemoryStack buffer is empty, initialize it
-    if(PHPSCI_MAIN_MEM_STACK.buffer == UNINITIALIZED) {
+    if(PHPSCI_MAIN_MEM_STACK.buffer == NULL) {
         stack_init(size);
     }
 
