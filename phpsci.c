@@ -279,7 +279,7 @@ PHP_METHOD(CArray, inner)
 }
 PHP_METHOD(CArray, matmul)
 {
-    long a_uuid, a_rows, a_cols, b_uuid, b_rows, b_cols;
+    long a_uuid, a_rows, a_cols, b_uuid, b_cols;
     MemoryPointer a_ptr, b_ptr, rtn_ptr;
     ZEND_PARSE_PARAMETERS_START(5, 5)
         Z_PARAM_LONG(a_uuid)
@@ -293,8 +293,17 @@ PHP_METHOD(CArray, matmul)
     matmul(&rtn_ptr, (int)a_rows, (int)a_cols, &a_ptr, (int)b_cols, &b_ptr);
     object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, rtn_ptr.uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, a_rows);
-    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, b_cols);
+    // @todo Fix this mess with set_obj_shape();
+    if(a_cols > 0) {
+        zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, a_rows);
+        zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, b_cols);
+        return;
+    }
+    if(a_cols == 0) {
+        zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, a_rows);
+        zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, a_cols);
+        return;
+    }
 }
 PHP_METHOD(CArray, arange)
 {
