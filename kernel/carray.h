@@ -55,4 +55,6 @@ CArray ptr_to_carray(MemoryPointer * ptr);
 
 void carray_to_array(CArray carray, zval * rtn_array, int m, int n);
 
+void double_to_carray(double input, MemoryPointer * rtn_ptr);
+
 #endif //PHPSCI_EXT_CARRAY_H
