@@ -70,12 +70,9 @@ Remember that this may require considerable time depending on the size of your C
 before converting to a PHP Array, and only, if needed of course.
 
 ```php
-$php_array = CArray::toArray($a->uuid, 2, 2);
+$php_array = CArray::toArray($a);
 print_r($php_array);
 ```
-> The `toArray()` static method receive 3 arguments: `public static toArray(int uuid, int rows, int cols);`. **For now, It's your
-job to keep track of your array dimension and sizes. Misuse can cause segment faults.**
-
 ```php
 Array
 (

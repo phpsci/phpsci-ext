@@ -3,7 +3,7 @@ basic test for CArray::fromArray()
 --FILE--
 <?php
 $a = CArray::fromArray([[0, 1], [2, 3]]);
-print_r(CArray::toArray($a->uuid, 2, 2));
+print_r(CArray::toArray($a));
 ?>
 --EXPECT--
 Array

@@ -42,16 +42,6 @@ void set_obj_uuid(zval * obj, long uuid) {
     zend_update_property_long(phpsci_sc_entry, obj, "uuid", sizeof("uuid") - 1, uuid);
 }
 
-/**
- * @author Henrique Borba <henrique.borba.dev>
- * @param rtn
- * @param x_rows_width
- * @param y_cols
- */
-void generate_carray_object(zval * rtn, long uuid, long x_rows_width,  long y_cols) {
-}
-
-
 PHP_METHOD(CArray, __construct)
 {
     long uuid, x, y;
@@ -94,6 +84,8 @@ PHP_METHOD(CArray, zeros)
     zeros(&arr, (int)x, (int)y);
     object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, ptr.uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, x);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, y);
 }
 PHP_METHOD(CArray, standard_normal)
 {
@@ -164,6 +156,8 @@ PHP_METHOD(CArray, transpose)
     transpose(&rtn, &ptr, (int)rows, (int)cols);
     object_init_ex(return_value, phpsci_sc_entry);
     set_obj_uuid(return_value, rtn.uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, cols);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, rows);
 }
 PHP_METHOD(CArray, print_r) {
     long uuid, x, y;
@@ -178,14 +172,15 @@ PHP_METHOD(CArray, print_r) {
 }
 PHP_METHOD(CArray, toArray)
 {
-    long uuid, rows, cols;
-    ZEND_PARSE_PARAMETERS_START(3, 3)
-        Z_PARAM_LONG(uuid)
-        Z_PARAM_LONG(rows)
-        Z_PARAM_LONG(cols)
+    int rows, cols;
+    zval * a, rv;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
-    ptr.uuid = (int)uuid;
+    ptr.uuid = (int)zval_get_long(zend_read_property(phpsci_sc_entry, a, "uuid", sizeof("uuid") - 1, 1, &rv));
+    rows = (int)zval_get_long(zend_read_property(phpsci_sc_entry, a, "x", sizeof("x") - 1, 1, &rv));
+    cols = (int)zval_get_long(zend_read_property(phpsci_sc_entry, a, "y", sizeof("y") - 1, 1, &rv));
     CArray arr = ptr_to_carray(&ptr);
     carray_to_array(arr, return_value, rows, cols);
 }

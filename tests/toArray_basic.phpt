@@ -3,7 +3,7 @@ basic test for CArray::toArray()
 --FILE--
 <?php
 $a = CArray::identity(4);
-$php_array = CArray::toArray($a->uuid, 4, 4);
+$php_array = CArray::toArray($a);
 print_r($php_array);
 ?>
 --EXPECT--

@@ -4,7 +4,7 @@ Use-after-free bug demo for CArray::destroy()
 <?php
 $a = CArray::fromArray([[0,1],[2,3]]);
 CArray::destroy($a->uuid, 2, 2);
-print_r(CArray::toArray($a->uuid, 2, 2));
+print_r(CArray::toArray($a));
 // should print nothing here
 ?>
 --EXPECT--

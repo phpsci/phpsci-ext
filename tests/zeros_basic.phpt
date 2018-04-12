@@ -4,8 +4,8 @@ basic test for CArray::zeros()
 <?php
 $a = CArray::zeros(2, 2);
 $b = CArray::zeros(4, 3);
-print_r(CArray::toArray($a->uuid, 2, 2));
-print_r(CArray::toArray($b->uuid, 4, 3));
+print_r(CArray::toArray($a));
+print_r(CArray::toArray($b));
 ?>
 --EXPECT--
 Array

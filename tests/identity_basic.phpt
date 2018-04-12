@@ -4,8 +4,8 @@ basic test for CArray::identity()
 <?php
 $a = CArray::identity(2);
 $b = CArray::identity(4);
-print_r(CArray::toArray($a->uuid, 2, 2));
-print_r(CArray::toArray($b->uuid, 4, 4));
+print_r(CArray::toArray($a));
+print_r(CArray::toArray($b));
 ?>
 --EXPECT--
 Array

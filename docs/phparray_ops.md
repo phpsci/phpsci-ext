@@ -8,27 +8,24 @@ CArrays.
 ### toArray
 
 ```php
-public static function toArray(int $uuid, int $rows, int $cols);
+public static function toArray(CArray $obj);
 ```
-Convert CArray with shape (`$rows`, `$cols`) to regular
-PHP Array.
+Convert CArray to regular PHP Array.
 
 ##### Parameters
 
-- `int` $uuid - Memory Pointer of target CArray
-- `int` $rows - Number of rows in target CArray
-- `int` $cols - Number of cols in target CArray
+- `CArray` $obj - Target CArray
 
 ##### Return
 
-- `array` - PHP Array with same shape em values of target CArray
+- `array` - PHP Array with same shape and values of target CArray
 
 ---
 
 ### toDouble
 
 ```php
-public static function toArray(int $uuid);
+public static function toDouble(int $uuid);
 ```
 Convert CArray (0D only) to double.
 
