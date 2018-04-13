@@ -326,26 +326,19 @@ PHP_METHOD(CArray, arange)
 }
 PHP_METHOD(CArray, add)
 {
-    long uuid_a, x_a, y_a, uuid_b, x_b, y_b;
+    zval * a, * b;
     int  size_x, size_y;
-    ZEND_PARSE_PARAMETERS_START(6, 6)
-        Z_PARAM_LONG(uuid_a)
-        Z_PARAM_LONG(x_a)
-        Z_PARAM_LONG(y_a)
-        Z_PARAM_LONG(uuid_b)
-        Z_PARAM_LONG(x_b)
-        Z_PARAM_LONG(y_b)
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OBJECT(b)
     ZEND_PARSE_PARAMETERS_END();
-    MemoryPointer ptr;
+    MemoryPointer rtn_ptr;
     MemoryPointer ptr_a;
     MemoryPointer ptr_b;
-    ptr_a.uuid = (int)uuid_a;
-    ptr_b.uuid = (int)uuid_b;
-    add(&ptr_a, (int)x_a, (int)y_a, &ptr_b, (int)x_b, (int)y_b, &ptr, &size_x, &size_y);
-    object_init_ex(return_value, phpsci_sc_entry);
-    set_obj_uuid(return_value, ptr.uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, size_x);
-    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, size_y);
+    OBJ_TO_PTR(a, &ptr_a);
+    OBJ_TO_PTR(b, &ptr_b);
+    add(&ptr_a, (int)ptr_a.x, (int)ptr_a.y, &ptr_b, (int)ptr_b.x, (int)ptr_b.y, &rtn_ptr, &size_x, &size_y);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, size_x, size_y);
 }
 PHP_METHOD(CArray, fromDouble)
 {
