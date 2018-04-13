@@ -59,7 +59,7 @@ PHP_CHECK_LIBRARY(openblas,cblas_sdot,
 
 
 
-CFLAGS="$CFLAGS -lopenblas -llapacke -llapack -lblas"
+CFLAGS="$CFLAGS -lopenblas -llapacke"
 
 PHP_NEW_EXTENSION(phpsci,
 	  phpsci.c \
