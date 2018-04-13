@@ -309,10 +309,7 @@ PHP_METHOD(CArray, arange)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
     arange(&ptr, start, stop, step, &width);
-    object_init_ex(return_value, phpsci_sc_entry);
-    set_obj_uuid(return_value, ptr.uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, width);
-    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
+    RETURN_CARRAY(return_value, ptr.uuid, width, 0);
 }
 PHP_METHOD(CArray, add)
 {

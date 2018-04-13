@@ -1,0 +1,13 @@
+ARG_ENABLE("phpsci", "enable phpsci", "no");
+
+
+if (PHP_PHPSCI != "no") {
+    if (CHECK_LIB("libopenblas.lib", "libopenblas", configure_module_dirname + "\\openblas\\bin") &&
+    CHECK_HEADER_ADD_INCLUDE("cblas.h", "CFLAGS_OPENBLAS", configure_module_dirname + "\\openblas\\include")) {
+        ADD_SOURCES(configure_module_dirname + "/kernel", "carray.c carray_printer.c exceptions.c memory_manager.c");
+        ADD_SOURCES(configure_module_dirname + "/carray", "arithmetic.c basic_operations.c initializers.c linalg.c random.c ranges.c transformations.c");
+        EXTENSION("phpsci", "phpsci.c");
+    } else {
+        WARNING( "OpenBlas not found! " );
+    }
+}
