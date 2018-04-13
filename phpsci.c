@@ -171,15 +171,13 @@ PHP_METHOD(CArray, transpose)
     RETURN_CARRAY(return_value, rtn.uuid, ptr.y, ptr.x);
 }
 PHP_METHOD(CArray, print_r) {
-    long uuid, x, y;
+    zval * a;
     ZEND_PARSE_PARAMETERS_START(3, 3)
-        Z_PARAM_LONG(uuid)
-        Z_PARAM_LONG(x)
-        Z_PARAM_LONG(y)
+        Z_PARAM_OBJECT(a)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
-    ptr.uuid = (int)uuid;
-    print_carray(&ptr, x, y);
+    OBJ_TO_PTR(a, &ptr);
+    print_carray(&ptr, ptr.x, ptr.y);
 }
 PHP_METHOD(CArray, toArray)
 {
