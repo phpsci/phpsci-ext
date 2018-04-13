@@ -6,6 +6,24 @@ if test "$PHP_PHPSCI" != "no"; then
   AC_HEADER_STDC
 
 AC_CHECK_HEADERS(
+    [/opt/OpenBLAS/include/lapacke.h],
+    [
+        PHP_ADD_INCLUDE(/opt/OpenBLAS/include/)
+    ],
+    ,
+    [[#include "/opt/OpenBLAS/include/lapacke.h"]]
+)
+AC_CHECK_HEADERS(
+    [/usr/include/openblas/lapacke.h],
+    [
+        PHP_ADD_INCLUDE(/usr/include/openblas/)
+    ],
+    ,
+    [[#include "/usr/include/openblas/lapacke.h"]]
+)
+
+
+AC_CHECK_HEADERS(
     [/opt/OpenBLAS/include/cblas.h],
     [
         PHP_ADD_INCLUDE(/opt/OpenBLAS/include/)
