@@ -189,11 +189,9 @@ PHP_METHOD(CArray, toArray)
         Z_PARAM_OBJECT(a)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
-    ptr.uuid = (int)zval_get_long(zend_read_property(phpsci_sc_entry, a, "uuid", sizeof("uuid") - 1, 1, &rv));
-    rows = (int)zval_get_long(zend_read_property(phpsci_sc_entry, a, "x", sizeof("x") - 1, 1, &rv));
-    cols = (int)zval_get_long(zend_read_property(phpsci_sc_entry, a, "y", sizeof("y") - 1, 1, &rv));
+    OBJ_TO_PTR(a, &ptr);
     CArray arr = ptr_to_carray(&ptr);
-    carray_to_array(arr, return_value, rows, cols);
+    carray_to_array(arr, return_value, ptr.x, ptr.y);
 }
 PHP_METHOD(CArray, linspace)
 {
