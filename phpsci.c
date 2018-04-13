@@ -318,6 +318,22 @@ PHP_METHOD(CArray, fromDouble)
     double_to_carray(input, &ptr);
     RETURN_CARRAY(return_value, ptr.uuid, 0, 0);
 }
+PHP_METHOD(CArray, inv)
+{
+    zval * a;
+    MemoryPointer ptr_a;
+    MemoryPointer rtn;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    if(ptr_a.x != ptr_a.y) {
+        PHPSCI_THROW("[PHPSci] Target matrix is not square.", 0);
+        return;
+    }
+    inv(&ptr_a, &rtn);
+    RETURN_CARRAY(return_value, rtn.uuid, ptr_a.x, ptr_a.y);
+}
 
 /**
  * CLASS METHODS
@@ -339,6 +355,7 @@ static zend_function_entry phpsci_class_methods[] =
    // PRODUCTS SECTION
    PHP_ME(CArray, matmul, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, inner, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, inv, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    
    // CARRAY MEMORY MANAGEMENT SECTION
    PHP_ME(CArray, destroy, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)

@@ -47,7 +47,7 @@ void sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
     if(x > 0 && y > 0) {
         for(i = 0; i < x; ++i) {
             for(j = 0; j < y; ++j) {
-                rtn_arr.array0d[0] += new_arr.array2d[i][j];
+                rtn_arr.array0d[0] += new_arr.array2d[(j * x) + i];
             }
         }
         
@@ -83,7 +83,7 @@ void sum_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int
         zeros1d(&rtn_arr, y);
         for(i = 0; i < x; ++i) {
             for(j = 0; j < y; ++j) {
-                rtn_arr.array1d[j] += arr.array2d[i][j];
+                rtn_arr.array1d[j] += arr.array2d[(j * x) + i];
             }
         }
         return;
@@ -97,7 +97,7 @@ void sum_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int
         zeros1d(&rtn_arr, y);
         for(i = 0; i < x; ++i) {
             for(j = 0; j < y; ++j) {
-                rtn_arr.array1d[i] += arr.array2d[i][j];
+                rtn_arr.array1d[i] += arr.array2d[(j * x) + i];
             }
         }
         return;

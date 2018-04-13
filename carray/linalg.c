@@ -26,7 +26,42 @@
 #include "transformations.h"
 #include "../kernel/carray.h"
 #include "cblas.h"
+#include "lapacke.h"
 
+
+/**
+ * Compute the (multiplicative) inverse of a matrix.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param m
+ * @param target_ptr
+ * @param rtn_ptr
+ */
+void inv(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr)
+{
+    lapack_int * ipiv = safe_emalloc(target_ptr->x, sizeof(lapack_int), 0);
+    int n = target_ptr->x;
+    lapack_int ret;
+    // Load CArrays
+    CArray target_carray = ptr_to_carray(target_ptr);
+    carray_init(target_ptr->x, target_ptr->y, rtn_ptr);
+    CArray rtn_carray = ptr_to_carray(rtn_ptr);
+    memcpy(rtn_carray.array2d, target_carray.array2d, (target_ptr->x * target_ptr->y * sizeof(float)));
+    // Use LAPACKE to calculate
+
+    ret =  LAPACKE_sgetrf(LAPACK_COL_MAJOR,
+                          (lapack_int) n,
+                          (lapack_int) n,
+                          rtn_carray.array2d,
+                          (lapack_int) n,
+                          ipiv);
+
+    ret = LAPACKE_sgetri(LAPACK_COL_MAJOR,
+                         (lapack_int) n,
+                         rtn_carray.array2d,
+                         (lapack_int) n,
+                         ipiv);
+}
 
 /**
  * Inner product of matrices
@@ -66,9 +101,9 @@ void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, Memo
         CArray rtn_arr = ptr_to_carray(ptr);
         for(i = 0; i < x_a; i++) {
             for(j = 0; j < x_a; j++) {
-                rtn_arr.array2d[i][j] = 0;
+                rtn_arr.array2d[(j * x_a) + i] = 0;
                 for(k = 0; k < y_b; k++) {
-                    rtn_arr.array2d[i][j] += a.array2d[i][k] * b.array2d[j][k];
+                    rtn_arr.array2d[(j * x_a) + i] += a.array2d[(k * x_a) + i] * b.array2d[(k * x_a) + j];
                 }
             }
         }
@@ -81,7 +116,7 @@ void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, Memo
         CArray rtn_arr = ptr_to_carray(ptr);
         for(i = 0; i < x_a; i++) {
             for(j = 0; j < y_a; j++) {
-                rtn_arr.array2d[i][j] = a.array2d[i][j] * b.array0d[0];
+                rtn_arr.array2d[(j * x_a) + i] = a.array2d[(j * x_a) + i] * b.array0d[0];
             }
         }
         *rtn_x = x_a;
@@ -112,23 +147,18 @@ void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_p
     CArray b = ptr_to_carray(b_ptr);
     if(n_b_cols > 0 && n_a_cols > 0) {
         carray_init(n_a_rows, n_b_cols, ptr);
-        transpose(&bT_ptr, b_ptr, n_b_rows, n_b_cols);
-        CArray bT = ptr_to_carray(&bT_ptr);
         CArray rtn = ptr_to_carray(ptr);
-        for (i = 0; i < n_a_rows; ++i) {
-            for (j = 0; j < n_b_cols; ++j) {
-                rtn.array2d[i][j] = cblas_sdot(n_a_cols, a.array2d[i], 1, bT.array2d[j], 1);
-            }
-        }
+        cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n_a_rows, n_b_cols, n_a_cols, 1.0f, a.array2d, n_a_rows, b.array2d, n_b_rows, 0.0f, rtn.array2d, n_a_rows);
         return;
     }
     if(n_b_cols == 0 && n_a_cols > 0) {
         carray_init1d(n_a_rows, ptr);
         CArray rtn = ptr_to_carray(ptr);
+        transpose(&bT_ptr, a_ptr, n_a_cols, n_a_rows);
+        CArray bT = ptr_to_carray(&bT_ptr);
         for (i = 0; i < n_a_rows; ++i) {
-            rtn.array1d[i] = cblas_sdot(n_a_cols, a.array2d[i], 1, b.array1d, 1);
+            rtn.array1d[i] = cblas_sdot(n_a_rows, bT.array2d, 1, b.array1d, 1);
         }
-
         return;
     }
     if(n_b_cols > 0 && n_a_cols == 0) {
@@ -137,7 +167,7 @@ void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_p
         transpose(&bT_ptr, b_ptr, n_a_rows, n_b_cols);
         CArray bT = ptr_to_carray(&bT_ptr);
         for (i = 0; i < n_a_rows; ++i) {
-            rtn.array1d[i] = cblas_sdot(n_a_rows, bT.array2d[i], 1,a.array1d, 1);
+            rtn.array1d[i] = cblas_sdot(n_a_rows, bT.array2d, 1, a.array1d, 1);
         }
         return;
     }

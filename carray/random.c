@@ -49,7 +49,7 @@ void standard_normal(MemoryPointer * ptr, int seed, int x, int y)
         CArray new_arr = ptr_to_carray(ptr);
         for(i = 0; i < x; i++) {
             for(j = 0; j < y; j++)
-                new_arr.array2d[i][j] = _randn(0.f, 1.0f);
+                new_arr.array2d[(j * x) + i] = _randn(0.f, 1.0f);
         }
     }
 }

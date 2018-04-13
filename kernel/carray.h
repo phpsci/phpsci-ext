@@ -33,7 +33,7 @@
  * Currently working with shaped 2D, 1D and 0D.
  */
 typedef struct CArray {
-    float **  array2d;
+    float *   array2d;
     float *   array1d;
     float *   array0d;
 } CArray;

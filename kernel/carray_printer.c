@@ -37,7 +37,7 @@ void print2d(CArray target, int x, int y) {
     for(i = 0; i < x; i++) {
         php_printf("  [");
         for(j = 0; j < y; j++) {
-            php_printf(" %f ", target.array2d[i][j]);
+            php_printf(" %f ", target.array2d[(j * x) + i]);
         }
         php_printf("]\n");
     }

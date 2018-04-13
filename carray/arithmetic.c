@@ -163,7 +163,7 @@ void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
         *size_y = y_a;
         for(i = 0; i < x_a; ++i) {
             for(j = 0; j < y_a; ++j) {
-                rtn_arr.array2d[i][j] = a->array2d[i][j] + b->array0d[0];
+                rtn_arr.array2d[(j * x_a) + i] = a->array2d[(j * x_a) + i] + b->array0d[0];
             }
         }
         return;
@@ -175,7 +175,7 @@ void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
         *size_y = y_a;
         for(i = 0; i < x_a; ++i) {
             for(j = 0; j < y_a; ++j) {
-                rtn_arr.array2d[i][j] = a->array2d[i][j] + b->array1d[j];
+                rtn_arr.array2d[(j * x_a) + i] = a->array2d[(j * x_a) + i] + b->array1d[j];
             }
         }
         return;
@@ -187,7 +187,7 @@ void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
         *size_y = y_a;
         for(i = 0; i < x_a; ++i) {
             for(j = 0; j < y_a; ++j) {
-                rtn_arr.array2d[i][j] = a->array2d[i][j] + b->array2d[i][j];
+                rtn_arr.array2d[(j * x_a) + i] = a->array2d[(j * x_a) + i] + b->array2d[(j * x_a) + i];
             }
         }
         return;
@@ -199,7 +199,7 @@ void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
         *size_y = y_a;
         for(i = 0; i < x_a; ++i) {
             for(j = 0; j < y_a; ++j) {
-                rtn_arr.array2d[i][j] = a->array2d[i][j] + b->array2d[0][j];
+                rtn_arr.array2d[(j * x_a) + i] = a->array2d[(j * x_a) + i] + b->array2d[(j * x_b) + 0];
             }
         }
         return;

@@ -36,7 +36,7 @@ void identity(CArray * carray, int xy) {
     #pragma omp parallel for
     for(i = 0; i < xy; i++) {
         for(j = 0; j < xy; j++) {
-            carray->array2d[i][j] = j == i ? 1.0 : 0.0;
+            carray->array2d[(j * xy) + i] = j == i ? 1.0 : 0.0;
         }
     }
 }
@@ -72,7 +72,7 @@ void zeros2d(CArray * carray, int x, int y) {
     #pragma omp parallel for
     for(i = 0; i < x; i++) {
         for(j = 0; j < y; j++) {
-            carray->array2d[i][j] = 0.0;
+            carray->array2d[(j * x) + i] = 0.0;
         }
     }
 }

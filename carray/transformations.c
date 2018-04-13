@@ -37,7 +37,7 @@ void transpose(MemoryPointer * new_ptr, MemoryPointer * target_ptr, int rows, in
     CArray target_arr = ptr_to_carray(target_ptr);
     for(i = 0; i < rows; i++) {
         for(j = 0; j < cols; j++) {
-            new_arr.array2d[j][i] = target_arr.array2d[i][j];
+            new_arr.array2d[(i * rows) + j] = target_arr.array2d[(j * rows) + i];
         }
     }
 }
