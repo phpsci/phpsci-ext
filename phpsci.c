@@ -172,7 +172,7 @@ PHP_METHOD(CArray, transpose)
 }
 PHP_METHOD(CArray, print_r) {
     zval * a;
-    ZEND_PARSE_PARAMETERS_START(3, 3)
+    ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_OBJECT(a)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
