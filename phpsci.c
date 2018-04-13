@@ -338,10 +338,7 @@ PHP_METHOD(CArray, fromDouble)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
     double_to_carray(input, &ptr);
-    object_init_ex(return_value, phpsci_sc_entry);
-    set_obj_uuid(return_value, ptr.uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, 0);
-    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
+    RETURN_CARRAY(return_value, ptr.uuid, 0, 0);
 }
 
 /**
