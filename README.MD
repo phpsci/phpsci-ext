@@ -194,26 +194,34 @@ That's what makes PHPSci so much faster them PHP Arrays.
 # Roadmap [0.1]
 
 ## General
-- Instantiate CArray instead of using multiple parameters
+- #23  Instantiate CArray instead of using multiple parameters [100%]
+- Use LAPACKE included within OpenBLAS.
 
 ## Manipulation
 - CArray implements IteratorAggregate for iteration.
 - CArray `get` non-static method for data retrieval.
 
+## Math
+- **Arithmetics**: `add [100%]`, `subtract`
+- **Element-wise**: `sum [100%]`, `exp`
+
 ## Transformations
 See: https://docs.scipy.org/doc/numpy/reference/routines.array-manipulation.html
-- **Transpose**: `transpose`
+- **Transpose**: `transpose [100%]`
 - **Shape**: `reshape`, `ravel`, `flat`, `flatten`, `atleast_1d`, `atleast_2d`
 
 ## Initializers (Matrix Creation)
 See: https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.array-creation.html
-- **Ones & Zeros**: `eye`, `identity`, `ones`, `ones_like`, `zeros`, `zeros_like`, `full`, `full_like`
-- **Native PHP**: `fromArray`
+- **Ones & Zeros**: `eye`, `identity [100%]`, `ones`, `ones_like`, `zeros [100%]`, `zeros_like`, `full`, `full_like`
+- **Native PHP**: `fromArray [100%]`
 - **Files**: `fromCSV`, `loadTxt`
+- **Ranges**: `arange [100%]`, `linspace [100%]`, `logspace [100%]`
+- **Randoms**: `randn`, `randint`, `rand`, `random`
+- **Distributions**: `standard_normal [100%]`
 
 ## Linear Algebra
 See: https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.linalg.html
-- **Products**: `matmul`, `inner`, `outer`, `dot`
+- **Products**: `matmul [100%]`, `inner [100%]`, `outer`, `dot`
 - **Decompositions**: `svd`
 - **Eigenvalues**: `eig`, `eigvals`
 - **Linear Equations**: `solve`
