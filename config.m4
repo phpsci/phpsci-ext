@@ -21,6 +21,14 @@ AC_CHECK_HEADERS(
     ,
     [[#include "/usr/include/openblas/lapacke.h"]]
 )
+AC_CHECK_HEADERS(
+    [/usr/include/lapacke.h],
+    [
+        PHP_ADD_INCLUDE(/usr/include/)
+    ],
+    ,
+    [[#include "/usr/include/lapacke.h"]]
+)
 
 
 AC_CHECK_HEADERS(
@@ -48,6 +56,8 @@ PHP_CHECK_LIBRARY(openblas,cblas_sdot,
 ],[
   -lopenblas
 ])
+
+
 
 CFLAGS="$CFLAGS -lopenblas"
 
