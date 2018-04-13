@@ -68,11 +68,9 @@ Remember that this may require considerable time depending on the size of your C
 before converting to a PHP Array, and only, if needed of course.
 
 ```php
-$php_array = CArray::toArray($a->uuid, 2, 2);
+$php_array = CArray::toArray($a);
 print_r($php_array);
 ```
-> The `toArray()` static method receive 3 arguments: `public static toArray(int uuid, int rows, int cols);`. **For now, It's your
-job to keep track of your array dimension and sizes. Misuse can cause segment faults.**
 
 ```php
 Array
@@ -124,8 +122,8 @@ Array
 Let's tranpose the CArray (matrix) we created above:
 
 ```php
-$c = CArray::transpose($a->uuid, 2,2);
-print_r(CArray::toArray($c->uuid,2,2));
+$c = CArray::transpose($a);
+print_r(CArray::toArray($c));
 ```
 ```php
 Array
@@ -150,9 +148,9 @@ After we are done with some CArrays or temporary ones, it's good to
 destroy them by calling the `destroy()` static method.
 
 ```php
-CArray::destroy($a->uuid);
-CArray::destroy($b->uuid);
-CArray::destroy($c->uuid);
+CArray::destroy($a);
+CArray::destroy($b);
+CArray::destroy($c);
 ```
 
 > In small cases, this may not cause trouble, but in larger scales if you

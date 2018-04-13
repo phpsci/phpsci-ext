@@ -5,22 +5,19 @@
 ### transpose
 
 ```php
-public static function transpose(int $uuid, int $rows, int $cols);
+public static function transpose(int $a);
 ```
-Transpose target CArray with shape (`$rows`, `$cols`) and returns
-it new `MemoryPointer`
+Transpose target CArray and returns it new `MemoryPointer`
 
 > Remember it returns a NEW position in memory (read you need to destroy the old CArray).
 
 ##### Parameters
 
-- `int` $uuid - Memory Pointer of target CArray
-- `int` $rows - Number of rows in target CArray
-- `int` $cols - Number of cols in target CArray
+- `CArray` $a - target CArray
 
 ##### Return
 
-- `stdClass` - MemoryPointer of new transposed target array
+- `CArray` - MemoryPointer of new transposed target array
 
 
 ---
@@ -29,16 +26,13 @@ it new `MemoryPointer`
 ### toArray
 
 ```php
-public static function toArray(int $uuid, int $rows, int $cols);
+public static function toArray($a);
 ```
-Convert CArray with shape (`$rows`, `$cols`) to regular
-PHP Array.
+Convert CArray to regular PHP Array.
 
 ##### Parameters
 
-- `int` $uuid - Memory Pointer of target CArray
-- `int` $rows - Number of rows in target CArray
-- `int` $cols - Number of cols in target CArray
+- `CArray` $a - target CArray
 
 ##### Return
 

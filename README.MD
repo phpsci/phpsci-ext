@@ -124,8 +124,8 @@ Array
 Let's tranpose the CArray (matrix) we created above:
 
 ```php
-$c = CArray::transpose($a->uuid, 2,2);
-print_r(CArray::toArray($c->uuid,2,2));
+$c = CArray::transpose($a);
+print_r(CArray::toArray($c));
 ```
 ```php
 Array
@@ -149,9 +149,9 @@ After we are done with some CArrays or temporary ones, it's good to
 destroy them by calling the `destroy()` static method.
 
 ```php
-CArray::destroy($a->uuid);
-CArray::destroy($b->uuid);
-CArray::destroy($c->uuid);
+CArray::destroy($a);
+CArray::destroy($b);
+CArray::destroy($);
 ```
 
 > In small cases, this may not cause trouble, but in larger scales if you

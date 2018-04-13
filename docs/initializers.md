@@ -17,7 +17,7 @@ Return `MemoryPointer` of the converted PHP Array.
 
 ##### Return
 
-- `stdClass` - MemoryPointer of new converted `CArray` from target `array`
+- `CArray` - MemoryPointer of new converted `CArray` from target `array`
 
 ---
 
@@ -34,7 +34,7 @@ Return `MemoryPointer` of the identity matrix with size `$size`
 
 ##### Return
 
-- `stdClass` - MemoryPointer with identity CArray memory location
+- `CArray` - MemoryPointer with identity CArray memory location
 
 ---
 
@@ -51,6 +51,6 @@ Return `MemoryPointer` of the a CArray full of zeros with shape ($rows, $cols)
 - `int` $cols - Number of columns of target CArray
 ###### Return
 
-- `stdClass` - MemoryPointer with CArray full of zeros
+- `CArray` - MemoryPointer with CArray full of zeros
 
 ---

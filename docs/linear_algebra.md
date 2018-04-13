@@ -4,7 +4,7 @@
 
 ### matmul
 ```php
-public static function matmul(int $a_uuid, int $a_rows, int $a_cols, int $b_uuid, int $b_cols);
+public static function matmul(CArrat $a, CArray $b);
 ```
 Matrix product of two CArrays.
 
@@ -13,14 +13,11 @@ Matrix product of two CArrays.
 - If the second CArray is 1-D, it is promoted to a matrix by appending a 1 to its dimensions. After matrix multiplication the appended 1 is removed.
 ##### Parameters
 
-- `int` $a_uuid - Memory Pointer of CArray A
-- `int` $a_rows - Number of rows in target CArray A
-- `int` $a_cols - Number of cols in target CArray A
-- `int` $b_uuid - Memory Pointer of CArray B
-- `int` $b_cols - Number of cols in target CArray B
+- `CArray` $a_uuid - Array A
+- `CArray` $b_uuid - Array B
 
 ##### Return
 
-- `stdClass` - Returns the dot product of `A` and `B`.
+- `CArray` - Returns the dot product of `A` and `B`.
 
 
