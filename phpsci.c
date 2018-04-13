@@ -327,10 +327,6 @@ PHP_METHOD(CArray, inv)
         Z_PARAM_OBJECT(a)
     ZEND_PARSE_PARAMETERS_END();
     OBJ_TO_PTR(a, &ptr_a);
-    if(ptr_a.x != ptr_a.y) {
-        PHPSCI_THROW("[PHPSci] Target matrix is not square.", 0);
-        return;
-    }
     inv(&ptr_a, &rtn);
     RETURN_CARRAY(return_value, rtn.uuid, ptr_a.x, ptr_a.y);
 }

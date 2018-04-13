@@ -40,26 +40,27 @@
 void inv(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr)
 {
     lapack_int * ipiv = safe_emalloc(target_ptr->x, sizeof(lapack_int), 0);
-    int n = target_ptr->x;
-    lapack_int ret;
+    lapack_int ret, m, n, lda;
     // Load CArrays
     CArray target_carray = ptr_to_carray(target_ptr);
     carray_init(target_ptr->x, target_ptr->y, rtn_ptr);
     CArray rtn_carray = ptr_to_carray(rtn_ptr);
     memcpy(rtn_carray.array2d, target_carray.array2d, (target_ptr->x * target_ptr->y * sizeof(float)));
     // Use LAPACKE to calculate
-
+    m = target_ptr->x;
+    n = target_ptr->y;
+    lda = target_ptr->x;
     ret =  LAPACKE_sgetrf(LAPACK_COL_MAJOR,
-                          (lapack_int) n,
+                          (lapack_int) m,
                           (lapack_int) n,
                           rtn_carray.array2d,
-                          (lapack_int) n,
+                          (lapack_int) lda,
                           ipiv);
 
     ret = LAPACKE_sgetri(LAPACK_COL_MAJOR,
                          (lapack_int) n,
                          rtn_carray.array2d,
-                         (lapack_int) n,
+                         (lapack_int) lda,
                          ipiv);
 }
 

@@ -48,6 +48,14 @@ AC_CHECK_HEADERS(
     [[#include "/usr/include/openblas/cblas.h"]]
 )
 
+PHP_CHECK_LIBRARY(lapacke,LAPACKE_sgetrf,
+[
+  PHP_ADD_LIBRARY(lapacke)
+],[
+  AC_MSG_ERROR([wrong lapacke version or library not found])
+],[
+  -llapacke -llapack -lblas
+])
 PHP_CHECK_LIBRARY(openblas,cblas_sdot,
 [
   PHP_ADD_LIBRARY(openblas)
@@ -59,7 +67,7 @@ PHP_CHECK_LIBRARY(openblas,cblas_sdot,
 
 
 
-CFLAGS="$CFLAGS -lopenblas"
+CFLAGS="$CFLAGS -lopenblas -llapacke -llapack -lblas"
 
 PHP_NEW_EXTENSION(phpsci,
 	  phpsci.c \
