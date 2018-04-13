@@ -3,9 +3,9 @@ basic test for CArray::sum()
 --FILE--
 <?php
 $carray = CArray::fromArray([[0, 1], [0, 5]]);
-$result_y = CArray::sum($carray->uuid, 2, 2, 0);
+$result_y = CArray::sum($carray, 0);
 print_r(CArray::toArray($result_y));
-$result_x = CArray::sum($carray->uuid, 2, 2, 1);
+$result_x = CArray::sum($carray, 1);
 print_r(CArray::toArray($result_x));
 ?>
 --EXPECT--
