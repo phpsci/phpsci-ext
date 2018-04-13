@@ -135,7 +135,16 @@ void carray_init0d(MemoryPointer * ptr)
     add_to_stack(ptr, x,sizeof(float) + 64);
 }
 
-
+/**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ */
+void OBJ_TO_PTR(zval * obj, MemoryPointer * ptr)
+{
+    zval rv;
+    ptr->uuid = (int)zval_get_long(zend_read_property(phpsci_sc_entry, obj, "uuid", sizeof("uuid") - 1, 1, &rv));
+    ptr->x = (int)zval_get_long(zend_read_property(phpsci_sc_entry, obj, "x", sizeof("x") - 1, 1, &rv));
+    ptr->y = (int)zval_get_long(zend_read_property(phpsci_sc_entry, obj, "y", sizeof("y") - 1, 1, &rv));
+}
 
 /**
  *  Get CArray from MemoryPointer
@@ -158,12 +167,12 @@ CArray ptr_to_carray(MemoryPointer * ptr)
  * @param rows  Number of rows in CArray to be destroyed
  * @param cols  Number os cols in CArray to be destroyed
  */
-void destroy_carray(int uuid, int rows, int cols)
+void destroy_carray(MemoryPointer * target_ptr)
 {
-    free(PHPSCI_MAIN_MEM_STACK.buffer[uuid].array2d[0]);
-    free(PHPSCI_MAIN_MEM_STACK.buffer[uuid].array2d);
+    free(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array2d[0]);
+    free(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array2d);
     PHPSCI_MAIN_MEM_STACK.size--;
-    PHPSCI_MAIN_MEM_STACK.last_deleted_uuid = uuid;
+    PHPSCI_MAIN_MEM_STACK.last_deleted_uuid = target_ptr->uuid;
 }
 
 /**

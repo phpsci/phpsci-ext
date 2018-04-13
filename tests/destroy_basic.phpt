@@ -4,12 +4,12 @@ basic test for CArray::destroy()
 <?php
 $a = CArray::fromArray([[100,1],[2,3]]);
 var_dump($a->uuid);
-CArray::destroy($a->uuid, 2, 2);
+CArray::destroy($a);
 var_dump($a->uuid);
 
 $b = CArray::fromArray([[200,1],[2,3]]);
 var_dump($b->uuid);
-CArray::destroy($b->uuid, 2, 2);
+CArray::destroy($b);
 var_dump($b->uuid);
 ?>
 --EXPECT--

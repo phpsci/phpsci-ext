@@ -39,13 +39,27 @@
 #include "ext/standard/info.h"
 
 /**
- * @author Henrique Borba <henrique.borba.dev>
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param obj
  * @param uuid
  */
-void set_obj_uuid(zval * obj, long uuid) {
+void set_obj_uuid(zval * obj, long uuid)
+{
     zend_update_property_long(phpsci_sc_entry, obj, "uuid", sizeof("uuid") - 1, uuid);
 }
+
+/**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ */
+void RETURN_CARRAY(zval * return_value, int uuid, int x, int y)
+{
+    object_init_ex(return_value, phpsci_sc_entry);
+    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, uuid);
+    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, x);
+    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, y);
+}
+
+
 
 PHP_METHOD(CArray, __construct)
 {
@@ -136,33 +150,25 @@ PHP_METHOD(CArray, fromArray)
 }
 PHP_METHOD(CArray, destroy)
 {
-    long uuid, rows, cols;
-    ZEND_PARSE_PARAMETERS_START(3, 3)
-        Z_PARAM_LONG(uuid)
-        Z_PARAM_LONG(rows)
-        Z_PARAM_LONG(cols)
+    zval * obj;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(obj)
     ZEND_PARSE_PARAMETERS_END();
-
-    if(cols > 0 && rows > 0) {
-        destroy_carray((int)uuid, (int) rows, (int) cols);
-    }
+    MemoryPointer target_ptr;
+    OBJ_TO_PTR(obj, &target_ptr);
+    destroy_carray(&target_ptr);
 }
 PHP_METHOD(CArray, transpose)
 {
-    long uuid, rows, cols;
-    ZEND_PARSE_PARAMETERS_START(3, 3)
-        Z_PARAM_LONG(uuid)
-        Z_PARAM_LONG(rows)
-        Z_PARAM_LONG(cols)
+    zval * obj;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(obj)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
     MemoryPointer rtn;
-    ptr.uuid = (int)uuid;
-    transpose(&rtn, &ptr, (int)rows, (int)cols);
-    object_init_ex(return_value, phpsci_sc_entry);
-    set_obj_uuid(return_value, rtn.uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, cols);
-    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, rows);
+    OBJ_TO_PTR(obj, &ptr);
+    transpose(&rtn, &ptr, (int)ptr.x, (int)ptr.y);
+    RETURN_CARRAY(return_value, rtn.uuid, ptr.y, ptr.x);
 }
 PHP_METHOD(CArray, print_r) {
     long uuid, x, y;

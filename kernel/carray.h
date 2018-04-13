@@ -43,6 +43,8 @@ typedef struct CArray {
  */
 typedef struct MemoryPointer {
     int uuid;
+    int x;
+    int y;
 } MemoryPointer;
 
 int GET_DIM(int x, int y);
@@ -50,10 +52,11 @@ int IS_0D(int x, int y);
 int IS_1D(int x, int y);
 int IS_2D(int x, int y);
 
+void OBJ_TO_PTR(zval * obj, MemoryPointer * ptr);
 void carray_init(int rows, int cols, MemoryPointer * ptr);
 void carray_init1d(int width, MemoryPointer * ptr);
 void carray_init0d(MemoryPointer * ptr);
-void destroy_carray(int uuid, int rows, int cols);
+void destroy_carray(MemoryPointer * target_ptr);
 
 void array_to_carray_ptr(MemoryPointer * ptr, zval * inarray, int * rows, int * cols);
 CArray ptr_to_carray(MemoryPointer * ptr);

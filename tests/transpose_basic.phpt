@@ -3,7 +3,7 @@ basic test for CArray::transpose()
 --FILE--
 <?php
 $a = CArray::fromArray([[0,1],[2,3]]);
-$c = CArray::transpose($a->uuid, 2, 2);
+$c = CArray::transpose($a);
 print_r(CArray::toArray($c));
 ?>
 --EXPECT--

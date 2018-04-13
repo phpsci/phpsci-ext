@@ -3,7 +3,7 @@ Use-after-free bug demo for CArray::destroy()
 --FILE--
 <?php
 $a = CArray::fromArray([[0,1],[2,3]]);
-CArray::destroy($a->uuid, 2, 2);
+CArray::destroy($a);
 print_r(CArray::toArray($a));
 // should print nothing here
 ?>
