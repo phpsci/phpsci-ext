@@ -84,10 +84,7 @@ PHP_METHOD(CArray, identity)
     carray_init((int)m, (int)m, &ptr);
     CArray arr = ptr_to_carray(&ptr);
     identity(&arr, (int)m);
-    object_init_ex(return_value, phpsci_sc_entry);
-    set_obj_uuid(return_value, ptr.uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, m);
-    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, m);
+    RETURN_CARRAY(return_value, ptr.uuid, m, m);
 }
 PHP_METHOD(CArray, zeros)
 {
@@ -101,10 +98,7 @@ PHP_METHOD(CArray, zeros)
     carray_init((int)x, (int)y, &ptr);
     CArray arr = ptr_to_carray(&ptr);
     zeros(&arr, (int)x, (int)y);
-    object_init_ex(return_value, phpsci_sc_entry);
-    set_obj_uuid(return_value, ptr.uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, x);
-    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, y);
+    RETURN_CARRAY(return_value, ptr.uuid, x, y);
 }
 PHP_METHOD(CArray, standard_normal)
 {
@@ -143,10 +137,7 @@ PHP_METHOD(CArray, fromArray)
     MemoryPointer ptr;
     ptr.uuid = UNINITIALIZED;
     array_to_carray_ptr(&ptr, array, &a_rows, &a_cols);
-    object_init_ex(return_value, phpsci_sc_entry);
-    set_obj_uuid(return_value, ptr.uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, a_rows);
-    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, a_cols);
+    RETURN_CARRAY(return_value, ptr.uuid, a_rows, a_cols);
 }
 PHP_METHOD(CArray, destroy)
 {
