@@ -19,7 +19,8 @@ It's really easy to compile this extension using Linux environments.
 
 - php-devel (php-dev)
 - PHP 7.x
-- OpenBLAS
+- OpenBLAS (libopenblas-dev)
+- Lapacke (liblapacke-dev)
 
 #### Compiling
 
