@@ -139,12 +139,9 @@ PHP_METHOD(CArray, fromArray)
     array_to_carray_ptr(&ptr, array, &a_rows, &a_cols);
     RETURN_CARRAY(return_value, ptr.uuid, a_rows, a_cols);
 }
-PHP_METHOD(CArray, destroy)
+PHP_METHOD(CArray, __destruct)
 {
-    zval * obj;
-    ZEND_PARSE_PARAMETERS_START(1, 1)
-        Z_PARAM_OBJECT(obj)
-    ZEND_PARSE_PARAMETERS_END();
+    zval * obj = getThis();
     MemoryPointer target_ptr;
     OBJ_TO_PTR(obj, &target_ptr);
     destroy_carray(&target_ptr);
@@ -354,8 +351,8 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, inv, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    
    // CARRAY MEMORY MANAGEMENT SECTION
-   PHP_ME(CArray, destroy, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
-   
+   PHP_ME(CArray, __destruct, NULL, ZEND_ACC_PUBLIC)
+
    // INITIALIZERS SECTION
    PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, zeros, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)

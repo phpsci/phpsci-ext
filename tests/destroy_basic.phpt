@@ -1,19 +1,18 @@
 --TEST--
-basic test for CArray::destroy()
+basic test for CArray::__destruct()
 --FILE--
 <?php
-$a = CArray::fromArray([[100,1],[2,3]]);
-var_dump($a->uuid);
-CArray::destroy($a);
-var_dump($a->uuid);
+function create_scoped()
+{
+    $before = memory_get_usage(true);
+    $a = CArray::identity(1024);
+    var_dump(memory_get_usage(true) - $before == 1 << 22);
+}
 
-$b = CArray::fromArray([[200,1],[2,3]]);
-var_dump($b->uuid);
-CArray::destroy($b);
-var_dump($b->uuid);
-?>
+$before = memory_get_usage(true);
+create_scoped();
+gc_collect_cycles();
+var_dump(memory_get_usage(true) == $before);
 --EXPECT--
-int(0)
-int(0)
-int(0)
-int(0)
+bool(true)
+bool(true)
