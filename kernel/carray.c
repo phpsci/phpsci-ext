@@ -92,7 +92,7 @@ void carray_init(int rows, int cols, MemoryPointer * ptr)
 {
     CArray x;
     int j, i;
-    x.array2d = (float*)malloc(rows * cols * sizeof(float));
+    x.array2d = (float*)emalloc(rows * cols * sizeof(float));
     x.array1d = NULL;
     x.array0d = NULL;
     add_to_stack(ptr, x,(rows * cols * sizeof(float)));
@@ -112,7 +112,7 @@ void carray_init1d(int width, MemoryPointer * ptr)
     int j, i;
     x.array0d = NULL;
     x.array2d = NULL;
-    x.array1d = (float*)malloc(width * sizeof(float) + 64);
+    x.array1d = (float*)emalloc(width * sizeof(float) + 64);
     add_to_stack(ptr, x,(width * sizeof(float)) + 64);
 }
 
@@ -129,7 +129,7 @@ void carray_init0d(MemoryPointer * ptr)
     int j, i;
     x.array1d = NULL;
     x.array2d = NULL;
-    x.array0d = (float*)malloc(sizeof(float) + 64);
+    x.array0d = (float*)emalloc(sizeof(float) + 64);
     add_to_stack(ptr, x,sizeof(float) + 64);
 }
 
@@ -167,7 +167,7 @@ CArray ptr_to_carray(MemoryPointer * ptr)
  */
 void destroy_carray(MemoryPointer * target_ptr)
 {
-    free(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array2d);
+    efree(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array2d);
     PHPSCI_MAIN_MEM_STACK.size--;
     PHPSCI_MAIN_MEM_STACK.last_deleted_uuid = target_ptr->uuid;
 }

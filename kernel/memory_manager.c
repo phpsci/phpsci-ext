@@ -44,9 +44,7 @@ void stack_init(size_t size) {
     PHPSCI_MAIN_MEM_STACK.last_deleted_uuid = UNINITIALIZED;
     PHPSCI_MAIN_MEM_STACK.bsize = size;
     // Allocate first CArray struct to buffer
-    if((PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)malloc(2 * sizeof(struct CArray))) == NULL){
-        php_printf("[MEMORY STACK] MALLOC FAILED\n");
-    }
+    PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)emalloc(2 * sizeof(struct CArray));
 }
 
 /**
@@ -59,10 +57,7 @@ void stack_init(size_t size) {
  */
 void buffer_to_capacity(int new_capacity, size_t size) {
     PHPSCI_MAIN_MEM_STACK.bsize += size;
-    if((PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)realloc(PHPSCI_MAIN_MEM_STACK.buffer, (new_capacity * sizeof(CArray) + sizeof(CArray))))==NULL) {
-        php_printf("[MEMORY STACK] REALLOC FAILED\n");
-    }
-
+    PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)erealloc(PHPSCI_MAIN_MEM_STACK.buffer, (new_capacity * sizeof(CArray) + sizeof(CArray)));
     // Set new capacity to MemoryStack
     PHPSCI_MAIN_MEM_STACK.capacity = new_capacity;
 }
