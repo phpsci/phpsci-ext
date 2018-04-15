@@ -57,7 +57,14 @@ PHP_CHECK_LIBRARY(openblas,cblas_sdot,
   -lopenblas
 ])
 
-
+PHP_CHECK_LIBRARY(lapacke,LAPACKE_sgetrf,
+[
+  PHP_ADD_LIBRARY(lapacke)
+],[
+  AC_MSG_ERROR([wrong lapacke version or library not found])
+],[
+  -llapacke
+])
 
 CFLAGS="$CFLAGS -lopenblas -llapacke"
 
