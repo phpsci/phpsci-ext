@@ -112,8 +112,8 @@ void carray_init1d(int width, MemoryPointer * ptr)
     int j, i;
     x.array0d = NULL;
     x.array2d = NULL;
-    x.array1d = (float*)emalloc(width * sizeof(float) + 64);
-    add_to_stack(ptr, x,(width * sizeof(float)) + 64);
+    x.array1d = (float*)malloc(width * sizeof(float));
+    add_to_stack(ptr, x,(width * sizeof(float)));
 }
 
 /**
@@ -129,8 +129,8 @@ void carray_init0d(MemoryPointer * ptr)
     int j, i;
     x.array1d = NULL;
     x.array2d = NULL;
-    x.array0d = (float*)emalloc(sizeof(float) + 64);
-    add_to_stack(ptr, x,sizeof(float) + 64);
+    x.array0d = (float*)emalloc(sizeof(float));
+    add_to_stack(ptr, x,sizeof(float));
 }
 
 /**
@@ -167,8 +167,18 @@ CArray ptr_to_carray(MemoryPointer * ptr)
  */
 void destroy_carray(MemoryPointer * target_ptr)
 {
-    efree(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array2d);
-    PHPSCI_MAIN_MEM_STACK.size--;
+    if(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array2d != NULL) {
+        efree(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array2d);
+        return;
+    }
+    if(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array1d != NULL) {
+        efree(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array1d);
+        return;
+    }
+    if(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array0d != NULL) {
+        efree(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array0d);
+        return;
+    }
     PHPSCI_MAIN_MEM_STACK.last_deleted_uuid = target_ptr->uuid;
 }
 

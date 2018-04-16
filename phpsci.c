@@ -144,7 +144,7 @@ PHP_METHOD(CArray, __destruct)
     zval * obj = getThis();
     MemoryPointer target_ptr;
     OBJ_TO_PTR(obj, &target_ptr);
-    destroy_carray(&target_ptr);
+    //destroy_carray(&target_ptr);
 }
 PHP_METHOD(CArray, transpose)
 {
@@ -349,7 +349,7 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, matmul, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, inner, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, inv, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
-   
+
    // CARRAY MEMORY MANAGEMENT SECTION
    PHP_ME(CArray, __destruct, NULL, ZEND_ACC_PUBLIC)
 
