@@ -112,7 +112,7 @@ void carray_init1d(int width, MemoryPointer * ptr)
     int j, i;
     x.array0d = NULL;
     x.array2d = NULL;
-    x.array1d = (float*)malloc(width * sizeof(float));
+    x.array1d = (float*)emalloc(width * sizeof(float));
     add_to_stack(ptr, x,(width * sizeof(float)));
 }
 
