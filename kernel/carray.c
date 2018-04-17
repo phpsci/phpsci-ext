@@ -25,6 +25,7 @@
 #include "../phpsci.h"
 #include "memory_manager.h"
 #include "exceptions.h"
+#include "shape.h"
 #include "php.h"
 
 /**
@@ -91,16 +92,14 @@ int IS_2D(int x, int y)
 }
 
 /**
- * Initialize CArray space with (rows, cols), if cols = 0, them CArray is treated
- * as array1d.
+ * Initialize CArray with provided Shape
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param rows  Number of rows
  * @param cols  Number of columns
  */
-void carray_init(Shape init_shape, MemoryPointer * ptr)
+void carray_init(Shape * init_shape, MemoryPointer * ptr)
 {
-    //@todo Implement universal carray_init with new CArray architecture.
 }
 
 /**
@@ -185,6 +184,18 @@ CArray ptr_to_carray(MemoryPointer * ptr)
 }
 
 /**
+ *  Get CArray Pointer from MemoryPointer
+ *
+ *  @author Henrique Borba <henrique.borba.dev@gmail.com>
+ *  @param ptr      MemoryPointer with target CArray
+ *  @return CArray  target CArray
+ */
+CArray * ptr_to_carray_ref(MemoryPointer * ptr)
+{
+    return &(PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid]);
+}
+
+/**
  * Destroy target CArray and set last_deleted_uuid for posterior
  * allocation.
  *
@@ -197,10 +208,6 @@ void destroy_carray(MemoryPointer * target_ptr)
 {
     if(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array != NULL) {
         efree(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array);
-        return;
-    }
-    if(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array_shape != NULL) {
-        efree(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array_shape);
         return;
     }
     if(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array2d != NULL) {
@@ -261,6 +268,8 @@ void double_to_carray(double input, MemoryPointer * rtn_ptr)
     rtn_arr.array0d[0] = input;
 }
 
+
+
 /**
  * Operations are valid when they matches one of the following rules:
  *
@@ -272,10 +281,68 @@ void double_to_carray(double input, MemoryPointer * rtn_ptr)
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  */
-int validate_carray_arithmetic_broadcast(CArray a, CArray b, int * broadcasted_shape)
+ /**
+int validate_carray_arithmetic_broadcast(MemoryPointer * ptr_a, MemoryPointer * ptr_b, int * broadcasted_shape)
 {
-    return 1;
-}
+    CArray * a = ptr_to_carray_ref(ptr_a);
+    CArray * b = ptr_to_carray_ref(ptr_b);
+    int iterator_a, iterator_b, b_current_shape, total_invalid = 0;
+    // IF BOTH MATRICES HAS THE SAME AMOUNT OF DIMENSIONS
+    if(a->array_shape[0].dim[0] == b->array_shape[0].dim[0]) {
+        for(iterator_a = 0; iterator_a < a->array_shape[0].dim[0]; ++iterator_a) {
+            if(a->array_shape[0].shape[iterator_a] != b->array_shape[0].shape[iterator_a] &&
+                    a->array_shape[0].shape[iterator_a] != 1 && b->array_shape[0].shape[iterator_a] != 1)
+            {
+                total_invalid++;
+            }
+        }
+        if(total_invalid > 0) {
+            return 0;
+        }
+        return 1;
+    }
+    // IF MATRIX B HAS MORE DIMENSIONS THEM A
+    if(a->array_shape[0].dim[0] < b->array_shape[0].dim[0]) {
+        for(iterator_a = 0; iterator_a < b->array_shape[0].dim[0]; ++iterator_a) {
+            if(iterator_a < a->array_shape[0].dim[0]) {
+                b_current_shape = 1;
+            }
+            if(iterator_a >= a->array_shape[0].dim[0]) {
+                b_current_shape = a->array_shape[0].shape[(a->array_shape[0].dim[0] - iterator_a)];
+            }
+            if(a->array_shape[0].shape[iterator_a] != b_current_shape &&
+                    a->array_shape[0].shape[iterator_a] != 1 && b_current_shape != 1)
+            {
+                total_invalid++;
+            }
+        }
+        if(total_invalid > 0) {
+            return 0;
+        }
+        return 2;
+    }
+    // IF MATRIX A HAS MORE DIMENSIONS THEM B
+    if(a->array_shape[0].dim[0] > b->array_shape[0].dim[0]) {
+        for(iterator_b = 0; iterator_b < a->array_shape[0].dim[0]; ++iterator_b) {
+            if(iterator_b < b->array_shape[0].dim[0]) {
+                b_current_shape = 1;
+            }
+            if(iterator_b >= b->array_shape[0].dim[0]) {
+                b_current_shape = b->array_shape[0].shape[(b->array_shape[0].dim[0] - iterator_b)];
+            }
+            if(a->array_shape[0].shape[iterator_b] != b_current_shape &&
+                    a->array_shape[0].shape[iterator_b] != 1 && b_current_shape != 1)
+            {
+                total_invalid++;
+            }
+        }
+        if(total_invalid > 0) {
+            return 0;
+        }
+        return 2;
+    }
+    return 0;
+}**/
 
 /**
  * Broadcast N-Dimensional CArray to user defined operation.
@@ -286,12 +353,10 @@ void carray_broadcast_arithmetic(MemoryPointer * a, MemoryPointer * b, MemoryPoi
                       void cFunction(MemoryPointer * , MemoryPointer * , MemoryPointer *)
 )
 {
-    CArray arr_a = ptr_to_carray(a);
-    CArray arr_b = ptr_to_carray(b);
     int validate_rtn, * broadcasted_shape;
     int a_x, b_x, a_y, b_y;
     // Check if operation is valid.
-    validate_rtn = validate_carray_arithmetic_broadcast(arr_a, arr_b, broadcasted_shape);
+    validate_rtn = 0; //validate_carray_arithmetic_broadcast(a, b, broadcasted_shape);
     if( validate_rtn == 0 ) {
         // Invalid Shapes
         throw_could_not_broadcast_exception("Could not broadcast provided matrices.");

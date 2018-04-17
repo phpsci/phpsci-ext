@@ -20,33 +20,20 @@
   | Authors: Henrique Borba <henrique.borba.dev@gmail.com>               |
   +----------------------------------------------------------------------+
 */
-
-#ifndef PHPSCI_EXT_PHPSCI_H
-#define PHPSCI_EXT_PHPSCI_H
-
-#define PHP_PHPSCI_EXTNAME "PHPSci"
-#define PHP_PHPSCI_VERSION "0.0.1"
-
-#ifdef ZTS
-#include "TSRM.h"
-#endif
-#include "kernel/exceptions.h"
-#include "kernel/shape.h"
+#include "../phpsci.h"
+#include "shape.h"
 #include "php.h"
 
-
-static zend_class_entry *phpsci_sc_entry;
-static zend_object_handlers phpsci_object_handlers;
-static zend_class_entry *phpsci_exception_sc_entry;
-
-extern zend_module_entry phpsci_module_entry;
-
-#define phpext_phpsci_ptr &phpsci_module_entry
-#define PHPSCI_THROW(message, code) \
-		zend_throw_exception(phpsci_exception_sc_entry, message, (long)code TSRMLS_CC); \
-		return;
-
-
-void RETURN_CARRAY(zval * return_value, int uuid, int x, int y);
-void set_obj_uuid(zval * obj, long uuid);
-#endif //PHPSCI_EXT_PHPSCI_H
+/**
+ * Convert Shape config to PHP Array
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ */
+void shape_config_to_array(Shape shape, zval * rtn_arr)
+{
+    int iterator_a;
+    array_init(rtn_arr);
+    for( iterator_a = 0; iterator_a < shape.dim; ++iterator_a ) {
+        add_next_index_long(rtn_arr, (long)shape.config[iterator_a]);
+    }
+}

@@ -36,6 +36,7 @@
 #include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
 #include "kernel/php_array.h"
+#include "kernel/shape.h"
 #include "kernel/exceptions.h"
 #include "Zend/zend_exceptions.h"
 #include "php.h"
@@ -159,16 +160,21 @@ PHP_METHOD(CArray, standard_normal)
  */
 PHP_METHOD(CArray, fromArray)
 {
-    zval * array;
+    zval * array, rtn_shape;
     int a_rows, a_cols;
 
     ZEND_PARSE_PARAMETERS_START(1, -1)
         Z_PARAM_ARRAY(array)
     ZEND_PARSE_PARAMETERS_END();
+
     MemoryPointer ptr;
     ptr.uuid = UNINITIALIZED;
     array_to_carray_ptr(&ptr, array, &a_rows, &a_cols);
+    CArray * rtn_arr = ptr_to_carray_ref(&ptr);
     RETURN_CARRAY(return_value, ptr.uuid, a_rows, a_cols);
+    shape_config_to_array(rtn_arr->array_shape, &rtn_shape);
+    zend_update_property_long(phpsci_sc_entry, return_value, "dim", sizeof("dim") - 1, (long)rtn_arr->array_shape.dim);
+    zend_update_property(phpsci_sc_entry, return_value, "shape", sizeof("shape") - 1, &rtn_shape);
 }
 /**
  * Destructor

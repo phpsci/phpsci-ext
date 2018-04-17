@@ -81,6 +81,7 @@ PHP_NEW_EXTENSION(phpsci,
 	  carray/arithmetic.c \
 	  kernel/carray_printer.c \
 	  kernel/php_array.c \
+	  kernel/shape.c \
 	  carray/transformations.c,
 	  $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
   PHP_INSTALL_HEADERS([ext/phpsci], [phpsci.h])

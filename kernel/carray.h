@@ -26,14 +26,6 @@
 #include "../phpsci.h"
 
 /**
- * PHPSci Shape Structure
- */
-typedef struct Shape {
-    int * shape;
-    int * dim;
-} Shape;
-
-/**
  * PHPSci internal array structure
  *
  * Currently working with shaped 2D, 1D and 0D.
@@ -45,7 +37,7 @@ typedef struct CArray {
     double *   array0d;
     // NEW IMPLEMENTATION
     double *   array;
-    Shape  *   array_shape;
+    Shape  array_shape;
 } CArray;
 
 /**
@@ -65,12 +57,13 @@ int IS_2D(int x, int y);
 
 int PTR_TO_DIM(MemoryPointer * ptr);
 void OBJ_TO_PTR(zval * obj, MemoryPointer * ptr);
-void carray_init(Shape shape, MemoryPointer * ptr);
+void carray_init(Shape * init_shape, MemoryPointer * ptr);
 void carray_init2d(int rows, int cols, MemoryPointer * ptr);
 void carray_init1d(int width, MemoryPointer * ptr);
 void carray_init0d(MemoryPointer * ptr);
 void destroy_carray(MemoryPointer * target_ptr);
 
+CArray * ptr_to_carray_ref(MemoryPointer * ptr);
 CArray ptr_to_carray(MemoryPointer * ptr);
 void carray_to_array(CArray carray, zval * rtn_array, int m, int n);
 void double_to_carray(double input, MemoryPointer * rtn_ptr);

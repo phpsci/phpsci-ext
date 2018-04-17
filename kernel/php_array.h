@@ -28,5 +28,6 @@
 #include "php.h"
 
 void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * cols);
+void array_shape(zval * arr, Shape * shape, int dim, int * iterator);
 void array_dim(zval * array, int * dim);
 #endif //PHPSCI_EXT_PHP_ARRAY_H
