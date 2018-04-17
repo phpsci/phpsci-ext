@@ -21,14 +21,18 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_ARITHMETIC_H
-#define PHPSCI_EXT_ARITHMETIC_H
+#ifndef PHPSCI_EXT_SHAPE_H
+#define PHPSCI_EXT_SHAPE_H
 
-#include "../kernel/memory_manager.h"
+#include "php.h"
+/**
+ * PHPSci Shape Structure
+ */
+typedef struct Shape {
+    int * config;
+    int  dim;
+} Shape;
 
-void add(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr);
-void add_carray_0d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr);
-void add_carray_1d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr);
-void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr);
 
-#endif //PHPSCI_EXT_ARITHMETIC_H
+void shape_config_to_array(Shape shape, zval * rtn_arr);
+#endif //PHPSCI_EXT_SHAPE_H

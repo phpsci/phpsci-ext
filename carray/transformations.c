@@ -32,7 +32,7 @@
  */
 void transpose(MemoryPointer * new_ptr, MemoryPointer * target_ptr, int rows, int cols) {
     int i, j;
-    carray_init(cols, rows, new_ptr);
+    carray_init2d(cols, rows, new_ptr);
     CArray new_arr = ptr_to_carray(new_ptr);
     CArray target_arr = ptr_to_carray(target_ptr);
     for(i = 0; i < rows; i++) {

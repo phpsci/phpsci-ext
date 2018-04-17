@@ -45,7 +45,7 @@ void standard_normal(MemoryPointer * ptr, int seed, int x, int y)
         }
     }
     if(x > 0 && y > 0) {
-        carray_init(x, y, ptr);
+        carray_init2d(x, y, ptr);
         CArray new_arr = ptr_to_carray(ptr);
         for(i = 0; i < x; i++) {
             for(j = 0; j < y; j++)

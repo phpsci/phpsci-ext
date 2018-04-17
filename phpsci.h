@@ -31,6 +31,7 @@
 #include "TSRM.h"
 #endif
 #include "kernel/exceptions.h"
+#include "kernel/shape.h"
 #include "php.h"
 
 

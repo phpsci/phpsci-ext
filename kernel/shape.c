@@ -20,15 +20,20 @@
   | Authors: Henrique Borba <henrique.borba.dev@gmail.com>               |
   +----------------------------------------------------------------------+
 */
+#include "../phpsci.h"
+#include "shape.h"
+#include "php.h"
 
-#ifndef PHPSCI_EXT_ARITHMETIC_H
-#define PHPSCI_EXT_ARITHMETIC_H
-
-#include "../kernel/memory_manager.h"
-
-void add(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr);
-void add_carray_0d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr);
-void add_carray_1d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr);
-void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr);
-
-#endif //PHPSCI_EXT_ARITHMETIC_H
+/**
+ * Convert Shape config to PHP Array
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ */
+void shape_config_to_array(Shape shape, zval * rtn_arr)
+{
+    int iterator_a;
+    array_init(rtn_arr);
+    for( iterator_a = 0; iterator_a < shape.dim; ++iterator_a ) {
+        add_next_index_long(rtn_arr, (long)shape.config[iterator_a]);
+    }
+}

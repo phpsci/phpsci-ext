@@ -24,8 +24,19 @@
 #include "carray.h"
 #include "../phpsci.h"
 #include "memory_manager.h"
+#include "exceptions.h"
+#include "shape.h"
 #include "php.h"
 
+/**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ *
+ * @return
+ */
+int PTR_TO_DIM(MemoryPointer * ptr)
+{
+    return GET_DIM(ptr->x, ptr->y);
+}
 
 /**
  * Get CArray dimensions based on X and Y
@@ -81,14 +92,26 @@ int IS_2D(int x, int y)
 }
 
 /**
- * Initialize CArray space with (rows, cols), if cols = 0, them CArray is treated
- * as array1d.
+ * Initialize CArray with provided Shape
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param rows  Number of rows
  * @param cols  Number of columns
  */
-void carray_init(int rows, int cols, MemoryPointer * ptr)
+void carray_init(Shape * init_shape, MemoryPointer * ptr)
+{
+}
+
+/**
+ * Initialize CArray 2D
+ *
+ * @deprecated This will be deprecated in favor of new CArray architecture.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param rows  Number of rows
+ * @param cols  Number of columns
+ */
+void carray_init2d(int rows, int cols, MemoryPointer * ptr)
 {
     CArray x;
     int j, i;
@@ -101,6 +124,8 @@ void carray_init(int rows, int cols, MemoryPointer * ptr)
 
 /**
  * Initialize CArray 1D
+ *
+ * @deprecated This will be deprecated in favor of new CArray architecture.
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param rows Width
@@ -118,6 +143,8 @@ void carray_init1d(int width, MemoryPointer * ptr)
 
 /**
  * Initialize CArray 0D
+ *
+ * @deprecated This will be deprecated in favor of new CArray architecture.
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param rows Width
@@ -157,6 +184,18 @@ CArray ptr_to_carray(MemoryPointer * ptr)
 }
 
 /**
+ *  Get CArray Pointer from MemoryPointer
+ *
+ *  @author Henrique Borba <henrique.borba.dev@gmail.com>
+ *  @param ptr      MemoryPointer with target CArray
+ *  @return CArray  target CArray
+ */
+CArray * ptr_to_carray_ref(MemoryPointer * ptr)
+{
+    return &(PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid]);
+}
+
+/**
  * Destroy target CArray and set last_deleted_uuid for posterior
  * allocation.
  *
@@ -167,6 +206,10 @@ CArray ptr_to_carray(MemoryPointer * ptr)
  */
 void destroy_carray(MemoryPointer * target_ptr)
 {
+    if(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array != NULL) {
+        efree(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array);
+        return;
+    }
     if(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array2d != NULL) {
         efree(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array2d);
         return;
@@ -181,55 +224,6 @@ void destroy_carray(MemoryPointer * target_ptr)
     }
     PHPSCI_MAIN_MEM_STACK.last_deleted_uuid = target_ptr->uuid;
 }
-
-/**
- * Create MemoryPointer from ZVAL
- *
- * @author Henrique Borba <henrique.borba.dev@gmail.com>
- * @param arr zval *           PHP Array to convert
- * @param pt MemoryPointer *   MemoryPointer
- */
-void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * cols)
-{
-    zval * row, * col;
-    CArray temp;
-    int i =0, j=0;
-    *rows = zend_hash_num_elements(Z_ARRVAL_P(array));
-    *cols = 0;
-    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(array), row) {
-        ZVAL_DEREF(row);
-        if (Z_TYPE_P(row) == IS_ARRAY) {
-            *cols = zend_hash_num_elements(Z_ARRVAL_P(row));
-            if (ptr->uuid == UNINITIALIZED) {
-                carray_init(*rows, *cols, ptr);
-                temp = ptr_to_carray(ptr);
-            }
-            convert_to_array(row);
-
-        } else  {
-            if (ptr->uuid == UNINITIALIZED) {
-                carray_init1d(*rows, ptr);
-                temp = ptr_to_carray(ptr);
-            }
-        }
-    } ZEND_HASH_FOREACH_END();
-    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(array), row) {
-        ZVAL_DEREF(row);
-        if (Z_TYPE_P(row) == IS_ARRAY) {
-            ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(row), col) {
-                convert_to_double(col);
-                temp.array2d[(j * *rows) + i] = (double)Z_DVAL_P(col);
-                ++j;
-            } ZEND_HASH_FOREACH_END();
-        } else {
-            convert_to_double(row);
-            temp.array1d[i] = (double)Z_DVAL_P(row);
-        }
-        j = 0;
-        ++i;
-    } ZEND_HASH_FOREACH_END();
-}
-
 
 /**
  * Create ZVAL_ARR from CArray
@@ -253,6 +247,7 @@ void carray_to_array(CArray carray, zval * rtn_array, int m, int n)
         }
     }
     if(n == 0) {
+        // If 2-D, fill inside values.
         for( rows = 0; rows < m; rows++ ) {
             add_next_index_double(rtn_array, carray.array1d[rows]);
         }
@@ -271,4 +266,110 @@ void double_to_carray(double input, MemoryPointer * rtn_ptr)
     carray_init0d(rtn_ptr);
     CArray rtn_arr = ptr_to_carray(rtn_ptr);
     rtn_arr.array0d[0] = input;
+}
+
+
+
+/**
+ * Operations are valid when they matches one of the following rules:
+ *
+ * - Both matrices has the same shape
+ * - One of the matrices are 1-D
+ *
+ * Return 0 if invalid, 1 if valid and 2 if matrices are valid but need to
+ * be switched.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ */
+ /**
+int validate_carray_arithmetic_broadcast(MemoryPointer * ptr_a, MemoryPointer * ptr_b, int * broadcasted_shape)
+{
+    CArray * a = ptr_to_carray_ref(ptr_a);
+    CArray * b = ptr_to_carray_ref(ptr_b);
+    int iterator_a, iterator_b, b_current_shape, total_invalid = 0;
+    // IF BOTH MATRICES HAS THE SAME AMOUNT OF DIMENSIONS
+    if(a->array_shape[0].dim[0] == b->array_shape[0].dim[0]) {
+        for(iterator_a = 0; iterator_a < a->array_shape[0].dim[0]; ++iterator_a) {
+            if(a->array_shape[0].shape[iterator_a] != b->array_shape[0].shape[iterator_a] &&
+                    a->array_shape[0].shape[iterator_a] != 1 && b->array_shape[0].shape[iterator_a] != 1)
+            {
+                total_invalid++;
+            }
+        }
+        if(total_invalid > 0) {
+            return 0;
+        }
+        return 1;
+    }
+    // IF MATRIX B HAS MORE DIMENSIONS THEM A
+    if(a->array_shape[0].dim[0] < b->array_shape[0].dim[0]) {
+        for(iterator_a = 0; iterator_a < b->array_shape[0].dim[0]; ++iterator_a) {
+            if(iterator_a < a->array_shape[0].dim[0]) {
+                b_current_shape = 1;
+            }
+            if(iterator_a >= a->array_shape[0].dim[0]) {
+                b_current_shape = a->array_shape[0].shape[(a->array_shape[0].dim[0] - iterator_a)];
+            }
+            if(a->array_shape[0].shape[iterator_a] != b_current_shape &&
+                    a->array_shape[0].shape[iterator_a] != 1 && b_current_shape != 1)
+            {
+                total_invalid++;
+            }
+        }
+        if(total_invalid > 0) {
+            return 0;
+        }
+        return 2;
+    }
+    // IF MATRIX A HAS MORE DIMENSIONS THEM B
+    if(a->array_shape[0].dim[0] > b->array_shape[0].dim[0]) {
+        for(iterator_b = 0; iterator_b < a->array_shape[0].dim[0]; ++iterator_b) {
+            if(iterator_b < b->array_shape[0].dim[0]) {
+                b_current_shape = 1;
+            }
+            if(iterator_b >= b->array_shape[0].dim[0]) {
+                b_current_shape = b->array_shape[0].shape[(b->array_shape[0].dim[0] - iterator_b)];
+            }
+            if(a->array_shape[0].shape[iterator_b] != b_current_shape &&
+                    a->array_shape[0].shape[iterator_b] != 1 && b_current_shape != 1)
+            {
+                total_invalid++;
+            }
+        }
+        if(total_invalid > 0) {
+            return 0;
+        }
+        return 2;
+    }
+    return 0;
+}**/
+
+/**
+ * Broadcast N-Dimensional CArray to user defined operation.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ */
+void carray_broadcast_arithmetic(MemoryPointer * a, MemoryPointer * b, MemoryPointer * rtn_ptr,
+                      void cFunction(MemoryPointer * , MemoryPointer * , MemoryPointer *)
+)
+{
+    int validate_rtn, * broadcasted_shape;
+    int a_x, b_x, a_y, b_y;
+    // Check if operation is valid.
+    validate_rtn = 0; //validate_carray_arithmetic_broadcast(a, b, broadcasted_shape);
+    if( validate_rtn == 0 ) {
+        // Invalid Shapes
+        throw_could_not_broadcast_exception("Could not broadcast provided matrices.");
+        return;
+    }
+    if( validate_rtn == 1 ) {
+        // Call arithmetic function with provided operands order. (eg: a + b)
+        cFunction(a, b, rtn_ptr);
+        return;
+    }
+    if( validate_rtn == 2 ) {
+        // Call arithmetic function with switched operands. (eg: b + a)
+        cFunction(b, a, rtn_ptr);
+        return;
+    }
 }

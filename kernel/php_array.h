@@ -21,14 +21,13 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_ARITHMETIC_H
-#define PHPSCI_EXT_ARITHMETIC_H
+#ifndef PHPSCI_EXT_PHP_ARRAY_H
+#define PHPSCI_EXT_PHP_ARRAY_H
 
-#include "../kernel/memory_manager.h"
+#include "memory_manager.h"
+#include "php.h"
 
-void add(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr);
-void add_carray_0d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr);
-void add_carray_1d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr);
-void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr);
-
-#endif //PHPSCI_EXT_ARITHMETIC_H
+void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * cols);
+void array_shape(zval * arr, Shape * shape, int dim, int * iterator);
+void array_dim(zval * array, int * dim);
+#endif //PHPSCI_EXT_PHP_ARRAY_H

@@ -39,44 +39,44 @@
  * @param y_b
  * @param rtn_ptr
  */
-void add(MemoryPointer * ptr_a, int x_a, int y_a, MemoryPointer * ptr_b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y)
+void add(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
 {
     CArray arr_a = ptr_to_carray(ptr_a);
     CArray arr_b = ptr_to_carray(ptr_b);
-    if(GET_DIM(x_a, y_a) == 0 && GET_DIM(x_b, y_b) == 0) {
-        add_carray_0d(&arr_a, x_a, y_a, &arr_b, x_b, y_b, rtn_ptr, size_x, size_y);
+    if(PTR_TO_DIM(ptr_a) == 0 && PTR_TO_DIM(ptr_b) == 0) {
+        add_carray_0d(&arr_a, ptr_a->x, ptr_a->y, &arr_b, ptr_b->x, ptr_b->y, rtn_ptr);
         return;
     }
-    if(GET_DIM(x_a, y_a) == 0 && GET_DIM(x_b, y_b) == 1) {
-        add_carray_1d(&arr_b, x_b, y_b, &arr_a, x_a, y_a, rtn_ptr, size_x, size_y);
+    if(PTR_TO_DIM(ptr_a) == 0 && PTR_TO_DIM(ptr_b) == 1) {
+        add_carray_1d(&arr_b, ptr_b->x, ptr_b->y, &arr_a, ptr_a->x, ptr_a->y, rtn_ptr);
         return;
     }
-    if(GET_DIM(x_a, y_a) == 1 && GET_DIM(x_b, y_b) == 0) {
-        add_carray_1d(&arr_a, x_a, y_a, &arr_b, x_b, y_b, rtn_ptr, size_x, size_y);
+    if(PTR_TO_DIM(ptr_a) == 1 && PTR_TO_DIM(ptr_b) == 0) {
+        add_carray_1d(&arr_a, ptr_a->x, ptr_a->y, &arr_b, ptr_b->x, ptr_b->y, rtn_ptr);
         return;
     }
-    if(GET_DIM(x_a, y_a) == 1 && GET_DIM(x_b, y_b) == 1) {
-        add_carray_1d(&arr_a, x_a, y_a, &arr_b, x_b, y_b, rtn_ptr, size_x, size_y);
+    if(PTR_TO_DIM(ptr_a) == 1 && PTR_TO_DIM(ptr_b) == 1) {
+        add_carray_1d(&arr_a, ptr_a->x, ptr_a->y, &arr_b, ptr_b->x, ptr_b->y, rtn_ptr);
         return;
     }
-    if(GET_DIM(x_a, y_a) == 0 && GET_DIM(x_b, y_b) == 2) {
-        add_carray_2d(&arr_b, x_b, y_b, &arr_a, x_a, y_a, rtn_ptr, size_x, size_y);
+    if(PTR_TO_DIM(ptr_a) == 0 && PTR_TO_DIM(ptr_b) == 2) {
+        add_carray_2d(&arr_b, ptr_b->x, ptr_b->y, &arr_a, ptr_a->x, ptr_a->y, rtn_ptr);
         return;
     }
-    if(GET_DIM(x_a, y_a) == 2 && GET_DIM(x_b, y_b) == 0) {
-        add_carray_2d(&arr_a, x_a, y_a, &arr_b, x_b, y_b, rtn_ptr, size_x, size_y);
+    if(PTR_TO_DIM(ptr_a) == 2 && PTR_TO_DIM(ptr_b) == 0) {
+        add_carray_2d(&arr_a, ptr_a->x, ptr_a->y, &arr_b, ptr_b->x, ptr_b->y, rtn_ptr);
         return;
     }
-    if(GET_DIM(x_a, y_a) == 1 && GET_DIM(x_b, y_b) == 2) {
-        add_carray_2d(&arr_b, x_b, y_b, &arr_a, x_a, y_a, rtn_ptr, size_x, size_y);
+    if(PTR_TO_DIM(ptr_a) == 1 && PTR_TO_DIM(ptr_b) == 2) {
+        add_carray_2d(&arr_b, ptr_b->x, ptr_b->y, &arr_a, ptr_a->x, ptr_a->y, rtn_ptr);
         return;
     }
-    if(GET_DIM(x_a, y_a) == 2 && GET_DIM(x_b, y_b) == 1) {
-        add_carray_2d(&arr_a, x_a, y_a, &arr_b, x_b, y_b, rtn_ptr, size_x, size_y);
+    if(PTR_TO_DIM(ptr_a) == 2 && PTR_TO_DIM(ptr_b) == 1) {
+        add_carray_2d(&arr_a, ptr_a->x, ptr_a->y, &arr_b, ptr_b->x, ptr_b->y, rtn_ptr);
         return;
     }
-    if(GET_DIM(x_a, y_a) == 2 && GET_DIM(x_b, y_b) == 2) {
-        add_carray_2d(&arr_a, x_a, y_a, &arr_b, x_b, y_b, rtn_ptr, size_x, size_y);
+    if(PTR_TO_DIM(ptr_a) == 2 && PTR_TO_DIM(ptr_b) == 2) {
+        add_carray_2d(&arr_a, ptr_a->x, ptr_a->y, &arr_b, ptr_b->x, ptr_b->y, rtn_ptr);
         return;
     }
 }
@@ -93,11 +93,11 @@ void add(MemoryPointer * ptr_a, int x_a, int y_a, MemoryPointer * ptr_b, int x_b
  * @param y_b
  * @param rtn_ptr
  */
-void add_carray_0d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y)
+void add_carray_0d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr)
 {
     int i, j;
-    *size_x = 0;
-    *size_y = 0;
+    rtn_ptr->x = 0;
+    rtn_ptr->y = 0;
     carray_init0d(rtn_ptr);
     CArray rtn_arr = ptr_to_carray(rtn_ptr);
     rtn_arr.array0d[0] = a->array0d[0] + b->array0d[0];
@@ -116,14 +116,14 @@ void add_carray_0d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
  * @param y_b
  * @param rtn_ptr
  */
-void add_carray_1d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y)
+void add_carray_1d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr)
 {
     int i, j;
     if(GET_DIM(x_b, y_b) == 0) {
         carray_init1d(x_a, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
-        *size_x = x_a;
-        *size_y = 0;
+        rtn_ptr->x = x_a;
+        rtn_ptr->y = 0;
         for(i = 0; i < x_a; ++i) {
             rtn_arr.array1d[i] = a->array1d[i] + b->array0d[0];
         }
@@ -134,8 +134,8 @@ void add_carray_1d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
     for(i = 0; i < x_a; ++i) {
         rtn_arr.array1d[i] = a->array1d[i] + b->array1d[i];
     }
-    *size_x = x_a;
-    *size_y = 0;
+    rtn_ptr->x = x_a;
+    rtn_ptr->y = 0;
     return;
 }
 
@@ -153,14 +153,14 @@ void add_carray_1d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
  * @param size_x
  * @param size_y
  */
-void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y)
+void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr)
 {
     int i, j;
     if(GET_DIM(x_b, y_b) == 0) {
-        carray_init(x_a, y_a, rtn_ptr);
+        carray_init2d(x_a, y_a, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
-        *size_x = x_a;
-        *size_y = y_a;
+        rtn_ptr->x = x_a;
+        rtn_ptr->y = y_a;
         for(i = 0; i < x_a; ++i) {
             for(j = 0; j < y_a; ++j) {
                 rtn_arr.array2d[(j * x_a) + i] = a->array2d[(j * x_a) + i] + b->array0d[0];
@@ -169,10 +169,10 @@ void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
         return;
     }
     if(GET_DIM(x_b, y_b) == 1) {
-        carray_init(x_a, y_a, rtn_ptr);
+        carray_init2d(x_a, y_a, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
-        *size_x = x_a;
-        *size_y = y_a;
+        rtn_ptr->x = x_a;
+        rtn_ptr->y = y_a;
         for(i = 0; i < x_a; ++i) {
             for(j = 0; j < y_a; ++j) {
                 rtn_arr.array2d[(j * x_a) + i] = a->array2d[(j * x_a) + i] + b->array1d[j];
@@ -181,10 +181,10 @@ void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
         return;
     }
     if(x_a == x_b) {
-        carray_init(x_a, y_a, rtn_ptr);
+        carray_init2d(x_a, y_a, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
-        *size_x = x_a;
-        *size_y = y_a;
+        rtn_ptr->x = x_a;
+        rtn_ptr->y = y_a;
         for(i = 0; i < x_a; ++i) {
             for(j = 0; j < y_a; ++j) {
                 rtn_arr.array2d[(j * x_a) + i] = a->array2d[(j * x_a) + i] + b->array2d[(j * x_a) + i];
@@ -193,10 +193,10 @@ void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
         return;
     }
     if(x_b < x_a && x_b == 1) {
-        carray_init(x_a, y_a, rtn_ptr);
+        carray_init2d(x_a, y_a, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
-        *size_x = x_a;
-        *size_y = y_a;
+        rtn_ptr->x = x_a;
+        rtn_ptr->y = y_a;
         for(i = 0; i < x_a; ++i) {
             for(j = 0; j < y_a; ++j) {
                 rtn_arr.array2d[(j * x_a) + i] = a->array2d[(j * x_a) + i] + b->array2d[(j * x_b) + 0];

@@ -35,6 +35,10 @@
 #include "carray/arithmetic.h"
 #include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
+#include "kernel/php_array.h"
+#include "kernel/shape.h"
+#include "kernel/exceptions.h"
+#include "Zend/zend_exceptions.h"
 #include "php.h"
 #include "ext/standard/info.h"
 
@@ -61,6 +65,22 @@ void RETURN_CARRAY(zval * return_value, int uuid, int x, int y)
 
 
 
+/**
+ * Dummy function for testing, removed during release.
+ */
+PHP_METHOD(CArray, dummy)
+{
+    zval  * obj;
+    int dim = 0;
+    ZEND_PARSE_PARAMETERS_START(1,1)
+        Z_PARAM_ARRAY(obj);
+    ZEND_PARSE_PARAMETERS_END();
+    array_dim(obj, &dim);
+}
+
+/**
+ * Constructor
+ */
 PHP_METHOD(CArray, __construct)
 {
     long uuid, x, y;
@@ -74,6 +94,9 @@ PHP_METHOD(CArray, __construct)
     zend_update_property_long(phpsci_sc_entry, obj, "x", sizeof("x") - 1, x);
     zend_update_property_long(phpsci_sc_entry, obj, "y", sizeof("y") - 1, y);
 }
+/**
+ * CArray::identity
+ */
 PHP_METHOD(CArray, identity)
 {
     long m;
@@ -81,11 +104,14 @@ PHP_METHOD(CArray, identity)
         Z_PARAM_LONG(m)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
-    carray_init((int)m, (int)m, &ptr);
+    carray_init2d((int)m, (int)m, &ptr);
     CArray arr = ptr_to_carray(&ptr);
     identity(&arr, (int)m);
     RETURN_CARRAY(return_value, ptr.uuid, m, m);
 }
+/**
+ * CArray::zeros
+ */
 PHP_METHOD(CArray, zeros)
 {
     long x, y;
@@ -95,11 +121,14 @@ PHP_METHOD(CArray, zeros)
     ZEND_PARSE_PARAMETERS_END();
 
     MemoryPointer ptr;
-    carray_init((int)x, (int)y, &ptr);
+    carray_init2d((int)x, (int)y, &ptr);
     CArray arr = ptr_to_carray(&ptr);
     zeros(&arr, (int)x, (int)y);
     RETURN_CARRAY(return_value, ptr.uuid, x, y);
 }
+/**
+ * CArray::standard_normal
+ */
 PHP_METHOD(CArray, standard_normal)
 {
     long x, y, seed;
@@ -126,19 +155,30 @@ PHP_METHOD(CArray, standard_normal)
         return;
     }
 }
+/**
+ * CArray::fromArray
+ */
 PHP_METHOD(CArray, fromArray)
 {
-    zval * array;
+    zval * array, rtn_shape;
     int a_rows, a_cols;
 
     ZEND_PARSE_PARAMETERS_START(1, -1)
         Z_PARAM_ARRAY(array)
     ZEND_PARSE_PARAMETERS_END();
+
     MemoryPointer ptr;
     ptr.uuid = UNINITIALIZED;
     array_to_carray_ptr(&ptr, array, &a_rows, &a_cols);
+    CArray * rtn_arr = ptr_to_carray_ref(&ptr);
     RETURN_CARRAY(return_value, ptr.uuid, a_rows, a_cols);
+    shape_config_to_array(rtn_arr->array_shape, &rtn_shape);
+    zend_update_property_long(phpsci_sc_entry, return_value, "dim", sizeof("dim") - 1, (long)rtn_arr->array_shape.dim);
+    zend_update_property(phpsci_sc_entry, return_value, "shape", sizeof("shape") - 1, &rtn_shape);
 }
+/**
+ * Destructor
+ */
 PHP_METHOD(CArray, __destruct)
 {
     zval * obj = getThis();
@@ -146,6 +186,9 @@ PHP_METHOD(CArray, __destruct)
     OBJ_TO_PTR(obj, &target_ptr);
     //destroy_carray(&target_ptr);
 }
+/**
+ * CArray::transpose
+ */
 PHP_METHOD(CArray, transpose)
 {
     zval * obj;
@@ -158,6 +201,9 @@ PHP_METHOD(CArray, transpose)
     transpose(&rtn, &ptr, (int)ptr.x, (int)ptr.y);
     RETURN_CARRAY(return_value, rtn.uuid, ptr.y, ptr.x);
 }
+/**
+ * CArray::print_r
+ */
 PHP_METHOD(CArray, print_r) {
     zval * a;
     ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -167,6 +213,9 @@ PHP_METHOD(CArray, print_r) {
     OBJ_TO_PTR(a, &ptr);
     print_carray(&ptr, ptr.x, ptr.y);
 }
+/**
+ * CArray::toArray
+ */
 PHP_METHOD(CArray, toArray)
 {
     int rows, cols;
@@ -179,6 +228,9 @@ PHP_METHOD(CArray, toArray)
     CArray arr = ptr_to_carray(&ptr);
     carray_to_array(arr, return_value, ptr.x, ptr.y);
 }
+/**
+ * CArray::linspace
+ */
 PHP_METHOD(CArray, linspace)
 {
     double start, stop;
@@ -192,6 +244,9 @@ PHP_METHOD(CArray, linspace)
     linspace(&ptr, (double)start, (double)stop, (double)num);
     RETURN_CARRAY(return_value, ptr.uuid, num, 0);
 }
+/**
+ * CArray::logspace
+ */
 PHP_METHOD(CArray, logspace)
 {
     double start, stop, base;
@@ -206,6 +261,9 @@ PHP_METHOD(CArray, logspace)
     logspace(&ptr, (double)start, (double)stop, num, (double)base);
     RETURN_CARRAY(return_value, ptr.uuid, num, 0);
 }
+/**
+ * CArray::toDouble
+ */
 PHP_METHOD(CArray, toDouble)
 {
     long uuid;
@@ -218,6 +276,9 @@ PHP_METHOD(CArray, toDouble)
     CArray arr = ptr_to_carray(&ptr);
     ZVAL_DOUBLE(return_value, (double)arr.array0d[0]);
 }
+/**
+ * CArray::sum
+ */
 PHP_METHOD(CArray, sum)
 {
     long axis;
@@ -241,6 +302,9 @@ PHP_METHOD(CArray, sum)
     }
     RETURN_CARRAY(return_value, target_ptr.uuid, size_x, size_y);
 }
+/**
+ * CArray::inner
+ */
 PHP_METHOD(CArray, inner)
 {
     long a_uuid, a_x, a_y, b_uuid, b_x, b_y;
@@ -256,6 +320,9 @@ PHP_METHOD(CArray, inner)
     inner(&rtn_x, &rtn_y, &rtn_ptr, (int)a_ptr.x, (int)a_ptr.y, &a_ptr, (int)b_ptr.x, (int)b_ptr.y, &b_ptr);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_x, rtn_y);
 }
+/**
+ * CArray::matmul
+ */
 PHP_METHOD(CArray, matmul)
 {
     MemoryPointer a_ptr, b_ptr, rtn_ptr;
@@ -276,6 +343,9 @@ PHP_METHOD(CArray, matmul)
         return;
     }
 }
+/**
+ * CArray::arange
+ */
 PHP_METHOD(CArray, arange)
 {
     double start, stop, step;
@@ -289,6 +359,9 @@ PHP_METHOD(CArray, arange)
     arange(&ptr, start, stop, step, &width);
     RETURN_CARRAY(return_value, ptr.uuid, width, 0);
 }
+/**
+ * CArray::add
+ */
 PHP_METHOD(CArray, add)
 {
     zval * a, * b;
@@ -302,9 +375,12 @@ PHP_METHOD(CArray, add)
     MemoryPointer ptr_b;
     OBJ_TO_PTR(a, &ptr_a);
     OBJ_TO_PTR(b, &ptr_b);
-    add(&ptr_a, (int)ptr_a.x, (int)ptr_a.y, &ptr_b, (int)ptr_b.x, (int)ptr_b.y, &rtn_ptr, &size_x, &size_y);
-    RETURN_CARRAY(return_value, rtn_ptr.uuid, size_x, size_y);
+    carray_broadcast_arithmetic(&ptr_a, &ptr_b, &rtn_ptr, add);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
 }
+/**
+ * CArray::fromDouble
+ */
 PHP_METHOD(CArray, fromDouble)
 {
     double input;
@@ -315,6 +391,9 @@ PHP_METHOD(CArray, fromDouble)
     double_to_carray(input, &ptr);
     RETURN_CARRAY(return_value, ptr.uuid, 0, 0);
 }
+/**
+ * CArray::inv
+ */
 PHP_METHOD(CArray, inv)
 {
     zval * a;
@@ -371,6 +450,9 @@ static zend_function_entry phpsci_class_methods[] =
    
    // RANDOM SECTION
    PHP_ME(CArray, standard_normal, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+
+   // MISC
+   PHP_ME(CArray, dummy, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }
 };
 
@@ -390,6 +472,8 @@ static PHP_MINIT_FUNCTION(phpsci)
     ce.create_object = NULL;
     phpsci_object_handlers.clone_obj = NULL;
     phpsci_sc_entry = zend_register_internal_class(&ce TSRMLS_CC);
+
+    init_exception_objects();
 
     return SUCCESS;
 }
