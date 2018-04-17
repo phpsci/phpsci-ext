@@ -144,7 +144,7 @@ PHP_METHOD(CArray, __destruct)
     zval * obj = getThis();
     MemoryPointer target_ptr;
     OBJ_TO_PTR(obj, &target_ptr);
-    destroy_carray(&target_ptr);
+    //destroy_carray(&target_ptr);
 }
 PHP_METHOD(CArray, transpose)
 {
