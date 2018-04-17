@@ -92,10 +92,10 @@ void carray_init(int rows, int cols, MemoryPointer * ptr)
 {
     CArray x;
     int j, i;
-    x.array2d = (float*)emalloc(rows * cols * sizeof(float));
+    x.array2d = (double*)emalloc(rows * cols * sizeof(double));
     x.array1d = NULL;
     x.array0d = NULL;
-    add_to_stack(ptr, x,(rows * cols * sizeof(float)));
+    add_to_stack(ptr, x,(rows * cols * sizeof(double)));
 }
 
 
@@ -112,8 +112,8 @@ void carray_init1d(int width, MemoryPointer * ptr)
     int j, i;
     x.array0d = NULL;
     x.array2d = NULL;
-    x.array1d = (float*)emalloc(width * sizeof(float));
-    add_to_stack(ptr, x,(width * sizeof(float)));
+    x.array1d = (double*)emalloc(width * sizeof(double));
+    add_to_stack(ptr, x,(width * sizeof(double)));
 }
 
 /**
@@ -129,8 +129,8 @@ void carray_init0d(MemoryPointer * ptr)
     int j, i;
     x.array1d = NULL;
     x.array2d = NULL;
-    x.array0d = (float*)emalloc(sizeof(float));
-    add_to_stack(ptr, x,sizeof(float));
+    x.array0d = (double*)emalloc(sizeof(double));
+    add_to_stack(ptr, x,sizeof(double));
 }
 
 /**
@@ -218,12 +218,12 @@ void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * co
         if (Z_TYPE_P(row) == IS_ARRAY) {
             ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(row), col) {
                 convert_to_double(col);
-                temp.array2d[(j * *rows) + i] = (float)Z_DVAL_P(col);
+                temp.array2d[(j * *rows) + i] = (double)Z_DVAL_P(col);
                 ++j;
             } ZEND_HASH_FOREACH_END();
         } else {
             convert_to_double(row);
-            temp.array1d[i] = (float)Z_DVAL_P(row);
+            temp.array1d[i] = (double)Z_DVAL_P(row);
         }
         j = 0;
         ++i;
@@ -247,14 +247,14 @@ void carray_to_array(CArray carray, zval * rtn_array, int m, int n)
         for( rows = 0; rows < m; rows++ ) {
             array_init(&inner);
             for( cols = 0; cols < n; cols++ ) {
-                add_next_index_double(&inner, (float)carray.array2d[(cols * m) + rows]);
+                add_next_index_double(&inner, carray.array2d[(cols * m) + rows]);
             }
             add_next_index_zval(rtn_array, &inner);
         }
     }
     if(n == 0) {
         for( rows = 0; rows < m; rows++ ) {
-            add_next_index_double(rtn_array, (float)carray.array1d[rows]);
+            add_next_index_double(rtn_array, carray.array1d[rows]);
         }
     }
 }

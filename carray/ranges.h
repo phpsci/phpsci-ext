@@ -27,7 +27,7 @@
 #define PHPSCI_EXT_RANGES_H
 #include "../kernel/memory_manager.h"
 
-void logspace(MemoryPointer * ptr, float start, float stop, int num, float base);
-void arange(MemoryPointer * new_ptr, float start, float stop, float step, int * width);
-void linspace(MemoryPointer * ptr, float start, float stop, int num);
+void logspace(MemoryPointer * ptr, double start, double stop, int num, double base);
+void arange(MemoryPointer * new_ptr, double start, double stop, double step, int * width);
+void linspace(MemoryPointer * ptr, double start, double stop, int num);
 #endif //PHPSCI_EXT_RANGES_H

@@ -24,6 +24,6 @@
 #define PHPSCI_EXT_RANDOM_H
 #include "../kernel/memory_manager.h"
 
-float _randn (double mu, double sigma);
+double _randn (double mu, double sigma);
 void standard_normal(MemoryPointer * ptr, int seed, int x, int y);
 #endif //PHPSCI_EXT_RANDOM_H

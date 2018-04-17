@@ -32,7 +32,7 @@
  *
  * @author Henrique Borba <henrique.borba.dev>
  */
-void arange(MemoryPointer * new_ptr, float start, float stop, float step, int * width) {
+void arange(MemoryPointer * new_ptr, double start, double stop, double step, int * width) {
     int i, j;
     if(stop < start || stop == start) {
         PHPSCI_THROW("[PHPSCI CARRAY] Stop < Start in arange() call", 1274);
@@ -57,9 +57,9 @@ void arange(MemoryPointer * new_ptr, float start, float stop, float step, int * 
  * @param num   Number of samples to generate.
  * @return void
  */
-void linspace(MemoryPointer * ptr, float start, float stop, int num)
+void linspace(MemoryPointer * ptr, double start, double stop, int num)
 {
-    float step = (stop - start) / (num - 1);
+    double step = (stop - start) / (num - 1);
     int i;
     carray_init1d(num, ptr);
     CArray new_array = ptr_to_carray(ptr);
@@ -74,9 +74,9 @@ void linspace(MemoryPointer * ptr, float start, float stop, int num)
  *
  * @author Henrique Borba <henrique.borba.dev>
  */
-void logspace(MemoryPointer * ptr, float start, float stop, int num, float base) {
+void logspace(MemoryPointer * ptr, double start, double stop, int num, double base) {
     int i;
-    float step = (stop - start)/(num - 1);
+    double step = (stop - start)/(num - 1);
     carray_init1d(num, ptr);
     CArray new_array = ptr_to_carray(ptr);
     for(i = 0; i < num; ++i) {

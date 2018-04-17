@@ -45,19 +45,19 @@ void inv(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr)
     CArray target_carray = ptr_to_carray(target_ptr);
     carray_init(target_ptr->x, target_ptr->y, rtn_ptr);
     CArray rtn_carray = ptr_to_carray(rtn_ptr);
-    memcpy(rtn_carray.array2d, target_carray.array2d, (target_ptr->x * target_ptr->y * sizeof(float)));
+    memcpy(rtn_carray.array2d, target_carray.array2d, (target_ptr->x * target_ptr->y * sizeof(double)));
     // Use LAPACKE to calculate
     m = target_ptr->x;
     n = target_ptr->y;
     lda = target_ptr->x;
-    ret =  LAPACKE_sgetrf(LAPACK_COL_MAJOR,
+    ret =  LAPACKE_dgetrf(LAPACK_COL_MAJOR,
                           (lapack_int) m,
                           (lapack_int) n,
                           rtn_carray.array2d,
                           (lapack_int) lda,
                           ipiv);
 
-    ret = LAPACKE_sgetri(LAPACK_COL_MAJOR,
+    ret = LAPACKE_dgetri(LAPACK_COL_MAJOR,
                          (lapack_int) n,
                          rtn_carray.array2d,
                          (lapack_int) lda,
@@ -149,7 +149,7 @@ void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_p
     if(n_b_cols > 0 && n_a_cols > 0) {
         carray_init(n_a_rows, n_b_cols, ptr);
         CArray rtn = ptr_to_carray(ptr);
-        cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n_a_rows, n_b_cols, n_a_cols, 1.0f, a.array2d, n_a_rows, b.array2d, n_b_rows, 0.0f, rtn.array2d, n_a_rows);
+        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n_a_rows, n_b_cols, n_a_cols, 1.0f, a.array2d, n_a_rows, b.array2d, n_b_rows, 0.0f, rtn.array2d, n_a_rows);
         return;
     }
     if(n_b_cols == 0 && n_a_cols > 0) {
@@ -158,7 +158,7 @@ void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_p
         transpose(&bT_ptr, a_ptr, n_a_cols, n_a_rows);
         CArray bT = ptr_to_carray(&bT_ptr);
         for (i = 0; i < n_a_rows; ++i) {
-            rtn.array1d[i] = cblas_sdot(n_a_rows, bT.array2d, 1, b.array1d, 1);
+            rtn.array1d[i] = cblas_ddot(n_a_rows, bT.array2d, 1, b.array1d, 1);
         }
         return;
     }
@@ -168,14 +168,14 @@ void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_p
         transpose(&bT_ptr, b_ptr, n_a_rows, n_b_cols);
         CArray bT = ptr_to_carray(&bT_ptr);
         for (i = 0; i < n_a_rows; ++i) {
-            rtn.array1d[i] = cblas_sdot(n_a_rows, bT.array2d, 1, a.array1d, 1);
+            rtn.array1d[i] = cblas_ddot(n_a_rows, bT.array2d, 1, a.array1d, 1);
         }
         return;
     }
     if(n_b_cols == 0 && n_a_cols == 0) {
         carray_init0d(ptr);
         CArray rtn = ptr_to_carray(ptr);
-        rtn.array0d[0] = cblas_sdot(n_a_rows, a.array1d, 1, b.array1d, 1);
+        rtn.array0d[0] = cblas_ddot(n_a_rows, a.array1d, 1, b.array1d, 1);
         return;
     }
 }

@@ -189,7 +189,7 @@ PHP_METHOD(CArray, linspace)
         Z_PARAM_LONG(num)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
-    linspace(&ptr, (float)start, (float)stop, (float)num);
+    linspace(&ptr, (double)start, (double)stop, (double)num);
     RETURN_CARRAY(return_value, ptr.uuid, num, 0);
 }
 PHP_METHOD(CArray, logspace)
@@ -203,7 +203,7 @@ PHP_METHOD(CArray, logspace)
         Z_PARAM_DOUBLE(base)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
-    logspace(&ptr, (float)start, (float)stop, num, (float)base);
+    logspace(&ptr, (double)start, (double)stop, num, (double)base);
     RETURN_CARRAY(return_value, ptr.uuid, num, 0);
 }
 PHP_METHOD(CArray, toDouble)

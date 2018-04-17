@@ -64,22 +64,22 @@ void standard_normal(MemoryPointer * ptr, int seed, int x, int y)
  * @param mu
  * @param sigma
  */
-float _randn (double mu, double sigma)
+double _randn (double mu, double sigma)
 {
     double U1, U2, W, mult;
-    static float X1, X2;
+    static double X1, X2;
     static int call = 0;
 
     if (call == 1)
     {
         call = !call;
-        return (float) (mu + sigma * (float) X2);
+        return (double) (mu + sigma * (double) X2);
     }
 
     do
     {
-        U1 = -1 + ((float) rand () / RAND_MAX) * 2;
-        U2 = -1 + ((float) rand () / RAND_MAX) * 2;
+        U1 = -1 + ((double) rand () / RAND_MAX) * 2;
+        U2 = -1 + ((double) rand () / RAND_MAX) * 2;
         W = pow (U1, 2) + pow (U2, 2);
     }
     while (W >= 1 || W == 0);
@@ -90,5 +90,5 @@ float _randn (double mu, double sigma)
 
     call = !call;
 
-    return (mu + sigma * (float) X1);
+    return (mu + sigma * (double) X1);
 }
