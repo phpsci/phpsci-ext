@@ -321,8 +321,8 @@ PHP_METHOD(CArray, add)
     MemoryPointer ptr_b;
     OBJ_TO_PTR(a, &ptr_a);
     OBJ_TO_PTR(b, &ptr_b);
-    carray_broadcast_arithmetic(&ptr_a, &ptr_b, &rtn_ptr, &size_x, &size_y, add);
-    RETURN_CARRAY(return_value, rtn_ptr.uuid, size_x, size_y);
+    carray_broadcast_arithmetic(&ptr_a, &ptr_b, &rtn_ptr, add);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
 }
 PHP_METHOD(CArray, fromDouble)
 {

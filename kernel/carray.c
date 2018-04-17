@@ -27,6 +27,15 @@
 #include "exceptions.h"
 #include "php.h"
 
+/**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ *
+ * @return
+ */
+int PTR_TO_DIM(MemoryPointer * ptr)
+{
+    return GET_DIM(ptr->x, ptr->y);
+}
 
 /**
  * Get CArray dimensions based on X and Y
@@ -264,8 +273,8 @@ int validate_carray_arithmetic_broadcast(CArray a, CArray b, int * broadcasted_s
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  */
-void carray_broadcast_arithmetic(MemoryPointer * a, MemoryPointer * b, MemoryPointer * rtn_ptr, int * rtn_x, int * rtn_y,
-                      void cFunction(MemoryPointer * , int , int , MemoryPointer * , int , int , MemoryPointer * , int * , int * )
+void carray_broadcast_arithmetic(MemoryPointer * a, MemoryPointer * b, MemoryPointer * rtn_ptr,
+                      void cFunction(MemoryPointer * , MemoryPointer * , MemoryPointer *)
 )
 {
     CArray arr_a = ptr_to_carray(a);
@@ -278,11 +287,11 @@ void carray_broadcast_arithmetic(MemoryPointer * a, MemoryPointer * b, MemoryPoi
         return;
     }
     if( validate_rtn == 1 ) {
-        cFunction(a, a->x, a->y, b, b->x, b->y, rtn_ptr, rtn_x, rtn_y);
+        cFunction(a, b, rtn_ptr);
         return;
     }
     if( validate_rtn == 2 ) {
-        cFunction(b, b->x, b->y, a, a->x, a->y, rtn_ptr, rtn_x, rtn_y);
+        cFunction(b, a, rtn_ptr);
         return;
     }
 }
