@@ -195,6 +195,14 @@ CArray ptr_to_carray(MemoryPointer * ptr)
  */
 void destroy_carray(MemoryPointer * target_ptr)
 {
+    if(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array != NULL) {
+        efree(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array);
+        return;
+    }
+    if(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array_shape != NULL) {
+        efree(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array_shape);
+        return;
+    }
     if(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array2d != NULL) {
         efree(PHPSCI_MAIN_MEM_STACK.buffer[target_ptr->uuid].array2d);
         return;
@@ -232,6 +240,7 @@ void carray_to_array(CArray carray, zval * rtn_array, int m, int n)
         }
     }
     if(n == 0) {
+        // If 2-D, fill inside values.
         for( rows = 0; rows < m; rows++ ) {
             add_next_index_double(rtn_array, carray.array1d[rows]);
         }
@@ -281,16 +290,20 @@ void carray_broadcast_arithmetic(MemoryPointer * a, MemoryPointer * b, MemoryPoi
     CArray arr_b = ptr_to_carray(b);
     int validate_rtn, * broadcasted_shape;
     int a_x, b_x, a_y, b_y;
+    // Check if operation is valid.
     validate_rtn = validate_carray_arithmetic_broadcast(arr_a, arr_b, broadcasted_shape);
     if( validate_rtn == 0 ) {
+        // Invalid Shapes
         throw_could_not_broadcast_exception("Could not broadcast provided matrices.");
         return;
     }
     if( validate_rtn == 1 ) {
+        // Call arithmetic function with provided operands order. (eg: a + b)
         cFunction(a, b, rtn_ptr);
         return;
     }
     if( validate_rtn == 2 ) {
+        // Call arithmetic function with switched operands. (eg: b + a)
         cFunction(b, a, rtn_ptr);
         return;
     }
