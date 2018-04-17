@@ -44,8 +44,8 @@ typedef struct CArray {
     double *   array1d;
     double *   array0d;
     // NEW IMPLEMENTATION
-    double * array;
-    Shape  * shape;
+    double *   array;
+    Shape  *   array_shape;
 } CArray;
 
 /**
@@ -64,7 +64,8 @@ int IS_1D(int x, int y);
 int IS_2D(int x, int y);
 
 void OBJ_TO_PTR(zval * obj, MemoryPointer * ptr);
-void carray_init(int rows, int cols, MemoryPointer * ptr);
+void carray_init(Shape shape, MemoryPointer * ptr);
+void carray_init2d(int rows, int cols, MemoryPointer * ptr);
 void carray_init1d(int width, MemoryPointer * ptr);
 void carray_init0d(MemoryPointer * ptr);
 void destroy_carray(MemoryPointer * target_ptr);
@@ -72,4 +73,9 @@ void destroy_carray(MemoryPointer * target_ptr);
 CArray ptr_to_carray(MemoryPointer * ptr);
 void carray_to_array(CArray carray, zval * rtn_array, int m, int n);
 void double_to_carray(double input, MemoryPointer * rtn_ptr);
+
+void carray_broadcast_arithmetic(MemoryPointer * a, MemoryPointer * b, MemoryPointer * rtn_ptr, int * rtn_x, int * rtn_y,
+     void cFunction(MemoryPointer * , int , int , MemoryPointer * , int , int , MemoryPointer * , int * , int * )
+);
+
 #endif //PHPSCI_EXT_CARRAY_H

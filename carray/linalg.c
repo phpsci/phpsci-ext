@@ -43,7 +43,7 @@ void inv(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr)
     lapack_int ret, m, n, lda;
     // Load CArrays
     CArray target_carray = ptr_to_carray(target_ptr);
-    carray_init(target_ptr->x, target_ptr->y, rtn_ptr);
+    carray_init2d(target_ptr->x, target_ptr->y, rtn_ptr);
     CArray rtn_carray = ptr_to_carray(rtn_ptr);
     memcpy(rtn_carray.array2d, target_carray.array2d, (target_ptr->x * target_ptr->y * sizeof(double)));
     // Use LAPACKE to calculate
@@ -98,7 +98,7 @@ void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, Memo
         return;
     }
     if (IS_2D(x_a, y_a) && IS_2D(x_b, y_b)) {
-        carray_init(x_a, x_a, ptr);
+        carray_init2d(x_a, x_a, ptr);
         CArray rtn_arr = ptr_to_carray(ptr);
         for(i = 0; i < x_a; i++) {
             for(j = 0; j < x_a; j++) {
@@ -113,7 +113,7 @@ void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, Memo
         return;
     }
     if (IS_2D(x_a, y_a) && IS_0D(x_b, y_b)) {
-        carray_init(x_a, y_a, ptr);
+        carray_init2d(x_a, y_a, ptr);
         CArray rtn_arr = ptr_to_carray(ptr);
         for(i = 0; i < x_a; i++) {
             for(j = 0; j < y_a; j++) {
@@ -147,7 +147,7 @@ void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_p
     CArray a = ptr_to_carray(a_ptr);
     CArray b = ptr_to_carray(b_ptr);
     if(n_b_cols > 0 && n_a_cols > 0) {
-        carray_init(n_a_rows, n_b_cols, ptr);
+        carray_init2d(n_a_rows, n_b_cols, ptr);
         CArray rtn = ptr_to_carray(ptr);
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n_a_rows, n_b_cols, n_a_cols, 1.0f, a.array2d, n_a_rows, b.array2d, n_b_rows, 0.0f, rtn.array2d, n_a_rows);
         return;

@@ -35,6 +35,9 @@
 #include "carray/arithmetic.h"
 #include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
+#include "kernel/php_array.h"
+#include "kernel/exceptions.h"
+#include "Zend/zend_exceptions.h"
 #include "php.h"
 #include "ext/standard/info.h"
 
@@ -61,6 +64,22 @@ void RETURN_CARRAY(zval * return_value, int uuid, int x, int y)
 
 
 
+/**
+ * Dummy function for testing, removed during release.
+ */
+PHP_METHOD(CArray, dummy)
+{
+    zval  * obj;
+    int dim = 0;
+    ZEND_PARSE_PARAMETERS_START(1,1)
+        Z_PARAM_ARRAY(obj);
+    ZEND_PARSE_PARAMETERS_END();
+    array_dim(obj, &dim);
+}
+
+/**
+ * Constructor
+ */
 PHP_METHOD(CArray, __construct)
 {
     long uuid, x, y;
@@ -81,7 +100,7 @@ PHP_METHOD(CArray, identity)
         Z_PARAM_LONG(m)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
-    carray_init((int)m, (int)m, &ptr);
+    carray_init2d((int)m, (int)m, &ptr);
     CArray arr = ptr_to_carray(&ptr);
     identity(&arr, (int)m);
     RETURN_CARRAY(return_value, ptr.uuid, m, m);
@@ -95,7 +114,7 @@ PHP_METHOD(CArray, zeros)
     ZEND_PARSE_PARAMETERS_END();
 
     MemoryPointer ptr;
-    carray_init((int)x, (int)y, &ptr);
+    carray_init2d((int)x, (int)y, &ptr);
     CArray arr = ptr_to_carray(&ptr);
     zeros(&arr, (int)x, (int)y);
     RETURN_CARRAY(return_value, ptr.uuid, x, y);
@@ -302,7 +321,7 @@ PHP_METHOD(CArray, add)
     MemoryPointer ptr_b;
     OBJ_TO_PTR(a, &ptr_a);
     OBJ_TO_PTR(b, &ptr_b);
-    add(&ptr_a, (int)ptr_a.x, (int)ptr_a.y, &ptr_b, (int)ptr_b.x, (int)ptr_b.y, &rtn_ptr, &size_x, &size_y);
+    carray_broadcast_arithmetic(&ptr_a, &ptr_b, &rtn_ptr, &size_x, &size_y, add);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, size_x, size_y);
 }
 PHP_METHOD(CArray, fromDouble)
@@ -371,6 +390,9 @@ static zend_function_entry phpsci_class_methods[] =
    
    // RANDOM SECTION
    PHP_ME(CArray, standard_normal, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+
+   // MISC
+   PHP_ME(CArray, dummy, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }
 };
 
@@ -390,6 +412,8 @@ static PHP_MINIT_FUNCTION(phpsci)
     ce.create_object = NULL;
     phpsci_object_handlers.clone_obj = NULL;
     phpsci_sc_entry = zend_register_internal_class(&ce TSRMLS_CC);
+
+    init_exception_objects();
 
     return SUCCESS;
 }

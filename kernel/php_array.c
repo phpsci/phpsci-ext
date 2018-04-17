@@ -45,7 +45,7 @@ void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * co
         if (Z_TYPE_P(row) == IS_ARRAY) {
             *cols = zend_hash_num_elements(Z_ARRVAL_P(row));
             if (ptr->uuid == UNINITIALIZED) {
-                carray_init(*rows, *cols, ptr);
+                carray_init2d(*rows, *cols, ptr);
                 temp = ptr_to_carray(ptr);
             }
             convert_to_array(row);

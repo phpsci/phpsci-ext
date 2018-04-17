@@ -24,6 +24,7 @@
 #include "carray.h"
 #include "../phpsci.h"
 #include "memory_manager.h"
+#include "exceptions.h"
 #include "php.h"
 
 
@@ -88,7 +89,21 @@ int IS_2D(int x, int y)
  * @param rows  Number of rows
  * @param cols  Number of columns
  */
-void carray_init(int rows, int cols, MemoryPointer * ptr)
+void carray_init(Shape init_shape, MemoryPointer * ptr)
+{
+    //@todo Implement universal carray_init with new CArray architecture.
+}
+
+/**
+ * Initialize CArray 2D
+ *
+ * @deprecated This will be deprecated in favor of new CArray architecture.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param rows  Number of rows
+ * @param cols  Number of columns
+ */
+void carray_init2d(int rows, int cols, MemoryPointer * ptr)
 {
     CArray x;
     int j, i;
@@ -101,6 +116,8 @@ void carray_init(int rows, int cols, MemoryPointer * ptr)
 
 /**
  * Initialize CArray 1D
+ *
+ * @deprecated This will be deprecated in favor of new CArray architecture.
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param rows Width
@@ -118,6 +135,8 @@ void carray_init1d(int width, MemoryPointer * ptr)
 
 /**
  * Initialize CArray 0D
+ *
+ * @deprecated This will be deprecated in favor of new CArray architecture.
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param rows Width
@@ -222,4 +241,48 @@ void double_to_carray(double input, MemoryPointer * rtn_ptr)
     carray_init0d(rtn_ptr);
     CArray rtn_arr = ptr_to_carray(rtn_ptr);
     rtn_arr.array0d[0] = input;
+}
+
+/**
+ * Operations are valid when they matches one of the following rules:
+ *
+ * - Both matrices has the same shape
+ * - One of the matrices are 1-D
+ *
+ * Return 0 if invalid, 1 if valid and 2 if matrices are valid but need to
+ * be switched.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ */
+int validate_carray_arithmetic_broadcast(CArray a, CArray b, int * broadcasted_shape)
+{
+    return 1;
+}
+
+/**
+ * Broadcast N-Dimensional CArray to user defined operation.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ */
+void carray_broadcast_arithmetic(MemoryPointer * a, MemoryPointer * b, MemoryPointer * rtn_ptr, int * rtn_x, int * rtn_y,
+                      void cFunction(MemoryPointer * , int , int , MemoryPointer * , int , int , MemoryPointer * , int * , int * )
+)
+{
+    CArray arr_a = ptr_to_carray(a);
+    CArray arr_b = ptr_to_carray(b);
+    int validate_rtn, * broadcasted_shape;
+    int a_x, b_x, a_y, b_y;
+    validate_rtn = validate_carray_arithmetic_broadcast(arr_a, arr_b, broadcasted_shape);
+    if( validate_rtn == 0 ) {
+        throw_could_not_broadcast_exception("Could not broadcast provided matrices.");
+        return;
+    }
+    if( validate_rtn == 1 ) {
+        cFunction(a, a->x, a->y, b, b->x, b->y, rtn_ptr, rtn_x, rtn_y);
+        return;
+    }
+    if( validate_rtn == 2 ) {
+        cFunction(b, b->x, b->y, a, a->x, a->y, rtn_ptr, rtn_x, rtn_y);
+        return;
+    }
 }

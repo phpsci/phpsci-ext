@@ -23,6 +23,7 @@
 
 #ifndef PHPSCI_EXT_EXCEPTIONS_H
 #define PHPSCI_EXT_EXCEPTIONS_H
-
-
+#include "php.h"
+void init_exception_objects();
+void throw_could_not_broadcast_exception(char * msg);
 #endif //PHPSCI_EXT_EXCEPTIONS_H

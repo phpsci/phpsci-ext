@@ -157,7 +157,7 @@ void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
 {
     int i, j;
     if(GET_DIM(x_b, y_b) == 0) {
-        carray_init(x_a, y_a, rtn_ptr);
+        carray_init2d(x_a, y_a, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         *size_x = x_a;
         *size_y = y_a;
@@ -169,7 +169,7 @@ void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
         return;
     }
     if(GET_DIM(x_b, y_b) == 1) {
-        carray_init(x_a, y_a, rtn_ptr);
+        carray_init2d(x_a, y_a, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         *size_x = x_a;
         *size_y = y_a;
@@ -181,7 +181,7 @@ void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
         return;
     }
     if(x_a == x_b) {
-        carray_init(x_a, y_a, rtn_ptr);
+        carray_init2d(x_a, y_a, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         *size_x = x_a;
         *size_y = y_a;
@@ -193,7 +193,7 @@ void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, M
         return;
     }
     if(x_b < x_a && x_b == 1) {
-        carray_init(x_a, y_a, rtn_ptr);
+        carray_init2d(x_a, y_a, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         *size_x = x_a;
         *size_y = y_a;
