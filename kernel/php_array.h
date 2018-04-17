@@ -21,55 +21,12 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_CARRAY_H
-#define PHPSCI_EXT_CARRAY_H
-#include "../phpsci.h"
+#ifndef PHPSCI_EXT_PHP_ARRAY_H
+#define PHPSCI_EXT_PHP_ARRAY_H
 
-/**
- * PHPSci Shape Structure
- */
-typedef struct Shape {
-    int * shape;
-    int * dim;
-} Shape;
+#include "memory_manager.h"
+#include "php.h"
 
-/**
- * PHPSci internal array structure
- *
- * Currently working with shaped 2D, 1D and 0D.
- */
-typedef struct CArray {
-    // OLD IMPLEMENTATION
-    double *   array2d;
-    double *   array1d;
-    double *   array0d;
-    // NEW IMPLEMENTATION
-    double * array;
-    Shape  * shape;
-} CArray;
-
-/**
- * The only thing between PHP and the extension
- */
-typedef struct MemoryPointer {
-    int uuid;
-    int x;
-    int y;
-} MemoryPointer;
-
-int SHAPE_TO_DIM(Shape * shape);
-int GET_DIM(int x, int y);
-int IS_0D(int x, int y);
-int IS_1D(int x, int y);
-int IS_2D(int x, int y);
-
-void OBJ_TO_PTR(zval * obj, MemoryPointer * ptr);
-void carray_init(int rows, int cols, MemoryPointer * ptr);
-void carray_init1d(int width, MemoryPointer * ptr);
-void carray_init0d(MemoryPointer * ptr);
-void destroy_carray(MemoryPointer * target_ptr);
-
-CArray ptr_to_carray(MemoryPointer * ptr);
-void carray_to_array(CArray carray, zval * rtn_array, int m, int n);
-void double_to_carray(double input, MemoryPointer * rtn_ptr);
-#endif //PHPSCI_EXT_CARRAY_H
+void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * cols);
+void array_dim(zval * array, int * dim);
+#endif //PHPSCI_EXT_PHP_ARRAY_H

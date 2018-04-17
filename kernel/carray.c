@@ -183,55 +183,6 @@ void destroy_carray(MemoryPointer * target_ptr)
 }
 
 /**
- * Create MemoryPointer from ZVAL
- *
- * @author Henrique Borba <henrique.borba.dev@gmail.com>
- * @param arr zval *           PHP Array to convert
- * @param pt MemoryPointer *   MemoryPointer
- */
-void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * cols)
-{
-    zval * row, * col;
-    CArray temp;
-    int i =0, j=0;
-    *rows = zend_hash_num_elements(Z_ARRVAL_P(array));
-    *cols = 0;
-    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(array), row) {
-        ZVAL_DEREF(row);
-        if (Z_TYPE_P(row) == IS_ARRAY) {
-            *cols = zend_hash_num_elements(Z_ARRVAL_P(row));
-            if (ptr->uuid == UNINITIALIZED) {
-                carray_init(*rows, *cols, ptr);
-                temp = ptr_to_carray(ptr);
-            }
-            convert_to_array(row);
-
-        } else  {
-            if (ptr->uuid == UNINITIALIZED) {
-                carray_init1d(*rows, ptr);
-                temp = ptr_to_carray(ptr);
-            }
-        }
-    } ZEND_HASH_FOREACH_END();
-    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(array), row) {
-        ZVAL_DEREF(row);
-        if (Z_TYPE_P(row) == IS_ARRAY) {
-            ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(row), col) {
-                convert_to_double(col);
-                temp.array2d[(j * *rows) + i] = (double)Z_DVAL_P(col);
-                ++j;
-            } ZEND_HASH_FOREACH_END();
-        } else {
-            convert_to_double(row);
-            temp.array1d[i] = (double)Z_DVAL_P(row);
-        }
-        j = 0;
-        ++i;
-    } ZEND_HASH_FOREACH_END();
-}
-
-
-/**
  * Create ZVAL_ARR from CArray
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
