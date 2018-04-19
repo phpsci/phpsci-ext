@@ -96,9 +96,18 @@ PHP_METHOD(CArray, zeros)
     ZEND_PARSE_PARAMETERS_END();
 
     MemoryPointer ptr;
-    carray_init((int)x, (int)y, &ptr);
-    CArray arr = ptr_to_carray(&ptr);
-    zeros(&arr, (int)x, (int)y);
+    zeros(&ptr, (int)x, (int)y);
+    RETURN_CARRAY(return_value, ptr.uuid, x, y);
+}
+PHP_METHOD(CArray, ones)
+{
+    long x, y;
+    ZEND_PARSE_PARAMETERS_START(2,2)
+        Z_PARAM_LONG(x)
+        Z_PARAM_LONG(y)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    ones(&ptr, (int)x, (int)y);
     RETURN_CARRAY(return_value, ptr.uuid, x, y);
 }
 PHP_METHOD(CArray, standard_normal)
@@ -369,6 +378,7 @@ static zend_function_entry phpsci_class_methods[] =
    // INITIALIZERS SECTION
    PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, zeros, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, ones, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, eye, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    
    // BASIC OPERATIONS

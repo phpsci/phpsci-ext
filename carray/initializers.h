@@ -29,6 +29,10 @@ void identity(CArray * carray, int xy);
 void eye(MemoryPointer * rtn_ptr, int x, int y, int k);
 
 void zeros2d(CArray * carray, int x, int y);
-void zeros(CArray * carray, int x, int y);
+void zeros(MemoryPointer * ptr, int x, int y);
 void zeros1d(CArray * carray, int x);
+
+void ones(MemoryPointer * ptr, int x, int y);
+void ones1d(CArray * carray, int x);
+void ones2d(CArray * carray, int x, int y);
 #endif //PHPSCI_EXT_INITIALIZERS_H

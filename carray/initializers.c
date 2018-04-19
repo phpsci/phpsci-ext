@@ -64,6 +64,43 @@ void eye(MemoryPointer * rtn_ptr, int x, int y, int k)
 }
 
 
+/**
+ * Create CArray full of ones
+ *
+ * zeros    select best function based on shape
+ * zeros1d  for 1D CArray
+ * zeros2d  for 2D Carray
+ *
+ * @author Henrique Borba <henrique.borba.dev>
+ */
+void ones(MemoryPointer * ptr, int x, int y) {
+    if(x > 0 && y > 0) {
+        carray_init(x, y, ptr);
+        CArray carray = ptr_to_carray(ptr);
+        ones2d(&carray, x, y);
+    }
+    if(x > 0 && y == 0) {
+        carray_init1d(x, ptr);
+        CArray carray = ptr_to_carray(ptr);
+        ones1d(&carray, x);
+    }
+}
+void ones1d(CArray * carray, int x) {
+    int i;
+    for(i = 0; i < x; i++) {
+        carray->array1d[i] = 1.0;
+    }
+}
+void ones2d(CArray * carray, int x, int y) {
+    int i, j;
+    #pragma omp parallel for
+    for(i = 0; i < x; i++) {
+        for(j = 0; j < y; j++) {
+            carray->array2d[(j * x) + i] = 1.0;
+        }
+    }
+}
+
 
 
 /**
@@ -75,12 +112,16 @@ void eye(MemoryPointer * rtn_ptr, int x, int y, int k)
  *
  * @author Henrique Borba <henrique.borba.dev>
  */
-void zeros(CArray * carray, int x, int y) {
+void zeros(MemoryPointer * ptr, int x, int y) {
     if(x > 0 && y > 0) {
-        zeros2d(carray, x, y);
+        carray_init(x, y, ptr);
+        CArray carray = ptr_to_carray(ptr);
+        zeros2d(&carray, x, y);
     }
     if(x > 0 && y == 0) {
-        zeros1d(carray, x);
+        carray_init1d(x, ptr);
+        CArray carray = ptr_to_carray(ptr);
+        zeros1d(&carray, x);
     }
 }
 void zeros1d(CArray * carray, int x) {
