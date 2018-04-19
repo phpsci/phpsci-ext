@@ -341,6 +341,17 @@ PHP_METHOD(CArray, log2)
     base2_log(&target_ptr, &rtn_ptr);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
 }
+PHP_METHOD(CArray, log1p)
+{
+    zval * a;
+    MemoryPointer target_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &target_ptr);
+    loga1p(&target_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
+}
 PHP_METHOD(CArray, sum)
 {
     long axis;
@@ -486,6 +497,7 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, log, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, log10, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, log2, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, log1p, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
    // TRANSFORMATIONS SECTION
    PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)

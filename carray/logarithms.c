@@ -134,3 +134,40 @@ base2_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         return;
     }
 }
+
+/**
+ * Oneplus logarithm, element-wise.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param ptr
+ */
+void
+loga1p(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
+{
+    int i, j;
+    CArray carray = ptr_to_carray(ptr);
+    if(IS_0D(ptr->x, ptr->y)) {
+        carray_init0d(rtn_ptr);
+        CArray rtn_arr = ptr_to_carray(rtn_ptr);
+        rtn_arr.array0d[0] = log1p(carray.array0d[0]);
+        return;
+    }
+    if(IS_1D(ptr->x, ptr->y)) {
+        carray_init1d(ptr->x, rtn_ptr);
+        CArray rtn_arr = ptr_to_carray(rtn_ptr);
+        for(i = 0; i < ptr->x; ++i) {
+            rtn_arr.array1d[i] = log1p(carray.array1d[i]);
+        }
+        return;
+    }
+    if(IS_2D(ptr->x, ptr->y)) {
+        carray_init(ptr->x, ptr->y, rtn_ptr);
+        CArray rtn_arr = ptr_to_carray(rtn_ptr);
+        for(i = 0; i < ptr->x; ++i) {
+            for(j = 0; j < ptr->y; ++j) {
+                rtn_arr.array2d[(j * ptr->x) + i] = log1p(carray.array2d[(j * ptr->x) + i]);
+            }
+        }
+        return;
+    }
+}
