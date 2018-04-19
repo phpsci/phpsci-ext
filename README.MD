@@ -196,7 +196,7 @@ That's what makes PHPSci so much faster them PHP Arrays.
 
 ## General
 - #23  Instantiate CArray instead of using multiple parameters [100%]
-- Use LAPACKE included within OpenBLAS.
+- Use LAPACKE included within OpenBLAS. [100%]
 
 ## Manipulation
 - CArray implements IteratorAggregate for iteration.
@@ -208,6 +208,7 @@ That's what makes PHPSci so much faster them PHP Arrays.
 - **Exponents**:  `exp [100%]`
 - **Logarithms**: `log [100%]`, `log10 [100%]`, `log2 [100%]`, `log1p [100%]`
 - **Trigonometric**: `tan [100%]`, `sin [100%]`, `cos [100%]`, `arctan [100%]`, `arcsin [100%]`, `arccos [100%]`
+- **Hyperbolic**: `sinh [100%]`, `cosh [100%]`, `tanh [100%]`
 
 ## Transformations
 See: https://docs.scipy.org/doc/numpy/reference/routines.array-manipulation.html

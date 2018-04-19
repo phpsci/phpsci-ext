@@ -36,6 +36,7 @@
 #include "carray/logarithms.h"
 #include "carray/exponents.h"
 #include "carray/trigonometric.h"
+#include "carray/hyperbolic.h"
 #include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
 #include "kernel/php_array.h"
@@ -419,6 +420,39 @@ PHP_METHOD(CArray, arctan)
     arctan_carray(&target_ptr, &rtn_ptr);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
 }
+PHP_METHOD(CArray, sinh)
+{
+    zval * a;
+    MemoryPointer target_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &target_ptr);
+    hyperbolic_sinh(&target_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
+}
+PHP_METHOD(CArray, tanh)
+{
+    zval * a;
+    MemoryPointer target_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &target_ptr);
+    hyperbolic_tanh(&target_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
+}
+PHP_METHOD(CArray, cosh)
+{
+    zval * a;
+    MemoryPointer target_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &target_ptr);
+    hyperbolic_cosh(&target_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
+}
 PHP_METHOD(CArray, sum)
 {
     long axis;
@@ -584,6 +618,11 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, arctan, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, arccos, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, arcsin, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+
+   // HYPERBOLIC
+   PHP_ME(CArray, sinh, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, tanh, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, cosh, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
    // INITIALIZERS SECTION
    PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
