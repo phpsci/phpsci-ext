@@ -35,4 +35,8 @@ void zeros1d(CArray * carray, int x);
 void ones(MemoryPointer * ptr, int x, int y);
 void ones1d(CArray * carray, int x);
 void ones2d(CArray * carray, int x, int y);
+
+void full(MemoryPointer * ptr, int x, int y, double num);
+void full1d(CArray * carray, int x, double num);
+void full2d(CArray * carray, int x, int y, double num);
 #endif //PHPSCI_EXT_INITIALIZERS_H

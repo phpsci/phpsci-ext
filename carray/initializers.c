@@ -63,6 +63,43 @@ void eye(MemoryPointer * rtn_ptr, int x, int y, int k)
     }
 }
 
+/**
+ * Create CArray full of user provided number
+ *
+ * zeros    select best function based on shape
+ * zeros1d  for 1D CArray
+ * zeros2d  for 2D Carray
+ *
+ * @author Henrique Borba <henrique.borba.dev>
+ */
+void full(MemoryPointer * ptr, int x, int y, double num) {
+    if(x > 0 && y > 0) {
+        carray_init(x, y, ptr);
+        CArray carray = ptr_to_carray(ptr);
+        full2d(&carray, x, y, num);
+    }
+    if(x > 0 && y == 0) {
+        carray_init1d(x, ptr);
+        CArray carray = ptr_to_carray(ptr);
+        full1d(&carray, x, num);
+    }
+}
+void full1d(CArray * carray, int x, double num) {
+    int i;
+    for(i = 0; i < x; i++) {
+        carray->array1d[i] = num;
+    }
+}
+void full2d(CArray * carray, int x, int y, double num) {
+    int i, j;
+    #pragma omp parallel for
+    for(i = 0; i < x; i++) {
+        for(j = 0; j < y; j++) {
+            carray->array2d[(j * x) + i] = num;
+        }
+    }
+}
+
 
 /**
  * Create CArray full of ones

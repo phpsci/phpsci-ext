@@ -110,6 +110,33 @@ PHP_METHOD(CArray, ones)
     ones(&ptr, (int)x, (int)y);
     RETURN_CARRAY(return_value, ptr.uuid, x, y);
 }
+PHP_METHOD(CArray, full)
+{
+    long x, y;
+    double num;
+    ZEND_PARSE_PARAMETERS_START(3,3)
+        Z_PARAM_DOUBLE(num)
+        Z_PARAM_LONG(x)
+        Z_PARAM_LONG(y)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    full(&ptr, (int)x, (int)y, num);
+    RETURN_CARRAY(return_value, ptr.uuid, x, y);
+}
+PHP_METHOD(CArray, full_like)
+{
+    zval * obj;
+    double num;
+    MemoryPointer ptr;
+    MemoryPointer new_array_ptr;
+    ZEND_PARSE_PARAMETERS_START(2,2)
+        Z_PARAM_OBJECT(obj)
+        Z_PARAM_DOUBLE(num)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(obj, &ptr);
+    full(&new_array_ptr, ptr.x, ptr.y, num);
+    RETURN_CARRAY(return_value, new_array_ptr.uuid, ptr.x, ptr.y);
+}
 PHP_METHOD(CArray, ones_like)
 {
     zval * obj;
@@ -406,6 +433,8 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, ones, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, ones_like, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, eye, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, full, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, full_like, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    
    // BASIC OPERATIONS
    PHP_ME(CArray, sum, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
