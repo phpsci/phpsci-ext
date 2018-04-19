@@ -79,6 +79,8 @@ PHP_NEW_EXTENSION(phpsci,
 	  carray/basic_operations.c \
 	  carray/random.c \
 	  carray/arithmetic.c \
+	  carray/exponents.c \
+	  carray/logarithms.c \
 	  kernel/carray_printer.c \
 	  kernel/php_array.c \
 	  carray/transformations.c,

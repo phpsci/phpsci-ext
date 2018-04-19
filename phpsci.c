@@ -33,6 +33,8 @@
 #include "carray/random.h"
 #include "carray/ranges.h"
 #include "carray/arithmetic.h"
+#include "carray/logarithms.h"
+#include "carray/exponents.h"
 #include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
 #include "kernel/php_array.h"
@@ -306,6 +308,17 @@ PHP_METHOD(CArray, exp)
     exponential(&a_ptr, &target_ptr, a_ptr.x, a_ptr.y);
     RETURN_CARRAY(return_value, target_ptr.uuid, a_ptr.x, a_ptr.y);
 }
+PHP_METHOD(CArray, log)
+{
+    zval * a;
+    MemoryPointer target_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &target_ptr);
+    natural_log(&target_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
+}
 PHP_METHOD(CArray, sum)
 {
     long axis;
@@ -447,6 +460,9 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, add, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, subtract, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
+   // LOGARITHMS
+   PHP_ME(CArray, log, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+
    // TRANSFORMATIONS SECTION
    PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    
@@ -470,6 +486,8 @@ static zend_function_entry phpsci_class_methods[] =
    
    // BASIC OPERATIONS
    PHP_ME(CArray, sum, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+
+   // EXPONENTIAL
    PHP_ME(CArray, exp, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    
    // CONVERT SECTION

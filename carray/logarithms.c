@@ -20,53 +20,43 @@
   | Authors: Henrique Borba <henrique.borba.dev@gmail.com>               |
   +----------------------------------------------------------------------+
 */
-
-#ifndef PHPSCI_EXT_CARRAY_H
-#define PHPSCI_EXT_CARRAY_H
+#include "logarithms.h"
 #include "../phpsci.h"
+#include "../kernel/memory_manager.h"
 
 /**
- * PHPSci Shape Structure
- */
-typedef struct Shape {
-    int * shape;
-    int * dim;
-} Shape;
-
-/**
- * PHPSci internal array structure
+ * Natural logarithm, element-wise.
  *
- * Currently working with shaped 2D, 1D and 0D.
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param ptr
  */
-typedef struct CArray {
-    // OLD IMPLEMENTATION
-    double *   array2d;
-    double *   array1d;
-    double *   array0d;
-} CArray;
-
-/**
- * The only thing between PHP and the extension
- */
-typedef struct MemoryPointer {
-    int uuid;
-    int x;
-    int y;
-} MemoryPointer;
-
-int SHAPE_TO_DIM(Shape * shape);
-int GET_DIM(int x, int y);
-int IS_0D(int x, int y);
-int IS_1D(int x, int y);
-int IS_2D(int x, int y);
-
-void OBJ_TO_PTR(zval * obj, MemoryPointer * ptr);
-void carray_init(int rows, int cols, MemoryPointer * ptr);
-void carray_init1d(int width, MemoryPointer * ptr);
-void carray_init0d(MemoryPointer * ptr);
-void destroy_carray(MemoryPointer * target_ptr);
-
-CArray ptr_to_carray(MemoryPointer * ptr);
-void carray_to_array(CArray carray, zval * rtn_array, int m, int n);
-void double_to_carray(double input, MemoryPointer * rtn_ptr);
-#endif //PHPSCI_EXT_CARRAY_H
+void
+natural_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
+{
+    int i, j;
+    CArray carray = ptr_to_carray(ptr);
+    if(IS_0D(ptr->x, ptr->y)) {
+        carray_init0d(rtn_ptr);
+        CArray rtn_arr = ptr_to_carray(rtn_ptr);
+        rtn_arr.array0d[0] = log(carray.array0d[0]);
+        return;
+    }
+    if(IS_1D(ptr->x, ptr->y)) {
+        carray_init1d(ptr->x, rtn_ptr);
+        CArray rtn_arr = ptr_to_carray(rtn_ptr);
+        for(i = 0; i < ptr->x; ++i) {
+            rtn_arr.array1d[i] = log(carray.array1d[i]);
+        }
+        return;
+    }
+    if(IS_2D(ptr->x, ptr->y)) {
+        carray_init(ptr->x, ptr->y, rtn_ptr);
+        CArray rtn_arr = ptr_to_carray(rtn_ptr);
+        for(i = 0; i < ptr->x; ++i) {
+            for(j = 0; j < ptr->y; ++j) {
+                rtn_arr.array2d[(j * ptr->x) + i] = log(carray.array2d[(j * ptr->x) + i]);
+            }
+        }
+        return;
+    }
+}
