@@ -227,7 +227,7 @@ See: https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.array-creation.h
 ## Linear Algebra
 See: https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.linalg.html
 - **Products**: `matmul [100%]`, `inner [100%]`, `outer`, `dot`
-- **Decompositions**: `svd`
+- **Decompositions**: `svd [100%]`
 - **Eigenvalues**: `eig`, `eigvals`
 - **Linear Equations**: `solve`
 - **Inverse**: `lstsq`, `inv [100%]`
