@@ -26,4 +26,5 @@
 #include "../kernel/memory_manager.h"
 
 void natural_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
+void base10_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
 #endif //PHPSCI_EXT_LOGARITHMS_H
