@@ -37,6 +37,7 @@
 #include "carray/exponents.h"
 #include "carray/trigonometric.h"
 #include "carray/hyperbolic.h"
+#include "carray/magic_properties.h"
 #include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
 #include "kernel/php_array.h"
@@ -597,6 +598,20 @@ PHP_METHOD(CArray, fromDouble)
     double_to_carray(input, &ptr);
     RETURN_CARRAY(return_value, ptr.uuid, 0, 0);
 }
+PHP_METHOD(CArray, __get)
+{
+    char * name;
+    size_t name_len;
+    MemoryPointer this_ptr, new_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STRING(name, name_len)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(getThis(), &this_ptr);
+    run_property_or_die(name, return_value, &this_ptr, &new_ptr);
+}
+ZEND_BEGIN_ARG_INFO_EX(phpsci_get_args, 0, 0, 2)
+    ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
 PHP_METHOD(CArray, inv)
 {
     zval * a;
@@ -673,6 +688,9 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, inv, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, svd, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
+   // MAGIC PROPERTIES
+   PHP_ME(CArray, __get, phpsci_get_args, ZEND_ACC_PUBLIC)
+
    // CARRAY MEMORY MANAGEMENT SECTION
    PHP_ME(CArray, __destruct, NULL, ZEND_ACC_PUBLIC)
 
@@ -730,7 +748,6 @@ static PHP_MINIT_FUNCTION(phpsci)
 {
     zend_class_entry ce;
     memcpy(&phpsci_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-
     INIT_CLASS_ENTRY(ce, "CArray", phpsci_class_methods);
     ce.create_object = NULL;
     phpsci_object_handlers.clone_obj = NULL;

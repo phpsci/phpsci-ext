@@ -83,6 +83,7 @@ PHP_NEW_EXTENSION(phpsci,
 	  carray/logarithms.c \
 	  carray/trigonometric.c \
 	  carray/hyperbolic.c \
+	  carray/magic_properties.c \
 	  kernel/carray_printer.c \
 	  kernel/php_array.c \
 	  carray/transformations.c,
