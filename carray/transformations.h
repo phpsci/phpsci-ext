@@ -26,5 +26,8 @@
 
 #include "../kernel/memory_manager.h"
 
-void transpose(MemoryPointer * new_ptr, MemoryPointer * target_ptr, int rows, int cols);
+void transpose(MemoryPointer * new_ptr, MemoryPointer * target_ptr, int x, int y);
+void flatten(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
+void atleast_1d(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
+void atleast_2d(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
 #endif //PHPSCI_EXT_TRANSFORMATIONS_H

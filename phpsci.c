@@ -64,8 +64,6 @@ void RETURN_CARRAY(zval * return_value, int uuid, int x, int y)
     zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, y);
 }
 
-
-
 PHP_METHOD(CArray, __construct)
 {
     long uuid, x, y;
@@ -190,6 +188,39 @@ PHP_METHOD(CArray, standard_normal)
         zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
         return;
     }
+}
+PHP_METHOD(CArray, atleast_1d)
+{
+    zval * obj;
+    MemoryPointer target_ptr;
+    MemoryPointer return_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(obj)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(obj, &target_ptr);
+    atleast_1d(&return_ptr, &target_ptr);
+    RETURN_CARRAY(return_value, return_ptr.uuid, return_ptr.x, return_ptr.y);
+}
+PHP_METHOD(CArray, atleast_2d)
+{
+    zval * obj;
+    MemoryPointer target_ptr;
+    MemoryPointer return_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(obj)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(obj, &target_ptr);
+    atleast_2d(&return_ptr, &target_ptr);
+    RETURN_CARRAY(return_value, return_ptr.uuid, return_ptr.x, return_ptr.y);
+}
+PHP_METHOD(CArray, flatten)
+{
+    zval * obj = getThis();
+    MemoryPointer target_ptr;
+    MemoryPointer return_ptr;
+    OBJ_TO_PTR(obj, &target_ptr);
+    flatten(&return_ptr, &target_ptr);
+    RETURN_CARRAY(return_value, return_ptr.uuid, return_ptr.x, return_ptr.y);
 }
 PHP_METHOD(CArray, fromArray)
 {
@@ -632,6 +663,9 @@ static zend_function_entry phpsci_class_methods[] =
 
    // TRANSFORMATIONS SECTION
    PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, atleast_1d, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, atleast_2d, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, flatten, NULL, ZEND_ACC_PUBLIC)
    
    // PRODUCTS SECTION
    PHP_ME(CArray, matmul, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
@@ -685,7 +719,6 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, standard_normal, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }
 };
-
 zend_function_entry phpsci_functions[] = {
         {NULL, NULL, NULL}
 };
