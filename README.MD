@@ -203,7 +203,7 @@ That's what makes PHPSci so much faster them PHP Arrays.
 - CArray `get` non-static method for data retrieval.
 
 ## Math
-- **Arithmetics**: `add [100%]`, `subtract`
+- **Arithmetics**: `add [100%]`, `subtract [100%]`
 - **Element-wise**: `sum [100%]`, `exp`
 
 ## Transformations

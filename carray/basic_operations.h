@@ -28,7 +28,7 @@
 void sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y);
 void sum_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int axis, int * size_x, int * size_y);
 
-        void sub_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y);
+void sub_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y);
 void sub_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int axis);
 
 #endif //PHPSCI_EXT_BASIC_OPERATIONS_H

@@ -34,26 +34,26 @@
  * @param y
  * @param axis
  */
-void sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
+void
+sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
     int i, j;
-  
+    // Initialize CArray
     carray_init0d(target_ptr);
-  
+    // Transform MemoryPointer to CArray
     CArray rtn_arr = ptr_to_carray(target_ptr);
     CArray new_arr = ptr_to_carray(ptr);
-  
+    // Initialize return to 0
     rtn_arr.array0d[0] = 0;
-  
+    // If 2D Matrix
     if(x > 0 && y > 0) {
         for(i = 0; i < x; ++i) {
             for(j = 0; j < y; ++j) {
                 rtn_arr.array0d[0] += new_arr.array2d[(j * x) + i];
             }
         }
-        
         return;
     }
-  
+    // If 1D Matrix
     if(x > 0 && y == 0) {
         for(i = 0; i < x; ++i) {
             rtn_arr.array0d[0] += new_arr.array1d[i];
@@ -72,7 +72,8 @@ void sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
  * @param y
  * @param axis
  */
-void sum_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int axis, int * size_x, int * size_y) {
+void
+sum_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int axis, int * size_x, int * size_y) {
     int i, j;
     if(axis == 0) {
         *size_x = y;

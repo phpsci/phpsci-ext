@@ -378,6 +378,22 @@ PHP_METHOD(CArray, add)
     add(&ptr_a, (int)ptr_a.x, (int)ptr_a.y, &ptr_b, (int)ptr_b.x, (int)ptr_b.y, &rtn_ptr, &size_x, &size_y);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, size_x, size_y);
 }
+PHP_METHOD(CArray, subtract)
+{
+    zval * a, * b;
+    int  size_x, size_y;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OBJECT(b)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer rtn_ptr;
+    MemoryPointer ptr_a;
+    MemoryPointer ptr_b;
+    OBJ_TO_PTR(a, &ptr_a);
+    OBJ_TO_PTR(b, &ptr_b);
+    subtract(&ptr_a, (int)ptr_a.x, (int)ptr_a.y, &ptr_b, (int)ptr_b.x, (int)ptr_b.y, &rtn_ptr, &size_x, &size_y);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, size_x, size_y);
+}
 PHP_METHOD(CArray, fromDouble)
 {
     double input;
@@ -438,6 +454,7 @@ static zend_function_entry phpsci_class_methods[] =
    
    // BASIC OPERATIONS
    PHP_ME(CArray, sum, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, subtract, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    
    // CONVERT SECTION
    PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
