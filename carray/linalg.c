@@ -28,6 +28,39 @@
 #include "cblas.h"
 #include "lapacke.h"
 
+/**
+ * Program computes the singular value decomposition of a general rectangular matrix A
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param target_ptr
+ */
+void
+svd(MemoryPointer * a_ptr, MemoryPointer * rtn_ptr, MemoryPointer * singularvalues_ptr,
+    MemoryPointer * left_vectors_ptr, MemoryPointer * right_vectors_ptr)
+{
+    double u[a_ptr->x*a_ptr->x], vt[a_ptr->y*a_ptr->y];
+
+    // Initialize Singular Vectors array
+    carray_init1d(a_ptr->y, singularvalues_ptr);
+    CArray singular_values_arr = ptr_to_carray(singularvalues_ptr);
+    // Initialize singular Left Vectors Array
+    carray_init(a_ptr->x, a_ptr->x, left_vectors_ptr);
+    CArray left_vectors_arr = ptr_to_carray(left_vectors_ptr);
+    // Initialize singular Right vectors Array
+    carray_init(a_ptr->y, a_ptr->y, right_vectors_ptr);
+    CArray right_vectors_arr = ptr_to_carray(right_vectors_ptr);
+
+    lapack_int m = (lapack_int)a_ptr->x, n = (lapack_int)a_ptr->y;
+    lapack_int lda = (lapack_int)m, ldu = (lapack_int)m, ldvt = (lapack_int)n, info;
+    // Compute SVD
+    CArray target_carray = ptr_to_carray(a_ptr);
+    carray_init(a_ptr->x, a_ptr->y, rtn_ptr);
+    CArray rtn_carray = ptr_to_carray(rtn_ptr);
+    memcpy(rtn_carray.array2d, target_carray.array2d, (a_ptr->x * a_ptr->y * sizeof(double)));
+    info = LAPACKE_dgesdd( LAPACK_COL_MAJOR, 'S', m, n, rtn_carray.array2d, lda, singular_values_arr.array1d,
+                           left_vectors_arr.array2d, ldu, right_vectors_arr.array2d, ldvt );
+}
+
 
 /**
  * Compute the (multiplicative) inverse of a matrix.
@@ -37,7 +70,8 @@
  * @param target_ptr
  * @param rtn_ptr
  */
-void inv(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr)
+void
+inv(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr)
 {
     lapack_int * ipiv = safe_emalloc(target_ptr->x, sizeof(lapack_int), 0);
     lapack_int ret, m, n, lda;
@@ -72,7 +106,8 @@ void inv(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr)
  * @param a
  * @param b
  */
-void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPointer * a_ptr, int x_b, int y_b, MemoryPointer * b_ptr)
+void
+inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPointer * a_ptr, int x_b, int y_b, MemoryPointer * b_ptr)
 {
     int i, j, k;
     CArray a = ptr_to_carray(a_ptr);
@@ -141,7 +176,8 @@ void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, Memo
  * @param n_b_cols  Number of cols in CArray B
  * @param b_ptr     CArray B MemoryPointer
  */
-void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_ptr, int n_b_cols, MemoryPointer * b_ptr) {
+void
+matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_ptr, int n_b_cols, MemoryPointer * b_ptr) {
     int i, j, n_b_rows = n_a_cols;
     MemoryPointer bT_ptr;
     CArray a = ptr_to_carray(a_ptr);

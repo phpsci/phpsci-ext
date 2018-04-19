@@ -95,6 +95,8 @@ void carray_init(int rows, int cols, MemoryPointer * ptr)
     x.array2d = (double*)emalloc(rows * cols * sizeof(double));
     x.array1d = NULL;
     x.array0d = NULL;
+    ptr->x = rows;
+    ptr->y = cols;
     add_to_stack(ptr, x,(rows * cols * sizeof(double)));
 }
 
@@ -113,6 +115,7 @@ void carray_init1d(int width, MemoryPointer * ptr)
     x.array0d = NULL;
     x.array2d = NULL;
     x.array1d = (double*)emalloc(width * sizeof(double));
+    ptr->x = width;
     add_to_stack(ptr, x,(width * sizeof(double)));
 }
 

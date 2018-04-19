@@ -578,7 +578,37 @@ PHP_METHOD(CArray, inv)
     inv(&ptr_a, &rtn);
     RETURN_CARRAY(return_value, rtn.uuid, ptr_a.x, ptr_a.y);
 }
-
+PHP_METHOD(CArray, svd)
+{
+    zval * a, singular_obj, left_obj, right_obj;
+    MemoryPointer ptr_a;
+    MemoryPointer temp_ptr;
+    MemoryPointer singular_ptr;
+    MemoryPointer left_ptr;
+    MemoryPointer right_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    svd(&ptr_a, &temp_ptr, &singular_ptr, &left_ptr, &right_ptr);
+    array_init(return_value);
+    RETURN_CARRAY(&singular_obj, singular_ptr.uuid, ptr_a.y, 0);
+    RETURN_CARRAY(&left_obj, left_ptr.uuid, ptr_a.x, ptr_a.x);
+    RETURN_CARRAY(&right_obj, right_ptr.uuid, ptr_a.y, ptr_a.y);
+    add_next_index_zval(return_value, &singular_obj);
+    add_next_index_zval(return_value, &left_obj);
+    add_next_index_zval(return_value, &right_obj);
+}
+PHP_METHOD(CArray, __toString)
+{
+    zend_string *str;
+    zval * a = getThis();
+    MemoryPointer ptr;
+    str = ZSTR_EMPTY_ALLOC();
+    OBJ_TO_PTR(a, &ptr);
+    print_carray(&ptr, ptr.x, ptr.y);
+    RETURN_STR(str);
+}
 /**
  * CLASS METHODS
  */
@@ -607,6 +637,7 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, matmul, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, inner, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, inv, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, svd, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
    // CARRAY MEMORY MANAGEMENT SECTION
    PHP_ME(CArray, __destruct, NULL, ZEND_ACC_PUBLIC)
@@ -648,6 +679,7 @@ static zend_function_entry phpsci_class_methods[] =
    
    // VISUALIZATION
    PHP_ME(CArray, print_r, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, __toString, NULL, ZEND_ACC_PUBLIC)
    
    // RANDOM SECTION
    PHP_ME(CArray, standard_normal, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
