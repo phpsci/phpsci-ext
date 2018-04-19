@@ -35,6 +35,7 @@
 #include "carray/arithmetic.h"
 #include "carray/logarithms.h"
 #include "carray/exponents.h"
+#include "carray/trigonometric.h"
 #include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
 #include "kernel/php_array.h"
@@ -352,6 +353,72 @@ PHP_METHOD(CArray, log1p)
     loga1p(&target_ptr, &rtn_ptr);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
 }
+PHP_METHOD(CArray, tan)
+{
+    zval * a;
+    MemoryPointer target_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &target_ptr);
+    tan_carray(&target_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
+}
+PHP_METHOD(CArray, sin)
+{
+    zval * a;
+    MemoryPointer target_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &target_ptr);
+    sin_carray(&target_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
+}
+PHP_METHOD(CArray, cos)
+{
+    zval * a;
+    MemoryPointer target_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &target_ptr);
+    cos_carray(&target_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
+}
+PHP_METHOD(CArray, arccos)
+{
+    zval * a;
+    MemoryPointer target_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &target_ptr);
+    arccos_carray(&target_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
+}
+PHP_METHOD(CArray, arcsin)
+{
+    zval * a;
+    MemoryPointer target_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &target_ptr);
+    arcsin_carray(&target_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
+}
+PHP_METHOD(CArray, arctan)
+{
+    zval * a;
+    MemoryPointer target_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &target_ptr);
+    arctan_carray(&target_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
+}
 PHP_METHOD(CArray, sum)
 {
     long axis;
@@ -509,6 +576,14 @@ static zend_function_entry phpsci_class_methods[] =
 
    // CARRAY MEMORY MANAGEMENT SECTION
    PHP_ME(CArray, __destruct, NULL, ZEND_ACC_PUBLIC)
+
+   // TRIGONOMETRIC
+   PHP_ME(CArray, tan, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, cos, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, sin, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, arctan, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, arccos, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, arcsin, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
    // INITIALIZERS SECTION
    PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)

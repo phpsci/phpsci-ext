@@ -207,6 +207,7 @@ That's what makes PHPSci so much faster them PHP Arrays.
 - **Element-wise**: `sum [100%]`
 - **Exponents**:  `exp [100%]`
 - **Logarithms**: `log [100%]`, `log10 [100%]`, `log2 [100%]`, `log1p [100%]`
+- **Trigonometric**: `tan [100%]`, `sin [100%]`, `cos [100%]`, `arctan [100%]`, `arcsin [100%]`, `arccos [100%]`
 
 ## Transformations
 See: https://docs.scipy.org/doc/numpy/reference/routines.array-manipulation.html

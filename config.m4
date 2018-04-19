@@ -81,6 +81,7 @@ PHP_NEW_EXTENSION(phpsci,
 	  carray/arithmetic.c \
 	  carray/exponents.c \
 	  carray/logarithms.c \
+	  carray/trigonometric.c \
 	  kernel/carray_printer.c \
 	  kernel/php_array.c \
 	  carray/transformations.c,
