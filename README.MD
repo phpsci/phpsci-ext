@@ -213,7 +213,7 @@ See: https://docs.scipy.org/doc/numpy/reference/routines.array-manipulation.html
 
 ## Initializers (Matrix Creation)
 See: https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.array-creation.html
-- **Ones & Zeros**: `eye [100%]`, `identity [100%]`, `ones`, `ones_like`, `zeros [100%]`, `zeros_like`, `full`, `full_like`
+- **Ones & Zeros**: `eye [100%]`, `identity [100%]`, `ones [100%]`, `ones_like [100%]`, `zeros [100%]`, `zeros_like`, `full`, `full_like`
 - **Native PHP**: `fromArray [100%]`
 - **Files**: `fromCSV`, `loadTxt`
 - **Ranges**: `arange [100%]`, `linspace [100%]`, `logspace [100%]`
