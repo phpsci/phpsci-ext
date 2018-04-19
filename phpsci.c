@@ -35,6 +35,7 @@
 #include "carray/arithmetic.h"
 #include "kernel/carray_printer.h"
 #include "kernel/memory_manager.h"
+#include "kernel/php_array.h"
 #include "php.h"
 #include "ext/standard/info.h"
 
@@ -157,6 +158,18 @@ PHP_METHOD(CArray, transpose)
     OBJ_TO_PTR(obj, &ptr);
     transpose(&rtn, &ptr, (int)ptr.x, (int)ptr.y);
     RETURN_CARRAY(return_value, rtn.uuid, ptr.y, ptr.x);
+}
+PHP_METHOD(CArray, eye)
+{
+    long x, y, k;
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+        Z_PARAM_LONG(x)
+        Z_PARAM_LONG(y)
+        Z_PARAM_LONG(k)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer ptr;
+    eye(&ptr, x, y, k);
+    RETURN_CARRAY(return_value, (int)ptr.uuid, (int)x, (int)y);
 }
 PHP_METHOD(CArray, print_r) {
     zval * a;
@@ -356,6 +369,7 @@ static zend_function_entry phpsci_class_methods[] =
    // INITIALIZERS SECTION
    PHP_ME(CArray, identity, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, zeros, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, eye, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    
    // BASIC OPERATIONS
    PHP_ME(CArray, sum, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)

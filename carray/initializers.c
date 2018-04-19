@@ -41,6 +41,28 @@ void identity(CArray * carray, int xy) {
     }
 }
 
+/**
+ * Create 2D Eye CArray (full of zeros with ones in diagonal with
+ * index k).
+ *
+ * @param rtn_ptr
+ * @param x
+ * @param y
+ * @param k
+ */
+void eye(MemoryPointer * rtn_ptr, int x, int y, int k)
+{
+    int i, j;
+    carray_init(x, y, rtn_ptr);
+    CArray carray = ptr_to_carray(rtn_ptr);
+    #pragma omp parallel for
+    for(i = 0; i < x; i++) {
+        for(j = 0; j < y; j++) {
+            carray.array2d[(j * x) + i] = j == (i + k) ? 1.0 : 0.0;
+        }
+    }
+}
+
 
 
 
