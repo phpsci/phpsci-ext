@@ -291,6 +291,21 @@ PHP_METHOD(CArray, toDouble)
     CArray arr = ptr_to_carray(&ptr);
     ZVAL_DOUBLE(return_value, (double)arr.array0d[0]);
 }
+PHP_METHOD(CArray, exp)
+{
+    long axis;
+    zval *a;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    MemoryPointer a_ptr;
+    OBJ_TO_PTR(a, &a_ptr);
+    MemoryPointer target_ptr;
+    exponential(&a_ptr, &target_ptr, a_ptr.x, a_ptr.y);
+    RETURN_CARRAY(return_value, target_ptr.uuid, a_ptr.x, a_ptr.y);
+}
 PHP_METHOD(CArray, sum)
 {
     long axis;
@@ -430,6 +445,7 @@ static zend_function_entry phpsci_class_methods[] =
 
    // ARITHMETIC
    PHP_ME(CArray, add, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, subtract, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
    // TRANSFORMATIONS SECTION
    PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
@@ -454,7 +470,7 @@ static zend_function_entry phpsci_class_methods[] =
    
    // BASIC OPERATIONS
    PHP_ME(CArray, sum, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
-   PHP_ME(CArray, subtract, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, exp, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    
    // CONVERT SECTION
    PHP_ME(CArray, toArray, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)

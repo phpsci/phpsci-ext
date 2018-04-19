@@ -35,6 +35,56 @@
  * @param axis
  */
 void
+exponential(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y)
+{
+    int i, j;
+    CArray new_arr = ptr_to_carray(ptr);
+    // If 2D Matrix
+    if(IS_2D(x, y)) {
+        carray_init(x, y, target_ptr);
+        // Transform MemoryPointer to CArray
+        CArray rtn_arr = ptr_to_carray(target_ptr);
+        for(i = 0; i < x; ++i) {
+            for(j = 0; j < y; ++j) {
+                rtn_arr.array2d[(j * x) + i] = exp(new_arr.array2d[(j * x) + i]);
+            }
+        }
+        return;
+    }
+    // If 1D Matrix
+    if(IS_1D(x, y)) {
+        carray_init1d(x, target_ptr);
+        // Transform MemoryPointer to CArray
+        CArray rtn_arr = ptr_to_carray(target_ptr);
+        for(i = 0; i < x; ++i) {
+            rtn_arr.array1d[i] = exp(new_arr.array1d[i]);
+        }
+
+        return;
+    }
+    // If Scalar
+    if(IS_0D(x, y)) {
+        carray_init0d(target_ptr);
+        // Transform MemoryPointer to CArray
+        CArray rtn_arr = ptr_to_carray(target_ptr);
+        for(i = 0; i < x; ++i) {
+            rtn_arr.array0d[0] = exp(new_arr.array0d[0]);
+        }
+
+        return;
+    }
+}
+
+/**
+ * Sum of CArray elements.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param ptr
+ * @param x
+ * @param y
+ * @param axis
+ */
+void
 sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
     int i, j;
     // Initialize CArray
@@ -45,7 +95,7 @@ sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
     // Initialize return to 0
     rtn_arr.array0d[0] = 0;
     // If 2D Matrix
-    if(x > 0 && y > 0) {
+    if(IS_2D(x, y)) {
         for(i = 0; i < x; ++i) {
             for(j = 0; j < y; ++j) {
                 rtn_arr.array0d[0] += new_arr.array2d[(j * x) + i];
@@ -54,7 +104,7 @@ sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
         return;
     }
     // If 1D Matrix
-    if(x > 0 && y == 0) {
+    if(IS_1D(x, y)) {
         for(i = 0; i < x; ++i) {
             rtn_arr.array0d[0] += new_arr.array1d[i];
         }

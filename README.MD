@@ -204,7 +204,7 @@ That's what makes PHPSci so much faster them PHP Arrays.
 
 ## Math
 - **Arithmetics**: `add [100%]`, `subtract [100%]`
-- **Element-wise**: `sum [100%]`, `exp`
+- **Element-wise**: `sum [100%]`, `exp [100%]`
 
 ## Transformations
 See: https://docs.scipy.org/doc/numpy/reference/routines.array-manipulation.html
