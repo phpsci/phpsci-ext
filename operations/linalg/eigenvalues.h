@@ -24,5 +24,7 @@
 #ifndef PHPSCI_EXT_EIGENVALUES_H
 #define PHPSCI_EXT_EIGENVALUES_H
 #include "../../kernel/carray/carray.h"
-void eigvals(MemoryPointer * ptr_a, MemoryPointer * rtn_eigvalues_ptr, MemoryPointer * rtn_eigvectors_ptr);
+void eig(MemoryPointer * ptr_a, MemoryPointer * rtn_eigvalues_ptr, MemoryPointer * rtn_eigvectors_ptr);
+void eigvals(MemoryPointer * ptr_a, MemoryPointer * rtn_eigvalues_ptr);
+
 #endif //PHPSCI_EXT_EIGENVALUES_H

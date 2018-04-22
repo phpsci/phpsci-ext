@@ -34,7 +34,7 @@
  * @param rtn_ptr
  */
 void
-eigvals(MemoryPointer * ptr_a, MemoryPointer * rtn_eigvalues_ptr, MemoryPointer * rtn_eigvectors_ptr)
+eig(MemoryPointer * ptr_a, MemoryPointer * rtn_eigvalues_ptr, MemoryPointer * rtn_eigvectors_ptr)
 {
     MemoryPointer wr_ptr, wi_ptr, vl_ptr, vr_ptr;
     carray_init1d(ptr_a->x, &wr_ptr);
@@ -58,6 +58,40 @@ eigvals(MemoryPointer * ptr_a, MemoryPointer * rtn_eigvalues_ptr, MemoryPointer 
         );
         COPY_PTR(&wr_ptr, rtn_eigvalues_ptr);
         COPY_PTR(&vr_ptr, rtn_eigvectors_ptr);
+        return;
+    }
+    throw_atleast2d_exception("Matrix must be 2-D and with square shape (N, N)");
+}
+
+/**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param ptr_a
+ * @param rtn_ptr
+ */
+void
+eigvals(MemoryPointer * ptr_a, MemoryPointer * rtn_eigvalues_ptr)
+{
+    MemoryPointer wr_ptr, wi_ptr, vl_ptr, vr_ptr;
+    carray_init1d(ptr_a->x, &wr_ptr);
+    carray_init1d(ptr_a->x, &wi_ptr);
+    carray_init(ptr_a->x, ptr_a->x, &vl_ptr);
+    carray_init(ptr_a->x, ptr_a->x, &vr_ptr);
+    CArray wr_carray = ptr_to_carray(&wr_ptr);
+    CArray wi_carray = ptr_to_carray(&wi_ptr);
+    CArray vl_carray = ptr_to_carray(&vl_ptr);
+    CArray vr_carray = ptr_to_carray(&vr_ptr);
+    if(IS_2D(ptr_a) && IS_SQUARE(ptr_a)) {
+        CArray target_array = ptr_to_carray(ptr_a);
+        LAPACKE_dgeev(LAPACK_COL_MAJOR, 'V', 'V',
+                      ptr_a->x, target_array.array2d,
+                      ptr_a->x, wr_carray.array1d,
+                      wi_carray.array1d,
+                      vl_carray.array2d,
+                      ptr_a->x,
+                      vr_carray.array2d,
+                      ptr_a->x
+        );
+        COPY_PTR(&wr_ptr, rtn_eigvalues_ptr);
         return;
     }
     throw_atleast2d_exception("Matrix must be 2-D and with square shape (N, N)");

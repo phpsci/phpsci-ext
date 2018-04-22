@@ -207,7 +207,7 @@ PHP_METHOD(CArray, atleast_1d)
     atleast_1d(&return_ptr, &target_ptr);
     RETURN_CARRAY(return_value, return_ptr.uuid, return_ptr.x, return_ptr.y);
 }
-PHP_METHOD(CArray, eigvals)
+PHP_METHOD(CArray, eig)
 {
     zval * obj, eigvals_obj, eigvectors_obj;
     MemoryPointer target_ptr, rtn_eigvalues_ptr, rtn_eigvectors_ptr;
@@ -215,12 +215,23 @@ PHP_METHOD(CArray, eigvals)
         Z_PARAM_OBJECT(obj)
     ZEND_PARSE_PARAMETERS_END();
     OBJ_TO_PTR(obj, &target_ptr);
-    eigvals(&target_ptr, &rtn_eigvalues_ptr, &rtn_eigvectors_ptr);
+    eig(&target_ptr, &rtn_eigvalues_ptr, &rtn_eigvectors_ptr);
     array_init(return_value);
     RETURN_CARRAY(&eigvectors_obj, rtn_eigvectors_ptr.uuid, target_ptr.x, target_ptr.y);
     RETURN_CARRAY(&eigvals_obj, rtn_eigvalues_ptr.uuid, target_ptr.x, 0);
     add_next_index_zval(return_value, &eigvals_obj);
     add_next_index_zval(return_value, &eigvectors_obj);
+}
+PHP_METHOD(CArray, eigvals)
+{
+    zval * obj;
+    MemoryPointer target_ptr, rtn_eigvalues_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(obj)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(obj, &target_ptr);
+    eigvals(&target_ptr, &rtn_eigvalues_ptr);
+    RETURN_CARRAY(return_value, rtn_eigvalues_ptr.uuid, target_ptr.x, 0);
 }
 PHP_METHOD(CArray, atleast_2d)
 {
@@ -753,6 +764,7 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, flatten, NULL, ZEND_ACC_PUBLIC)
 
    // EIGENVALUES
+   PHP_ME(CArray, eig, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, eigvals, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
    // NORMS SECTION
