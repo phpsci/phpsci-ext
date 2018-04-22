@@ -23,7 +23,7 @@
 
 #include "arithmetic.h"
 #include "../phpsci.h"
-#include "../kernel/carray.h"
+#include "../kernel/carray/carray.h"
 #include "initializers.h"
 #include "zend_exceptions.h"
 

@@ -21,57 +21,15 @@
   +----------------------------------------------------------------------+
 */
 
-#include "exponents.h"
-#include "../kernel/carray.h"
-#include "../kernel/memory_manager.h"
+#ifndef PHPSCI_EXT_CARRAY_PRINTER_H
+#define PHPSCI_EXT_CARRAY_PRINTER_H
+
+#include "carray/carray.h"
+
+void print_carray(MemoryPointer * ptr, int x, int y);
+void print0d(CArray target);
+void print1d(CArray target, int x);
+void print2d(CArray target, int x, int y);
 
 
-/**
- * Sum of CArray elements.
- *
- * @author Henrique Borba <henrique.borba.dev@gmail.com>
- * @param ptr
- * @param x
- * @param y
- * @param axis
- */
-void
-exponential(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y)
-{
-    int i, j;
-    CArray new_arr = ptr_to_carray(ptr);
-    // If 2D Matrix
-    if(IS_2D(x, y)) {
-        carray_init(x, y, target_ptr);
-        // Transform MemoryPointer to CArray
-        CArray rtn_arr = ptr_to_carray(target_ptr);
-        for(i = 0; i < x; ++i) {
-            for(j = 0; j < y; ++j) {
-                rtn_arr.array2d[(j * x) + i] = exp(new_arr.array2d[(j * x) + i]);
-            }
-        }
-        return;
-    }
-    // If 1D Matrix
-    if(IS_1D(x, y)) {
-        carray_init1d(x, target_ptr);
-        // Transform MemoryPointer to CArray
-        CArray rtn_arr = ptr_to_carray(target_ptr);
-        for(i = 0; i < x; ++i) {
-            rtn_arr.array1d[i] = exp(new_arr.array1d[i]);
-        }
-
-        return;
-    }
-    // If Scalar
-    if(IS_0D(x, y)) {
-        carray_init0d(target_ptr);
-        // Transform MemoryPointer to CArray
-        CArray rtn_arr = ptr_to_carray(target_ptr);
-        for(i = 0; i < x; ++i) {
-            rtn_arr.array0d[0] = exp(new_arr.array0d[0]);
-        }
-
-        return;
-    }
-}
+#endif //PHPSCI_EXT_CARRAY_PRINTER_H

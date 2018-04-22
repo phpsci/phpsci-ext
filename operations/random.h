@@ -20,10 +20,10 @@
   | Authors: Henrique Borba <henrique.borba.dev@gmail.com>               |
   +----------------------------------------------------------------------+
 */
+#ifndef PHPSCI_EXT_RANDOM_H
+#define PHPSCI_EXT_RANDOM_H
+#include "../kernel/buffer/memory_manager.h"
 
-#ifndef PHPSCI_EXT_EXPONENTS_H
-#define PHPSCI_EXT_EXPONENTS_H
-#include "../kernel/memory_manager.h"
-
-void exponential(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y);
-#endif //PHPSCI_EXT_EXPONENTS_H
+double _randn (double mu, double sigma);
+void standard_normal(MemoryPointer * ptr, int seed, int x, int y);
+#endif //PHPSCI_EXT_RANDOM_H

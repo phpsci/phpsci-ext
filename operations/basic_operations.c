@@ -22,7 +22,7 @@
 */
 #include "basic_operations.h"
 #include "../phpsci.h"
-#include "../kernel/carray.h"
+#include "../kernel/carray/carray.h"
 #include "initializers.h"
 
 /**

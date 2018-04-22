@@ -21,12 +21,12 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_LOGARITHMS_H
-#define PHPSCI_EXT_LOGARITHMS_H
-#include "../kernel/memory_manager.h"
+#ifndef PHPSCI_EXT_PHP_ARRAY_H
+#define PHPSCI_EXT_PHP_ARRAY_H
 
-void natural_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-void base10_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-void base2_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-void loga1p(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-#endif //PHPSCI_EXT_LOGARITHMS_H
+#include "buffer/memory_manager.h"
+#include "php.h"
+
+void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * cols);
+void array_dim(zval * array, int * dim);
+#endif //PHPSCI_EXT_PHP_ARRAY_H

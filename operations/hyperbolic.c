@@ -20,32 +20,36 @@
   | Authors: Henrique Borba <henrique.borba.dev@gmail.com>               |
   +----------------------------------------------------------------------+
 */
-#include "logarithms.h"
+
+#include "hyperbolic.h"
 #include "../phpsci.h"
-#include "../kernel/memory_manager.h"
+#include "../kernel/buffer/memory_manager.h"
+#include "../kernel/carray/carray.h"
+#include "math.h"
 
 /**
- * Natural logarithm, element-wise.
+ * Hyperbolic sine, element-wise.
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param ptr
+ * @param rtn_ptr
  */
 void
-natural_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
+hyperbolic_tanh(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
     if(IS_0D(ptr->x, ptr->y)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
-        rtn_arr.array0d[0] = log(carray.array0d[0]);
+        rtn_arr.array0d[0] = tanh(carray.array0d[0]);
         return;
     }
     if(IS_1D(ptr->x, ptr->y)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
-            rtn_arr.array1d[i] = log(carray.array1d[i]);
+            rtn_arr.array1d[i] = tanh(carray.array1d[i]);
         }
         return;
     }
@@ -54,7 +58,7 @@ natural_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
             for(j = 0; j < ptr->y; ++j) {
-                rtn_arr.array2d[(j * ptr->x) + i] = log(carray.array2d[(j * ptr->x) + i]);
+                rtn_arr.array2d[(j * ptr->x) + i] = tanh(carray.array2d[(j * ptr->x) + i]);
             }
         }
         return;
@@ -62,27 +66,28 @@ natural_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 }
 
 /**
- * Base 10 logarithm, element-wise.
+ * Hyperbolic cosine, element-wise.
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param ptr
+ * @param rtn_ptr
  */
 void
-base10_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
+hyperbolic_cosh(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
     if(IS_0D(ptr->x, ptr->y)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
-        rtn_arr.array0d[0] = log10(carray.array0d[0]);
+        rtn_arr.array0d[0] = cosh(carray.array0d[0]);
         return;
     }
     if(IS_1D(ptr->x, ptr->y)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
-            rtn_arr.array1d[i] = log10(carray.array1d[i]);
+            rtn_arr.array1d[i] = cosh(carray.array1d[i]);
         }
         return;
     }
@@ -91,7 +96,7 @@ base10_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
             for(j = 0; j < ptr->y; ++j) {
-                rtn_arr.array2d[(j * ptr->x) + i] = log10(carray.array2d[(j * ptr->x) + i]);
+                rtn_arr.array2d[(j * ptr->x) + i] = cosh(carray.array2d[(j * ptr->x) + i]);
             }
         }
         return;
@@ -99,27 +104,28 @@ base10_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 }
 
 /**
- * Base 2 logarithm, element-wise.
+ * Compute hyperbolic tangent element-wise.
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param ptr
+ * @param rtn_ptr
  */
 void
-base2_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
+hyperbolic_sinh(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
     if(IS_0D(ptr->x, ptr->y)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
-        rtn_arr.array0d[0] = log(carray.array0d[0]) / log(2);
+        rtn_arr.array0d[0] = sinh(carray.array0d[0]);
         return;
     }
     if(IS_1D(ptr->x, ptr->y)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
-            rtn_arr.array1d[i] = log(carray.array1d[i]) / log(2);
+            rtn_arr.array1d[i] = sinh(carray.array1d[i]);
         }
         return;
     }
@@ -128,46 +134,10 @@ base2_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
             for(j = 0; j < ptr->y; ++j) {
-                rtn_arr.array2d[(j * ptr->x) + i] = log(carray.array2d[(j * ptr->x) + i]) / log(2);
+                rtn_arr.array2d[(j * ptr->x) + i] = sinh(carray.array2d[(j * ptr->x) + i]);
             }
         }
         return;
     }
 }
 
-/**
- * Oneplus logarithm, element-wise.
- *
- * @author Henrique Borba <henrique.borba.dev@gmail.com>
- * @param ptr
- */
-void
-loga1p(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
-{
-    int i, j;
-    CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
-        carray_init0d(rtn_ptr);
-        CArray rtn_arr = ptr_to_carray(rtn_ptr);
-        rtn_arr.array0d[0] = log1p(carray.array0d[0]);
-        return;
-    }
-    if(IS_1D(ptr->x, ptr->y)) {
-        carray_init1d(ptr->x, rtn_ptr);
-        CArray rtn_arr = ptr_to_carray(rtn_ptr);
-        for(i = 0; i < ptr->x; ++i) {
-            rtn_arr.array1d[i] = log1p(carray.array1d[i]);
-        }
-        return;
-    }
-    if(IS_2D(ptr->x, ptr->y)) {
-        carray_init(ptr->x, ptr->y, rtn_ptr);
-        CArray rtn_arr = ptr_to_carray(rtn_ptr);
-        for(i = 0; i < ptr->x; ++i) {
-            for(j = 0; j < ptr->y; ++j) {
-                rtn_arr.array2d[(j * ptr->x) + i] = log1p(carray.array2d[(j * ptr->x) + i]);
-            }
-        }
-        return;
-    }
-}

@@ -23,7 +23,7 @@
 #include "ranges.h"
 #include "../phpsci.h"
 #include "transformations.h"
-#include "../kernel/carray.h"
+#include "../kernel/carray/carray.h"
 #include <math.h>
 #include "zend_exceptions.h"
 

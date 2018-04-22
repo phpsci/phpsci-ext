@@ -23,7 +23,7 @@
 
 #include "transformations.h"
 #include "../phpsci.h"
-#include "../kernel/carray.h"
+#include "../kernel/carray/carray.h"
 
 /**
  * Transpose a CArray 2D

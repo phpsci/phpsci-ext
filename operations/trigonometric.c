@@ -23,8 +23,8 @@
 
 #include "trigonometric.h"
 #include "../phpsci.h"
-#include "../kernel/memory_manager.h"
-#include "../kernel/carray.h"
+#include "../kernel/buffer/memory_manager.h"
+#include "../kernel/carray/carray.h"
 #include "math.h"
 
 

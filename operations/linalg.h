@@ -20,14 +20,15 @@
   | Authors: Henrique Borba <henrique.borba.dev@gmail.com>               |
   +----------------------------------------------------------------------+
 */
-#include "../phpsci.h"
-#include "../kernel/carray.h"
 
-#ifndef PHPSCI_EXT_RANGES_H
-#define PHPSCI_EXT_RANGES_H
-#include "../kernel/memory_manager.h"
+#ifndef PHPSCI_EXT_LINALG_H
+#define PHPSCI_EXT_LINALG_H
 
-void logspace(MemoryPointer * ptr, double start, double stop, int num, double base);
-void arange(MemoryPointer * new_ptr, double start, double stop, double step, int * width);
-void linspace(MemoryPointer * ptr, double start, double stop, int num);
-#endif //PHPSCI_EXT_RANGES_H
+
+#include "../kernel/buffer/memory_manager.h"
+void svd(MemoryPointer * a_ptr, MemoryPointer * rtn_ptr, MemoryPointer * singularvalues_ptr, MemoryPointer * left_vectors_ptr, MemoryPointer * right_vectors_ptr);
+void inv(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr);
+void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPointer * a_ptr, int x_b, int y_b, MemoryPointer * b_ptr);
+void outer(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * ptr_rtn);
+void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_ptr, int n_b_cols, MemoryPointer *b_ptr);
+#endif //PHPSCI_EXT_LINALG_H

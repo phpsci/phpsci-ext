@@ -20,10 +20,13 @@
   | Authors: Henrique Borba <henrique.borba.dev@gmail.com>               |
   +----------------------------------------------------------------------+
 */
-#ifndef PHPSCI_EXT_RANDOM_H
-#define PHPSCI_EXT_RANDOM_H
-#include "../kernel/memory_manager.h"
 
-double _randn (double mu, double sigma);
-void standard_normal(MemoryPointer * ptr, int seed, int x, int y);
-#endif //PHPSCI_EXT_RANDOM_H
+#ifndef PHPSCI_EXT_MAGIC_PROPERTIES_H
+#define PHPSCI_EXT_MAGIC_PROPERTIES_H
+
+#include "../kernel/buffer/memory_manager.h"
+#include "php.h"
+
+void run_property_or_die(char * prop, zval * return_value, MemoryPointer * target_ptr, MemoryPointer * rtn_ptr);
+
+#endif //PHPSCI_EXT_MAGIC_PROPERTIES_H

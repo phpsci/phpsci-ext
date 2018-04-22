@@ -21,15 +21,12 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_CARRAY_PRINTER_H
-#define PHPSCI_EXT_CARRAY_PRINTER_H
+#ifndef PHPSCI_EXT_BASIC_OPERATIONS_H
+#define PHPSCI_EXT_BASIC_OPERATIONS_H
+#include "../kernel/buffer/memory_manager.h"
 
-#include "carray.h"
+void exponential(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y);
 
-void print_carray(MemoryPointer * ptr, int x, int y);
-void print0d(CArray target);
-void print1d(CArray target, int x);
-void print2d(CArray target, int x, int y);
-
-
-#endif //PHPSCI_EXT_CARRAY_PRINTER_H
+void sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y);
+void sum_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int axis, int * size_x, int * size_y);
+#endif //PHPSCI_EXT_BASIC_OPERATIONS_H

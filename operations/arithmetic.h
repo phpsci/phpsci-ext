@@ -21,11 +21,18 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_HYPERBOLIC_H
-#define PHPSCI_EXT_HYPERBOLIC_H
-#include "../kernel/memory_manager.h"
+#ifndef PHPSCI_EXT_ARITHMETIC_H
+#define PHPSCI_EXT_ARITHMETIC_H
 
-void hyperbolic_sinh(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-void hyperbolic_tanh(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-void hyperbolic_cosh(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-#endif //PHPSCI_EXT_HYPERBOLIC_H
+#include "../kernel/buffer/memory_manager.h"
+
+void add(MemoryPointer * ptr_a, int x_a, int y_a, MemoryPointer * ptr_b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
+void add_carray_0d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
+void add_carray_1d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
+void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
+
+void subtract(MemoryPointer * ptr_a, int x_a, int y_a, MemoryPointer * ptr_b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
+void subtract_carray_0d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
+void subtract_carray_1d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
+void subtract_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
+#endif //PHPSCI_EXT_ARITHMETIC_H

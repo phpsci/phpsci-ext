@@ -21,16 +21,9 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_TRIGONOMETRIC_H
-#define PHPSCI_EXT_TRIGONOMETRIC_H
+#ifndef PHPSCI_EXT_EXPONENTS_H
+#define PHPSCI_EXT_EXPONENTS_H
+#include "../kernel/buffer/memory_manager.h"
 
-#include "../kernel/memory_manager.h"
-
-void sin_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-void cos_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-void tan_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-
-void arcsin_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-void arccos_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-void arctan_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
-#endif //PHPSCI_EXT_TRIGONOMETRIC_H
+void exponential(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y);
+#endif //PHPSCI_EXT_EXPONENTS_H

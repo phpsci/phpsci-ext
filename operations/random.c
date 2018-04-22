@@ -20,34 +20,75 @@
   | Authors: Henrique Borba <henrique.borba.dev@gmail.com>               |
   +----------------------------------------------------------------------+
 */
-
-#include "magic_properties.h"
+#include "random.h"
 #include "../phpsci.h"
-#include "../kernel/carray.h"
-#include "transformations.h"
-#include "php.h"
+#include "../kernel/carray/carray.h"
+#include <math.h>
+#include <stdlib.h>
+
 
 /**
- * 1-D Matrix flat iterator.
+ * CArray samples from a standard Normal distribution
  *
- * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @author Henrique Borba
+ * @param ptr
  */
-void
-magic_property_flat(zval * return_value, MemoryPointer * target_ptr, MemoryPointer * rtn_ptr) {
-    flatten(rtn_ptr, target_ptr);
-    CArray rtn_arr = ptr_to_carray(rtn_ptr);
-    carray_to_array(rtn_arr, return_value, rtn_ptr->x, rtn_ptr->y);
+void standard_normal(MemoryPointer * ptr, int seed, int x, int y)
+{
+    int i, j;
+    srand(time(NULL)*seed);
+    if(x > 0 && y == 0) {
+        carray_init1d(x, ptr);
+        CArray new_arr = ptr_to_carray(ptr);
+        for(i = 0; i < x; i++) {
+            new_arr.array1d[i] = _randn(0.f, 1.0f);
+        }
+    }
+    if(x > 0 && y > 0) {
+        carray_init(x, y, ptr);
+        CArray new_arr = ptr_to_carray(ptr);
+        for(i = 0; i < x; i++) {
+            for(j = 0; j < y; j++)
+                new_arr.array2d[(j * x) + i] = _randn(0.f, 1.0f);
+        }
+    }
 }
 
+
 /**
- * Handle "magic properties"
+ * Return a sample CArray from the “standard normal” distribution.
  *
- * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * Based on: https://phoxis.org/2013/05/04/generating-random-numbers-from-normal-distribution-in-c/
+ *
+ * @author Henrique Borba
+ * @param mu
+ * @param sigma
  */
-void
-run_property_or_die(char * prop, zval * return_value, MemoryPointer * target_ptr, MemoryPointer * rtn_ptr) {
-    if(strcmp(prop, "flat") == 0) {
-        magic_property_flat(return_value, target_ptr, rtn_ptr);
-        return;
+double _randn (double mu, double sigma)
+{
+    double U1, U2, W, mult;
+    static double X1, X2;
+    static int call = 0;
+
+    if (call == 1)
+    {
+        call = !call;
+        return (double) (mu + sigma * (double) X2);
     }
+
+    do
+    {
+        U1 = -1 + ((double) rand () / RAND_MAX) * 2;
+        U2 = -1 + ((double) rand () / RAND_MAX) * 2;
+        W = pow (U1, 2) + pow (U2, 2);
+    }
+    while (W >= 1 || W == 0);
+
+    mult = sqrt ((-2 * log (W)) / W);
+    X1 = U1 * mult;
+    X2 = U2 * mult;
+
+    call = !call;
+
+    return (mu + sigma * (double) X1);
 }

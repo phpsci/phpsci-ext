@@ -21,18 +21,46 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_ARITHMETIC_H
-#define PHPSCI_EXT_ARITHMETIC_H
+#ifndef PHPSCI_EXT_CARRAY_H
+#define PHPSCI_EXT_CARRAY_H
+#include "../phpsci.h"
 
-#include "../kernel/memory_manager.h"
+/**
+ * PHPSci Shape Structure
+ */
+typedef struct Shape {
+    int * shape;
+    int * dim;
+} Shape;
 
-void add(MemoryPointer * ptr_a, int x_a, int y_a, MemoryPointer * ptr_b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
-void add_carray_0d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
-void add_carray_1d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
-void add_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
+/**
+ * PHPSci internal array structure
+ *
+ * Currently working with shaped 2D, 1D and 0D.
+ */
+typedef struct CArray {
+    // OLD IMPLEMENTATION
+    double *   array2d;
+    double *   array1d;
+    double *   array0d;
+} CArray;
 
-void subtract(MemoryPointer * ptr_a, int x_a, int y_a, MemoryPointer * ptr_b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
-void subtract_carray_0d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
-void subtract_carray_1d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
-void subtract_carray_2d(CArray * a, int x_a, int y_a, CArray * b, int x_b, int y_b, MemoryPointer * rtn_ptr, int * size_x, int * size_y);
-#endif //PHPSCI_EXT_ARITHMETIC_H
+/**
+ * The only thing between PHP and the extension
+ */
+typedef struct MemoryPointer {
+    int uuid;
+    int x;
+    int y;
+} MemoryPointer;
+
+void OBJ_TO_PTR(zval * obj, MemoryPointer * ptr);
+void carray_init(int rows, int cols, MemoryPointer * ptr);
+void carray_init1d(int width, MemoryPointer * ptr);
+void carray_init0d(MemoryPointer * ptr);
+void destroy_carray(MemoryPointer * target_ptr);
+
+CArray ptr_to_carray(MemoryPointer * ptr);
+void carray_to_array(CArray carray, zval * rtn_array, int m, int n);
+void double_to_carray(double input, MemoryPointer * rtn_ptr);
+#endif //PHPSCI_EXT_CARRAY_H

@@ -21,13 +21,12 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_TRANSFORMATIONS_H
-#define PHPSCI_EXT_TRANSFORMATIONS_H
+#ifndef PHPSCI_EXT_LOGARITHMS_H
+#define PHPSCI_EXT_LOGARITHMS_H
+#include "../kernel/buffer/memory_manager.h"
 
-#include "../kernel/memory_manager.h"
-
-void transpose(MemoryPointer * new_ptr, MemoryPointer * target_ptr, int x, int y);
-void flatten(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
-void atleast_1d(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
-void atleast_2d(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
-#endif //PHPSCI_EXT_TRANSFORMATIONS_H
+void natural_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
+void base10_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
+void base2_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
+void loga1p(MemoryPointer * ptr, MemoryPointer * rtn_ptr);
+#endif //PHPSCI_EXT_LOGARITHMS_H

@@ -22,7 +22,7 @@
 */
 
 #include "carray_printer.h"
-#include "carray.h"
+#include "carray/carray.h"
 #include "../phpsci.h"
 
 /**

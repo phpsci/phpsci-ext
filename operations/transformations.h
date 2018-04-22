@@ -21,22 +21,13 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_INITIALIZERS_H
-#define PHPSCI_EXT_INITIALIZERS_H
-#include "../phpsci.h"
-#include "../kernel/carray.h"
-void identity(CArray * carray, int xy);
-void eye(MemoryPointer * rtn_ptr, int x, int y, int k);
+#ifndef PHPSCI_EXT_TRANSFORMATIONS_H
+#define PHPSCI_EXT_TRANSFORMATIONS_H
 
-void zeros2d(CArray * carray, int x, int y);
-void zeros(MemoryPointer * ptr, int x, int y);
-void zeros1d(CArray * carray, int x);
+#include "../kernel/buffer/memory_manager.h"
 
-void ones(MemoryPointer * ptr, int x, int y);
-void ones1d(CArray * carray, int x);
-void ones2d(CArray * carray, int x, int y);
-
-void full(MemoryPointer * ptr, int x, int y, double num);
-void full1d(CArray * carray, int x, double num);
-void full2d(CArray * carray, int x, int y, double num);
-#endif //PHPSCI_EXT_INITIALIZERS_H
+void transpose(MemoryPointer * new_ptr, MemoryPointer * target_ptr, int x, int y);
+void flatten(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
+void atleast_1d(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
+void atleast_2d(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
+#endif //PHPSCI_EXT_TRANSFORMATIONS_H

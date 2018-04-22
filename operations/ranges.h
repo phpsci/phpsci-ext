@@ -20,13 +20,14 @@
   | Authors: Henrique Borba <henrique.borba.dev@gmail.com>               |
   +----------------------------------------------------------------------+
 */
+#include "../phpsci.h"
+#include "../kernel/carray/carray.h"
 
-#ifndef PHPSCI_EXT_BASIC_OPERATIONS_H
-#define PHPSCI_EXT_BASIC_OPERATIONS_H
-#include "../kernel/memory_manager.h"
+#ifndef PHPSCI_EXT_RANGES_H
+#define PHPSCI_EXT_RANGES_H
+#include "../kernel/buffer/memory_manager.h"
 
-void exponential(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y);
-
-void sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y);
-void sum_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int axis, int * size_x, int * size_y);
-#endif //PHPSCI_EXT_BASIC_OPERATIONS_H
+void logspace(MemoryPointer * ptr, double start, double stop, int num, double base);
+void arange(MemoryPointer * new_ptr, double start, double stop, double step, int * width);
+void linspace(MemoryPointer * ptr, double start, double stop, int num);
+#endif //PHPSCI_EXT_RANGES_H
