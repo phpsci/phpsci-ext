@@ -39,6 +39,7 @@
 #include "operations/hyperbolic.h"
 #include "operations/magic_properties.h"
 #include "operations/linalg/norms.h"
+#include "operations/linalg/others.h"
 #include "kernel/carray/utils/carray_printer.h"
 #include "kernel/buffer/memory_manager.h"
 #include "kernel/php/php_array.h"
@@ -614,10 +615,29 @@ PHP_METHOD(CArray, det)
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_OBJECT(a)
     ZEND_PARSE_PARAMETERS_END();
-
     OBJ_TO_PTR(a, &ptr_a);
-    norms_determinant(&ptr_a, &rtn_ptr);
+    other_determinant(&ptr_a, &rtn_ptr);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
+}
+PHP_METHOD(CArray, norm)
+{
+    char * order_name;
+    size_t order_name_len;
+    MemoryPointer this_ptr, new_ptr;
+    zval * a;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_STRING(order_name, order_name_len)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &this_ptr);
+    if (ZEND_NUM_ARGS() == 1) {
+        norm(&this_ptr, &new_ptr, "fro");
+    }
+    if (ZEND_NUM_ARGS() == 2) {
+        norm(&this_ptr, &new_ptr, order_name);
+    }
+    RETURN_CARRAY(return_value, new_ptr.uuid, new_ptr.x, new_ptr.y);
 }
 PHP_METHOD(CArray, fromDouble)
 {
@@ -716,6 +736,9 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, flatten, NULL, ZEND_ACC_PUBLIC)
 
    // NORMS SECTION
+   PHP_ME(CArray, norm, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+
+   // OTHERS SECTION
    PHP_ME(CArray, det, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
    // PRODUCTS SECTION
