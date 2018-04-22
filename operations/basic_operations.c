@@ -25,6 +25,7 @@
 #include "../kernel/carray/carray.h"
 #include "../kernel/memory_pointer/utils.h"
 #include "initializers.h"
+#include "cblas.h"
 
 /**
  * Sum of CArray elements.
@@ -56,10 +57,7 @@ sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
     }
     // If 1D Matrix
     if(IS_1D(ptr)) {
-        for(i = 0; i < x; ++i) {
-            rtn_arr.array0d[0] += new_arr.array1d[i];
-        }
-        
+        rtn_arr.array0d[0] = cblas_dasum(x,  new_arr.array1d, 1);
         return;
     }
 }
