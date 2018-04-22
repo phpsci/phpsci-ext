@@ -219,7 +219,7 @@ See: https://docs.scipy.org/doc/numpy/reference/routines.array-manipulation.html
 See: https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.array-creation.html
 - **Ones & Zeros**: `eye [100%]`, `identity [100%]`, `ones [100%]`, `ones_like [100%]`, `zeros [100%]`, `zeros_like [100%]`, `full [100%]`, `full_like [100%]`
 - **Native PHP**: `fromArray [100%]`
-- **Files**: `fromCSV`, `loadTxt`
+- **Files**: `loadCSV`, `loadJSON`, `load`, `save`
 - **Ranges**: `arange [100%]`, `linspace [100%]`, `logspace [100%]`
 - **Randoms**: `randn`, `randint`, `rand`, `random`
 - **Distributions**: `standard_normal [100%]`

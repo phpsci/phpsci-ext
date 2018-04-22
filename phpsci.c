@@ -41,6 +41,7 @@
 #include "operations/linalg/norms.h"
 #include "operations/linalg/others.h"
 #include "operations/linalg/eigenvalues.h"
+#include "operations/linalg/equations.h"
 #include "kernel/carray/utils/carray_printer.h"
 #include "kernel/buffer/memory_manager.h"
 #include "kernel/php/php_array.h"
@@ -658,6 +659,19 @@ PHP_METHOD(CArray, cond)
     other_cond(&ptr_a, &rtn_ptr);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, 0, 0);
 }
+PHP_METHOD(CArray, solve)
+{
+    MemoryPointer ptr_a, ptr_b, rtn_ptr;
+    zval * a, * b;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OBJECT(b)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    OBJ_TO_PTR(b, &ptr_b);
+    equation_solve(&ptr_a, &ptr_b, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, ptr_a.x, ptr_b.y);
+}
 PHP_METHOD(CArray, norm)
 {
     char * order_name;
@@ -791,6 +805,9 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, outer, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, inv, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, svd, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+
+   // EQUATIONS SECTION
+   PHP_ME(CArray, solve, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
    // MAGIC PROPERTIES
    PHP_ME(CArray, __get, phpsci_get_args, ZEND_ACC_PUBLIC)
