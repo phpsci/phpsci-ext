@@ -26,21 +26,22 @@
 #endif
 
 #include "phpsci.h"
-#include "carray/initializers.h"
-#include "carray/linalg.h"
-#include "carray/basic_operations.h"
-#include "carray/transformations.h"
-#include "carray/random.h"
-#include "carray/ranges.h"
-#include "carray/arithmetic.h"
-#include "carray/logarithms.h"
-#include "carray/exponents.h"
-#include "carray/trigonometric.h"
-#include "carray/hyperbolic.h"
-#include "carray/magic_properties.h"
-#include "kernel/carray_printer.h"
-#include "kernel/memory_manager.h"
-#include "kernel/php_array.h"
+#include "operations/initializers.h"
+#include "operations/linalg.h"
+#include "operations/basic_operations.h"
+#include "operations/transformations.h"
+#include "operations/random.h"
+#include "operations/ranges.h"
+#include "operations/arithmetic.h"
+#include "operations/logarithms.h"
+#include "operations/exponents.h"
+#include "operations/trigonometric.h"
+#include "operations/hyperbolic.h"
+#include "operations/magic_properties.h"
+#include "kernel/carray/utils/carray_printer.h"
+#include "kernel/buffer/memory_manager.h"
+#include "kernel/php/php_array.h"
+#include "kernel/exceptions.h"
 #include "php.h"
 #include "ext/standard/info.h"
 
@@ -523,6 +524,19 @@ PHP_METHOD(CArray, inner)
     inner(&rtn_x, &rtn_y, &rtn_ptr, (int)a_ptr.x, (int)a_ptr.y, &a_ptr, (int)b_ptr.x, (int)b_ptr.y, &b_ptr);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_x, rtn_y);
 }
+PHP_METHOD(CArray, outer)
+{
+    MemoryPointer a_ptr, b_ptr, rtn_ptr;
+    zval * a, *b;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OBJECT(b)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &a_ptr);
+    OBJ_TO_PTR(b, &b_ptr);
+    outer(&a_ptr, &b_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, (a_ptr.x * a_ptr.y), (a_ptr.x * a_ptr.y));
+}
 PHP_METHOD(CArray, matmul)
 {
     MemoryPointer a_ptr, b_ptr, rtn_ptr;
@@ -545,14 +559,19 @@ PHP_METHOD(CArray, matmul)
 }
 PHP_METHOD(CArray, arange)
 {
+    MemoryPointer ptr;
     double start, stop, step;
     int width;
-    ZEND_PARSE_PARAMETERS_START(3, 3)
-        Z_PARAM_DOUBLE(start)
+    ZEND_PARSE_PARAMETERS_START(1, 3)
         Z_PARAM_DOUBLE(stop)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_DOUBLE(start)
         Z_PARAM_DOUBLE(step)
     ZEND_PARSE_PARAMETERS_END();
-    MemoryPointer ptr;
+    if (ZEND_NUM_ARGS() == 1) {
+        start = 0.0;
+        step =  1.0;
+    }
     arange(&ptr, start, stop, step, &width);
     RETURN_CARRAY(return_value, ptr.uuid, width, 0);
 }
@@ -569,7 +588,7 @@ PHP_METHOD(CArray, add)
     MemoryPointer ptr_b;
     OBJ_TO_PTR(a, &ptr_a);
     OBJ_TO_PTR(b, &ptr_b);
-    add(&ptr_a, (int)ptr_a.x, (int)ptr_a.y, &ptr_b, (int)ptr_b.x, (int)ptr_b.y, &rtn_ptr, &size_x, &size_y);
+    add(&ptr_a, &ptr_b, &rtn_ptr, &size_x, &size_y);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, size_x, size_y);
 }
 PHP_METHOD(CArray, subtract)
@@ -585,7 +604,7 @@ PHP_METHOD(CArray, subtract)
     MemoryPointer ptr_b;
     OBJ_TO_PTR(a, &ptr_a);
     OBJ_TO_PTR(b, &ptr_b);
-    subtract(&ptr_a, (int)ptr_a.x, (int)ptr_a.y, &ptr_b, (int)ptr_b.x, (int)ptr_b.y, &rtn_ptr, &size_x, &size_y);
+    subtract(&ptr_a, &ptr_b, &rtn_ptr, &size_x, &size_y);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, size_x, size_y);
 }
 PHP_METHOD(CArray, fromDouble)
@@ -609,9 +628,11 @@ PHP_METHOD(CArray, __get)
     OBJ_TO_PTR(getThis(), &this_ptr);
     run_property_or_die(name, return_value, &this_ptr, &new_ptr);
 }
+// THIS IS REQUIRED BY __get() MAGIC METHOD
 ZEND_BEGIN_ARG_INFO_EX(phpsci_get_args, 0, 0, 2)
     ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
+
 PHP_METHOD(CArray, inv)
 {
     zval * a;
@@ -685,6 +706,7 @@ static zend_function_entry phpsci_class_methods[] =
    // PRODUCTS SECTION
    PHP_ME(CArray, matmul, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, inner, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, outer, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, inv, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, svd, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
@@ -748,6 +770,7 @@ static PHP_MINIT_FUNCTION(phpsci)
 {
     zend_class_entry ce;
     memcpy(&phpsci_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    init_exception_objects();
     INIT_CLASS_ENTRY(ce, "CArray", phpsci_class_methods);
     ce.create_object = NULL;
     phpsci_object_handlers.clone_obj = NULL;

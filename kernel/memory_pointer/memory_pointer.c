@@ -20,14 +20,4 @@
   | Authors: Henrique Borba <henrique.borba.dev@gmail.com>               |
   +----------------------------------------------------------------------+
 */
-
-#ifndef PHPSCI_EXT_LINALG_H
-#define PHPSCI_EXT_LINALG_H
-
-
-#include "../kernel/memory_manager.h"
-void svd(MemoryPointer * a_ptr, MemoryPointer * rtn_ptr, MemoryPointer * singularvalues_ptr, MemoryPointer * left_vectors_ptr, MemoryPointer * right_vectors_ptr);
-void inv(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr);
-void inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPointer * a_ptr, int x_b, int y_b, MemoryPointer * b_ptr);
-void matmul(MemoryPointer * ptr, int n_a_rows, int n_a_cols, MemoryPointer * a_ptr, int n_b_cols, MemoryPointer *b_ptr);
-#endif //PHPSCI_EXT_LINALG_H
+#include "memory_pointer.h"

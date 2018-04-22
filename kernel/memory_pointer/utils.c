@@ -20,21 +20,78 @@
   | Authors: Henrique Borba <henrique.borba.dev@gmail.com>               |
   +----------------------------------------------------------------------+
 */
-
-#ifndef PHPSCI_EXT_EXCEPTIONS_H
-#define PHPSCI_EXT_EXCEPTIONS_H
+#include "utils.h"
+#include "../buffer/memory_manager.h"
 
 /**
- * EXCEPTIONS CODES
+ * Check if shape of A is equal to shape of B
  *
- * Format 5###
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
  */
-#define COULD_NOT_BROADCAST_EXCEPTION 5000
-#define SHAPES_NOT_ALIGNED_EXCEPTION  5001
+int
+carray_shapecmp(MemoryPointer * ptr_a, MemoryPointer * ptr_b)
+{
+    CArray carray_a = ptr_to_carray(ptr_a);
+    CArray carray_b = ptr_to_carray(ptr_b);
+    if(ptr_a->x == ptr_b->x && ptr_b->x == ptr_b->y) {
+        return 1;
+    }
+    return 0;
+}
 
+/**
+ * Get CArray dimensions based on X and Y
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param x
+ * @param y
+ */
+int
+GET_DIM(MemoryPointer * ptr)
+{
+    if(ptr->x == 0 && ptr->y == 0)
+        return 0;
+    if(ptr->x > 0 && ptr->y == 0)
+        return 1;
+    if(ptr->x > 0 && ptr->y > 0)
+        return 2;
+}
 
-void init_exception_objects();
-void throw_could_not_broadcast_exception(char * msg);
-void throw_shapes_not_aligned_exception(char * msg);
+/**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param x
+ * @param y
+ */
+int
+IS_0D(MemoryPointer * ptr)
+{
+    if(ptr->x == 0 && ptr->y == 0)
+        return 1;
+    return 0;
+}
 
-#endif //PHPSCI_EXT_EXCEPTIONS_H
+/**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param x
+ * @param y
+ */
+int
+IS_1D(MemoryPointer * ptr)
+{
+    if(ptr->x > 0 && ptr->y == 0)
+        return 1;
+    return 0;
+}
+
+/**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param x
+ * @param y
+ */
+int
+IS_2D(MemoryPointer * ptr)
+{
+    if(ptr->x > 0 && ptr->y > 0)
+        return 1;
+    return 0;
+}

@@ -21,20 +21,13 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_EXCEPTIONS_H
-#define PHPSCI_EXT_EXCEPTIONS_H
+#ifndef PHPSCI_EXT_UTILS_H
+#define PHPSCI_EXT_UTILS_H
+#include "../buffer/memory_manager.h"
 
-/**
- * EXCEPTIONS CODES
- *
- * Format 5###
- */
-#define COULD_NOT_BROADCAST_EXCEPTION 5000
-#define SHAPES_NOT_ALIGNED_EXCEPTION  5001
-
-
-void init_exception_objects();
-void throw_could_not_broadcast_exception(char * msg);
-void throw_shapes_not_aligned_exception(char * msg);
-
-#endif //PHPSCI_EXT_EXCEPTIONS_H
+int carray_shapecmp(MemoryPointer * ptr_a, MemoryPointer * ptr_b);
+int GET_DIM(MemoryPointer * ptr);
+int IS_0D(MemoryPointer * ptr);
+int IS_1D(MemoryPointer * ptr);
+int IS_2D(MemoryPointer * ptr);
+#endif //PHPSCI_EXT_UTILS_H
