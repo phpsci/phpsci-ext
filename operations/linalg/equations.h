@@ -21,13 +21,8 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_TRANSFORMATIONS_H
-#define PHPSCI_EXT_TRANSFORMATIONS_H
-
-#include "../kernel/buffer/memory_manager.h"
-
-void transpose(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
-void flatten(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
-void atleast_1d(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
-void atleast_2d(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
-#endif //PHPSCI_EXT_TRANSFORMATIONS_H
+#ifndef PHPSCI_EXT_EQUATIONS_H
+#define PHPSCI_EXT_EQUATIONS_H
+#include "../../kernel/carray/carray.h"
+void equation_solve(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr);
+#endif //PHPSCI_EXT_EQUATIONS_H

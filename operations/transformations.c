@@ -32,14 +32,14 @@
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  */
 void
-transpose(MemoryPointer * new_ptr, MemoryPointer * target_ptr, int x, int y) {
+transpose(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
     int i, j;
-    carray_init(y, x, new_ptr);
+    carray_init(target_ptr->y, target_ptr->x, new_ptr);
     CArray new_arr = ptr_to_carray(new_ptr);
     CArray target_arr = ptr_to_carray(target_ptr);
-    for(i = 0; i < x; i++) {
-        for(j = 0; j < y; j++) {
-            new_arr.array2d[(i * y) + j] = target_arr.array2d[(j * x) + i];
+    for(i = 0; i < target_ptr->x; i++) {
+        for(j = 0; j < target_ptr->y; j++) {
+            new_arr.array2d[(i * target_ptr->y) + j] = target_arr.array2d[(j * target_ptr->x) + i];
         }
     }
 }
