@@ -70,23 +70,25 @@ CFLAGS="$CFLAGS -lopenblas -llapacke"
 
 PHP_NEW_EXTENSION(phpsci,
 	  phpsci.c \
-	  kernel/carray.c \
+	  kernel/carray/carray.c \
 	  kernel/exceptions.c \
-	  kernel/memory_manager.c \
-	  carray/initializers.c \
-	  carray/linalg.c \
-	  carray/ranges.c \
-	  carray/basic_operations.c \
-	  carray/random.c \
-	  carray/arithmetic.c \
-	  carray/exponents.c \
-	  carray/logarithms.c \
-	  carray/trigonometric.c \
-	  carray/hyperbolic.c \
-	  carray/magic_properties.c \
-	  kernel/carray_printer.c \
-	  kernel/php_array.c \
-	  carray/transformations.c,
+	  kernel/memory_pointer/memory_pointer.c \
+	  kernel/memory_pointer/utils.c \
+	  kernel/buffer/memory_manager.c \
+	  operations/initializers.c \
+	  operations/linalg.c \
+	  operations/ranges.c \
+	  operations/basic_operations.c \
+	  operations/random.c \
+	  operations/arithmetic.c \
+	  operations/exponents.c \
+	  operations/logarithms.c \
+	  operations/trigonometric.c \
+	  operations/hyperbolic.c \
+	  operations/transformations.c \
+	  operations/magic_properties.c \
+	  kernel/carray/utils/carray_printer.c \
+	  kernel/php/php_array.c ,
 	  $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
   PHP_INSTALL_HEADERS([ext/phpsci], [phpsci.h])
   PHP_SUBST(PHPSCI_SHARED_LIBADD)
