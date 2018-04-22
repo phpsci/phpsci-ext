@@ -23,6 +23,7 @@
 #include "logarithms.h"
 #include "../phpsci.h"
 #include "../kernel/buffer/memory_manager.h"
+#include "../kernel/memory_pointer/utils.h"
 
 /**
  * Natural logarithm, element-wise.
@@ -35,13 +36,13 @@ natural_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = log(carray.array0d[0]);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -49,7 +50,7 @@ natural_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -72,13 +73,13 @@ base10_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = log10(carray.array0d[0]);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -86,7 +87,7 @@ base10_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -109,13 +110,13 @@ base2_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = log(carray.array0d[0]) / log(2);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -123,7 +124,7 @@ base2_log(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -146,13 +147,13 @@ loga1p(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = log1p(carray.array0d[0]);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -160,7 +161,7 @@ loga1p(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {

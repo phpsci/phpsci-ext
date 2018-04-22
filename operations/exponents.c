@@ -24,6 +24,7 @@
 #include "exponents.h"
 #include "../kernel/carray/carray.h"
 #include "../kernel/buffer/memory_manager.h"
+#include "../kernel/memory_pointer/utils.h"
 
 
 /**
@@ -41,7 +42,7 @@ exponential(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y)
     int i, j;
     CArray new_arr = ptr_to_carray(ptr);
     // If 2D Matrix
-    if(IS_2D(x, y)) {
+    if(IS_2D(ptr)) {
         carray_init(x, y, target_ptr);
         // Transform MemoryPointer to CArray
         CArray rtn_arr = ptr_to_carray(target_ptr);
@@ -53,7 +54,7 @@ exponential(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y)
         return;
     }
     // If 1D Matrix
-    if(IS_1D(x, y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(x, target_ptr);
         // Transform MemoryPointer to CArray
         CArray rtn_arr = ptr_to_carray(target_ptr);
@@ -64,7 +65,7 @@ exponential(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y)
         return;
     }
     // If Scalar
-    if(IS_0D(x, y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(target_ptr);
         // Transform MemoryPointer to CArray
         CArray rtn_arr = ptr_to_carray(target_ptr);

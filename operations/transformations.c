@@ -24,6 +24,7 @@
 #include "transformations.h"
 #include "../phpsci.h"
 #include "../kernel/carray/carray.h"
+#include "../kernel/memory_pointer/utils.h"
 
 /**
  * Transpose a CArray 2D
@@ -54,7 +55,7 @@ void
 flatten(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
     int iterator_x, iterator_y, total_iterations = 0;
     CArray target_arr = ptr_to_carray(target_ptr);
-    if(IS_0D(target_ptr->x, target_ptr->y)) {
+    if(IS_0D(target_ptr)) {
         carray_init1d(1, new_ptr);
         CArray new_arr = ptr_to_carray(new_ptr);
         new_arr.array1d[0] = target_arr.array0d[0];
@@ -62,7 +63,7 @@ flatten(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
         new_ptr->y = 0;
         return;
     }
-    if(IS_1D(target_ptr->x, target_ptr->y)) {
+    if(IS_1D(target_ptr)) {
         carray_init1d(target_ptr->x, new_ptr);
         CArray new_arr = ptr_to_carray(new_ptr);
         memcpy(new_arr.array1d, target_arr.array1d, target_ptr->x * sizeof(double));
@@ -70,7 +71,7 @@ flatten(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
         new_ptr->y = 0;
         return;
     }
-    if(IS_2D(target_ptr->x, target_ptr->y)) {
+    if(IS_2D(target_ptr)) {
         carray_init1d((target_ptr->x * target_ptr->y), new_ptr);
         CArray new_arr = ptr_to_carray(new_ptr);
         for(iterator_x = 0; iterator_x < target_ptr->x; ++iterator_x) {
@@ -96,7 +97,7 @@ flatten(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
 void
 atleast_1d(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
     CArray target_arr = ptr_to_carray(target_ptr);
-    if(IS_0D(target_ptr->x, target_ptr->y)) {
+    if(IS_0D(target_ptr)) {
         carray_init1d(1, new_ptr);
         CArray new_arr = ptr_to_carray(new_ptr);
         new_arr.array1d[0] = target_arr.array0d[0];
@@ -104,7 +105,7 @@ atleast_1d(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
         new_ptr->y = 0;
         return;
     }
-    if(IS_1D(target_ptr->x, target_ptr->y)) {
+    if(IS_1D(target_ptr)) {
         carray_init1d(target_ptr->x, new_ptr);
         CArray new_arr = ptr_to_carray(new_ptr);
         memcpy(new_arr.array1d, target_arr.array1d, target_ptr->x * sizeof(double));
@@ -112,7 +113,7 @@ atleast_1d(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
         new_ptr->y = 0;
         return;
     }
-    if(IS_2D(target_ptr->x, target_ptr->y)) {
+    if(IS_2D(target_ptr)) {
         carray_init(target_ptr->x, target_ptr->y, new_ptr);
         CArray new_arr = ptr_to_carray(new_ptr);
         memcpy(new_arr.array2d, target_arr.array2d, (target_ptr->x * target_ptr->y) * sizeof(double));
@@ -134,7 +135,7 @@ void
 atleast_2d(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
     int iterator_x;
     CArray target_arr = ptr_to_carray(target_ptr);
-    if(IS_0D(target_ptr->x, target_ptr->y)) {
+    if(IS_0D(target_ptr)) {
         carray_init(1, 1, new_ptr);
         CArray new_arr = ptr_to_carray(new_ptr);
         new_arr.array2d[0] = target_arr.array0d[0];
@@ -142,7 +143,7 @@ atleast_2d(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
         new_ptr->y = 1;
         return;
     }
-    if(IS_1D(target_ptr->x, target_ptr->y)) {
+    if(IS_1D(target_ptr)) {
         carray_init(1, target_ptr->x, new_ptr);
         CArray new_arr = ptr_to_carray(new_ptr);
         for(iterator_x = 0; iterator_x < target_ptr->x; ++iterator_x) {
@@ -152,7 +153,7 @@ atleast_2d(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
         new_ptr->y = target_ptr->x;
         return;
     }
-    if(IS_2D(target_ptr->x, target_ptr->y)) {
+    if(IS_2D(target_ptr)) {
         carray_init(target_ptr->x, target_ptr->y, new_ptr);
         CArray new_arr = ptr_to_carray(new_ptr);
         memcpy(new_arr.array2d, target_arr.array2d, (target_ptr->x * target_ptr->y) * sizeof(double));

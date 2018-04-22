@@ -22,7 +22,7 @@
 */
 
 #include "php_array.h"
-#include "../phpsci.h"
+#include "../../phpsci.h"
 #include "php.h"
 
 

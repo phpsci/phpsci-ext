@@ -24,7 +24,7 @@
 #ifndef PHPSCI_EXT_CARRAY_PRINTER_H
 #define PHPSCI_EXT_CARRAY_PRINTER_H
 
-#include "carray/carray.h"
+#include "../carray.h"
 
 void print_carray(MemoryPointer * ptr, int x, int y);
 void print0d(CArray target);

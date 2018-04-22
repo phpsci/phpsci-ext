@@ -24,6 +24,7 @@
 #include "hyperbolic.h"
 #include "../phpsci.h"
 #include "../kernel/buffer/memory_manager.h"
+#include "../kernel/memory_pointer/utils.h"
 #include "../kernel/carray/carray.h"
 #include "math.h"
 
@@ -39,13 +40,13 @@ hyperbolic_tanh(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = tanh(carray.array0d[0]);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -53,7 +54,7 @@ hyperbolic_tanh(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -77,13 +78,13 @@ hyperbolic_cosh(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = cosh(carray.array0d[0]);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -91,7 +92,7 @@ hyperbolic_cosh(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -115,13 +116,13 @@ hyperbolic_sinh(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = sinh(carray.array0d[0]);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -129,7 +130,7 @@ hyperbolic_sinh(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {

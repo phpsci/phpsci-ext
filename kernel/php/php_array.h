@@ -24,7 +24,7 @@
 #ifndef PHPSCI_EXT_PHP_ARRAY_H
 #define PHPSCI_EXT_PHP_ARRAY_H
 
-#include "buffer/memory_manager.h"
+#include "../buffer/memory_manager.h"
 #include "php.h"
 
 void array_to_carray_ptr(MemoryPointer * ptr, zval * array, int * rows, int * cols);

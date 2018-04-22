@@ -24,6 +24,7 @@
 #include "trigonometric.h"
 #include "../phpsci.h"
 #include "../kernel/buffer/memory_manager.h"
+#include "../kernel/memory_pointer/utils.h"
 #include "../kernel/carray/carray.h"
 #include "math.h"
 
@@ -39,13 +40,13 @@ tan_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = tan(carray.array0d[0]);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -53,7 +54,7 @@ tan_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -76,13 +77,13 @@ cos_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = cos(carray.array0d[0]);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -90,7 +91,7 @@ cos_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -113,13 +114,13 @@ sin_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = sin(carray.array0d[0]);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -127,7 +128,7 @@ sin_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -151,13 +152,13 @@ arctan_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = atan(carray.array0d[0]);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -165,7 +166,7 @@ arctan_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -188,13 +189,13 @@ arccos_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = acos(carray.array0d[0]);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -202,7 +203,7 @@ arccos_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -225,13 +226,13 @@ arcsin_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
 {
     int i, j;
     CArray carray = ptr_to_carray(ptr);
-    if(IS_0D(ptr->x, ptr->y)) {
+    if(IS_0D(ptr)) {
         carray_init0d(rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         rtn_arr.array0d[0] = asin(carray.array0d[0]);
         return;
     }
-    if(IS_1D(ptr->x, ptr->y)) {
+    if(IS_1D(ptr)) {
         carray_init1d(ptr->x, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {
@@ -239,7 +240,7 @@ arcsin_carray(MemoryPointer * ptr, MemoryPointer * rtn_ptr)
         }
         return;
     }
-    if(IS_2D(ptr->x, ptr->y)) {
+    if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, rtn_ptr);
         CArray rtn_arr = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr->x; ++i) {

@@ -22,8 +22,8 @@
 */
 
 #include "memory_manager.h"
-#include "carray.h"
-#include "../phpsci.h"
+#include "../carray/carray.h"
+#include "../../phpsci.h"
 
 /**
  * MEMORY STACK

@@ -25,6 +25,7 @@
 #include "../phpsci.h"
 #include "transformations.h"
 #include "../kernel/carray/carray.h"
+#include "../kernel/memory_pointer/utils.h"
 #include "cblas.h"
 #include "lapacke.h"
 
@@ -141,7 +142,7 @@ inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPoi
     CArray a = ptr_to_carray(a_ptr);
     CArray b = ptr_to_carray(b_ptr);
 
-    if (IS_1D(x_a, y_a) && IS_1D(x_b, y_b)) {
+    if (IS_1D(a_ptr) && IS_1D(b_ptr)) {
         carray_init0d(ptr);
         CArray rtn_arr = ptr_to_carray(ptr);
         rtn_arr.array0d[0] = 0;
@@ -151,7 +152,7 @@ inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPoi
         *rtn_x = 0;
         return;
     }
-    if (IS_1D(x_a, y_a) && IS_0D(x_b, y_b)) {
+    if (IS_1D(a_ptr) && IS_0D(b_ptr)) {
         carray_init1d(x_a,  ptr);
         CArray rtn_arr = ptr_to_carray(ptr);
         for(i = 0; i < x_a; i++) {
@@ -160,7 +161,7 @@ inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPoi
         *rtn_x = x_a;
         return;
     }
-    if (IS_2D(x_a, y_a) && IS_2D(x_b, y_b)) {
+    if (IS_2D(a_ptr) && IS_2D(b_ptr)) {
         carray_init(x_a, x_a, ptr);
         CArray rtn_arr = ptr_to_carray(ptr);
         for(i = 0; i < x_a; i++) {
@@ -175,7 +176,7 @@ inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPoi
         *rtn_y = x_a;
         return;
     }
-    if (IS_2D(x_a, y_a) && IS_0D(x_b, y_b)) {
+    if (IS_2D(a_ptr) && IS_0D(b_ptr)) {
         carray_init(x_a, y_a, ptr);
         CArray rtn_arr = ptr_to_carray(ptr);
         for(i = 0; i < x_a; i++) {

@@ -25,7 +25,7 @@
 #define PHPSCI_EXT_MEMORY_MANAGER_H
 #define UNINITIALIZED -1
 
-#include "carray.h"
+#include "../carray/carray.h"
 
 /**
  * MemoryStack : The memory buffer of CArrays

@@ -23,6 +23,7 @@
 #include "basic_operations.h"
 #include "../phpsci.h"
 #include "../kernel/carray/carray.h"
+#include "../kernel/memory_pointer/utils.h"
 #include "initializers.h"
 
 /**
@@ -45,7 +46,7 @@ sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
     // Initialize return to 0
     rtn_arr.array0d[0] = 0;
     // If 2D Matrix
-    if(IS_2D(x, y)) {
+    if(IS_2D(ptr)) {
         for(i = 0; i < x; ++i) {
             for(j = 0; j < y; ++j) {
                 rtn_arr.array0d[0] += new_arr.array2d[(j * x) + i];
@@ -54,7 +55,7 @@ sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y) {
         return;
     }
     // If 1D Matrix
-    if(IS_1D(x, y)) {
+    if(IS_1D(ptr)) {
         for(i = 0; i < x; ++i) {
             rtn_arr.array0d[0] += new_arr.array1d[i];
         }

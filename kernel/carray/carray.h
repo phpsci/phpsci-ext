@@ -23,7 +23,7 @@
 
 #ifndef PHPSCI_EXT_CARRAY_H
 #define PHPSCI_EXT_CARRAY_H
-#include "../phpsci.h"
+#include "../../phpsci.h"
 
 /**
  * PHPSci Shape Structure

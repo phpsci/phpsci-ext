@@ -22,8 +22,6 @@
 */
 
 #include "carray_printer.h"
-#include "carray/carray.h"
-#include "../phpsci.h"
 
 /**
  * Print CArray 2D
