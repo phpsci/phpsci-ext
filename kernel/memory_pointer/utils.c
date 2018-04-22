@@ -95,3 +95,18 @@ IS_2D(MemoryPointer * ptr)
         return 1;
     return 0;
 }
+
+/**
+ * Check if X and Y are equals.
+ *
+ * @param ptr
+ * @return
+ */
+int
+IS_SQUARE(MemoryPointer * ptr)
+{
+    if(ptr->x == ptr->y) {
+        return 1;
+    }
+    return 0;
+}

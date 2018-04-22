@@ -96,7 +96,7 @@ inf_norm(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr)
 }
 
 /**
- * Infinity norm of the matrix
+ * Largest absolute norm of the matrix
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
  * @param ptr_a

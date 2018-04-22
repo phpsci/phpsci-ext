@@ -21,14 +21,10 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_UTILS_H
-#define PHPSCI_EXT_UTILS_H
-#include "../buffer/memory_manager.h"
+#ifndef PHPSCI_EXT_EIGENVALUES_H
+#define PHPSCI_EXT_EIGENVALUES_H
+#include "../../kernel/carray/carray.h"
+void eig(MemoryPointer * ptr_a, MemoryPointer * rtn_eigvalues_ptr, MemoryPointer * rtn_eigvectors_ptr);
+void eigvals(MemoryPointer * ptr_a, MemoryPointer * rtn_eigvalues_ptr);
 
-int carray_shapecmp(MemoryPointer * ptr_a, MemoryPointer * ptr_b);
-int GET_DIM(MemoryPointer * ptr);
-int IS_0D(MemoryPointer * ptr);
-int IS_1D(MemoryPointer * ptr);
-int IS_2D(MemoryPointer * ptr);
-int IS_SQUARE(MemoryPointer * ptr);
-#endif //PHPSCI_EXT_UTILS_H
+#endif //PHPSCI_EXT_EIGENVALUES_H
