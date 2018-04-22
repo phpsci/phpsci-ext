@@ -26,6 +26,7 @@
 #include "../../kernel/memory_pointer/utils.h"
 #include "../../kernel/carray/carray.h"
 #include "../../kernel/memory_pointer/memory_pointer.h"
+#include "../../kernel/exceptions.h"
 #include "lapacke.h"
 
 /**
@@ -59,4 +60,5 @@ norms_determinant(MemoryPointer * ptr_a, MemoryPointer * ptr_rtn)
         ptr_rtn->x = 0;
         return;
     }
+    throw_atleast2d_exception("Matrix must be 2D");
 }

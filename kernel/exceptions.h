@@ -31,10 +31,10 @@
  */
 #define COULD_NOT_BROADCAST_EXCEPTION 5000
 #define SHAPES_NOT_ALIGNED_EXCEPTION  5001
-
+#define ATLEAST2D_EXCEPTION           5002
 
 void init_exception_objects();
 void throw_could_not_broadcast_exception(char * msg);
 void throw_shapes_not_aligned_exception(char * msg);
-
+void throw_atleast2d_exception(char * msg);
 #endif //PHPSCI_EXT_EXCEPTIONS_H
