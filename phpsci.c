@@ -647,6 +647,17 @@ PHP_METHOD(CArray, det)
     other_determinant(&ptr_a, &rtn_ptr);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
 }
+PHP_METHOD(CArray, cond)
+{
+    MemoryPointer ptr_a, rtn_ptr;
+    zval * a;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    other_cond(&ptr_a, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, 0, 0);
+}
 PHP_METHOD(CArray, norm)
 {
     char * order_name;
@@ -772,6 +783,7 @@ static zend_function_entry phpsci_class_methods[] =
 
    // OTHERS SECTION
    PHP_ME(CArray, det, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, cond, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
    // PRODUCTS SECTION
    PHP_ME(CArray, matmul, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
