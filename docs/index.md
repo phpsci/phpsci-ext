@@ -20,7 +20,7 @@ It's really easy to compile this extension using Linux environments.
 #### Requirements
 
 - php-devel (php-dev)
-- PHP 7.x
+- PHP 7.2
 - OpenBLAS
 
 #### Ubuntu 16.04
