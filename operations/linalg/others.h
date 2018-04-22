@@ -25,4 +25,5 @@
 #define PHPSCI_EXT_OTHERS_H
 #include "../../kernel/carray/carray.h"
 void other_determinant(MemoryPointer * ptr_a, MemoryPointer * ptr_rtn);
+void other_cond(MemoryPointer * ptr_a, MemoryPointer * ptr_rtn);
 #endif //PHPSCI_EXT_OTHERS_H
