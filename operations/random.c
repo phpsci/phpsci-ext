@@ -23,6 +23,7 @@
 #include "random.h"
 #include "../phpsci.h"
 #include "../kernel/carray/carray.h"
+#include "lapacke.h"
 #include <math.h>
 #include <stdlib.h>
 
@@ -37,12 +38,11 @@ void standard_normal(MemoryPointer * ptr, int seed, int x, int y)
 {
     int i, j;
     srand(time(NULL)*seed);
+    lapack_int seed_vector[4];
     if(x > 0 && y == 0) {
         carray_init1d(x, ptr);
-        CArray new_arr = ptr_to_carray(ptr);
-        for(i = 0; i < x; i++) {
-            new_arr.array1d[i] = _randn(0.f, 1.0f);
-        }
+        CArray new_array = ptr_to_carray(ptr);
+        LAPACKE_dlarnv(3, seed_vector, x, new_array.array1d);
     }
     if(x > 0 && y > 0) {
         carray_init(x, y, ptr);
