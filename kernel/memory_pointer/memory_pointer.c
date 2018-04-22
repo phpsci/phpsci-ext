@@ -21,3 +21,40 @@
   +----------------------------------------------------------------------+
 */
 #include "memory_pointer.h"
+#include "../carray/carray.h"
+#include "../buffer/memory_manager.h"
+#include "utils.h"
+
+/**
+ * Copy CArray from MemoryPointer A (ptr_a) to MemoryPointer B (ptr_b)
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param ptr_a
+ * @param ptr_b
+ */
+void
+COPY_PTR(MemoryPointer * ptr_a, MemoryPointer * ptr_b)
+{
+    CArray to_array;
+    CArray from_array = ptr_to_carray(ptr_a);
+    if(IS_0D(ptr_a)) {
+        carray_init0d(ptr_b);
+        to_array = ptr_to_carray(ptr_b);
+        memcpy(to_array.array0d, from_array.array0d, sizeof(double));
+        return;
+    }
+    if(IS_1D(ptr_a)) {
+        carray_init1d(ptr_a->x, ptr_b);
+        to_array = ptr_to_carray(ptr_b);
+        memcpy(to_array.array1d, from_array.array1d, (ptr_a->x * sizeof(double)));
+        return;
+    }
+    if(IS_2D(ptr_a)) {
+        carray_init(ptr_a->x, ptr_a->y, ptr_b);
+        to_array = ptr_to_carray(ptr_b);
+        memcpy(to_array.array2d, from_array.array2d, (ptr_a->x * ptr_a->y * sizeof(double)));
+        return;
+    }
+    ptr_b->x = ptr_a->x;
+    ptr_b->y = ptr_a->y;
+}

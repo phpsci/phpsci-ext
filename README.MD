@@ -231,4 +231,4 @@ See: https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.linalg.html
 - **Eigenvalues**: `eig`, `eigvals`
 - **Linear Equations**: `solve`
 - **Inverse**: `lstsq`, `inv [100%]`
-- **Others**: `norm`, `cond`, `det` 
+- **Others**: `norm`, `cond`, `det [100%]`

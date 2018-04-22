@@ -87,6 +87,7 @@ PHP_NEW_EXTENSION(phpsci,
 	  operations/hyperbolic.c \
 	  operations/transformations.c \
 	  operations/magic_properties.c \
+	  operations/linalg/norms.c \
 	  kernel/carray/utils/carray_printer.c \
 	  kernel/php/php_array.c ,
 	  $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)

@@ -20,10 +20,9 @@
   | Authors: Henrique Borba <henrique.borba.dev@gmail.com>               |
   +----------------------------------------------------------------------+
 */
-#ifndef PHPSCI_EXT_MEMORY_POINTER_H
-#define PHPSCI_EXT_MEMORY_POINTER_H
-#include "../buffer/memory_manager.h"
 
-
-void COPY_PTR(MemoryPointer * ptr_a, MemoryPointer * ptr_b);
-#endif //PHPSCI_EXT_MEMORY_POINTER_H
+#ifndef PHPSCI_EXT_NORMS_H
+#define PHPSCI_EXT_NORMS_H
+#include "../../kernel/carray/carray.h"
+void norms_determinant(MemoryPointer * ptr_a, MemoryPointer * ptr_rtn);
+#endif //PHPSCI_EXT_NORMS_H

@@ -111,6 +111,19 @@ ptr_to_carray(MemoryPointer * ptr)
 }
 
 /**
+ *  Get CArray Pointer from MemoryPointer
+ *
+ *  @author Henrique Borba <henrique.borba.dev@gmail.com>
+ *  @param ptr      MemoryPointer with target CArray
+ *  @return CArray  target CArray
+ */
+CArray *
+ptr_to_carray_ptr(MemoryPointer * ptr)
+{
+    return &(PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid]);
+}
+
+/**
  * Destroy target CArray and set last_deleted_uuid for posterior
  * allocation.
  *

@@ -38,6 +38,7 @@
 #include "operations/trigonometric.h"
 #include "operations/hyperbolic.h"
 #include "operations/magic_properties.h"
+#include "operations/linalg/norms.h"
 #include "kernel/carray/utils/carray_printer.h"
 #include "kernel/buffer/memory_manager.h"
 #include "kernel/php/php_array.h"
@@ -593,19 +594,30 @@ PHP_METHOD(CArray, add)
 }
 PHP_METHOD(CArray, subtract)
 {
+    MemoryPointer rtn_ptr, ptr_a, ptr_b;
     zval * a, * b;
     int  size_x, size_y;
     ZEND_PARSE_PARAMETERS_START(2, 2)
         Z_PARAM_OBJECT(a)
         Z_PARAM_OBJECT(b)
     ZEND_PARSE_PARAMETERS_END();
-    MemoryPointer rtn_ptr;
-    MemoryPointer ptr_a;
-    MemoryPointer ptr_b;
+
     OBJ_TO_PTR(a, &ptr_a);
     OBJ_TO_PTR(b, &ptr_b);
     subtract(&ptr_a, &ptr_b, &rtn_ptr, &size_x, &size_y);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, size_x, size_y);
+}
+PHP_METHOD(CArray, det)
+{
+    MemoryPointer ptr_a, rtn_ptr;
+    zval * a;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+
+    OBJ_TO_PTR(a, &ptr_a);
+    norms_determinant(&ptr_a, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
 }
 PHP_METHOD(CArray, fromDouble)
 {
@@ -702,7 +714,10 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, atleast_1d, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, atleast_2d, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, flatten, NULL, ZEND_ACC_PUBLIC)
-   
+
+   // NORMS SECTION
+   PHP_ME(CArray, det, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+
    // PRODUCTS SECTION
    PHP_ME(CArray, matmul, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, inner, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
