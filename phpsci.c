@@ -284,7 +284,7 @@ PHP_METHOD(CArray, transpose)
     MemoryPointer ptr;
     MemoryPointer rtn;
     OBJ_TO_PTR(obj, &ptr);
-    transpose(&rtn, &ptr, (int)ptr.x, (int)ptr.y);
+    transpose(&rtn, &ptr);
     RETURN_CARRAY(return_value, rtn.uuid, ptr.y, ptr.x);
 }
 PHP_METHOD(CArray, eye)

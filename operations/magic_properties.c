@@ -24,6 +24,9 @@
 #include "magic_properties.h"
 #include "../phpsci.h"
 #include "../kernel/carray/carray.h"
+#include "../kernel/memory_pointer/utils.h"
+#include "../kernel/memory_pointer/memory_pointer.h"
+#include "../kernel/buffer/memory_manager.h"
 #include "transformations.h"
 #include "php.h"
 
@@ -40,6 +43,25 @@ magic_property_flat(zval * return_value, MemoryPointer * target_ptr, MemoryPoint
 }
 
 /**
+ * Transpose but only if 2-D
+ *
+ * @param return_value
+ * @param target_ptr
+ * @param rtn_ptr
+ */
+void
+magic_property_T(zval * return_value, MemoryPointer * target_ptr, MemoryPointer * rtn_ptr) {
+    if(IS_2D(target_ptr)) {
+        transpose(rtn_ptr, target_ptr);
+        RETURN_CARRAY(return_value, rtn_ptr->uuid, rtn_ptr->x, rtn_ptr->y);
+        return;
+    }
+    carray_init1d(target_ptr->x, rtn_ptr);
+    COPY_PTR(target_ptr, rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr->uuid, rtn_ptr->x, 0);
+}
+
+/**
  * Handle "magic properties"
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
@@ -48,6 +70,10 @@ void
 run_property_or_die(char * prop, zval * return_value, MemoryPointer * target_ptr, MemoryPointer * rtn_ptr) {
     if(strcmp(prop, "flat") == 0) {
         magic_property_flat(return_value, target_ptr, rtn_ptr);
+        return;
+    }
+    if(strcmp(prop, "T") == 0) {
+        magic_property_T(return_value, target_ptr, rtn_ptr);
         return;
     }
 }

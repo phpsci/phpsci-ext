@@ -26,7 +26,7 @@
 
 #include "../kernel/buffer/memory_manager.h"
 
-void transpose(MemoryPointer * new_ptr, MemoryPointer * target_ptr, int x, int y);
+void transpose(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
 void flatten(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
 void atleast_1d(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
 void atleast_2d(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
