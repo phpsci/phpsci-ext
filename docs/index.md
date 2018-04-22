@@ -1,17 +1,19 @@
 # PHPSci CArray Extension
 
+<p align="center">
+  <img src="https://i.imgur.com/QoIbhqj.png" width="70%" />
+</p>
+
 This is the extension used by [PHPSci](https://www.github.com/phpsci/phpsci). 
 It offers the CArray object in place of PHP arrays to make scientific calculations faster.
 
 
 Although it is not necessary, or you want to create your own library of arrays, we recommend that you use
-[PHPSci](https://www.github.com/phpsci/phpsci) together with this extension.
-
-> **ATTENTION:** Misuse of this extension can cause excessive memory consumption and consequently system crash. See the CArray internals section if you want to know more about the internal operation of the extension.
+[PHPSci](https://www.github.com/phpsci/phpsci).
 
 ---
 
-## Building
+## Installing
 
 It's really easy to compile this extension using Linux environments.
 
@@ -21,15 +23,27 @@ It's really easy to compile this extension using Linux environments.
 - PHP 7.x
 - OpenBLAS
 
-#### Compiling
-
-Clone the repository, `cd` to the source folder and:
+#### Ubuntu 16.04
 ```commandline
+$ add-apt-repository -y ppa:ondrej/php
+$ apt-get update
+$ apt-get install libblas-dev libatlas-base-dev php7.2-dev
 $ phpize
 $ ./configure
 $ make test
 $ make install
 ```
+#### Ubuntu 14.04
+```commandline
+$ add-apt-repository -y ppa:ondrej/php
+$ apt-get update
+$ apt-get install libopenblas-dev liblapacke-dev php7.2-dev
+$ phpize
+$ ./configure
+$ make test
+$ make install
+```
+
 > Don't forget to check if the extension is enabled in your php.ini file.
 
 > **Apache/NGINX Users:** Don't forget to restart your services.
