@@ -60,6 +60,7 @@ void carray_init1d(int width, MemoryPointer * ptr);
 void carray_init0d(MemoryPointer * ptr);
 void destroy_carray(MemoryPointer * target_ptr);
 
+CArray * ptr_to_carray_ptr(MemoryPointer * ptr);
 CArray ptr_to_carray(MemoryPointer * ptr);
 void carray_to_array(CArray carray, zval * rtn_array, int m, int n);
 void double_to_carray(double input, MemoryPointer * rtn_ptr);
