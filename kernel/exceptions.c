@@ -28,6 +28,7 @@
 
 static zend_class_entry * phpsci_ce_CArrayBroadcastException;
 static zend_class_entry * phpsci_ce_CArrayShapesNotAlignedException;
+static zend_class_entry * phpsci_ce_CArrayAtLeast2DException;
 
 static const zend_function_entry phpsci_ce_CArrayBroadcastException_methods[] = {
         PHP_FE_END
@@ -36,6 +37,11 @@ static const zend_function_entry phpsci_ce_CArrayBroadcastException_methods[] = 
 static const zend_function_entry phpsci_ce_CArrayShapesNotAlignedException_methods[] = {
         PHP_FE_END
 };
+
+static const zend_function_entry phpsci_ce_CArrayAtLeast2DException_methods[] = {
+        PHP_FE_END
+};
+
 
 /**
  * Initialize Exception Classes
@@ -51,12 +57,16 @@ init_exception_objects()
 
     INIT_CLASS_ENTRY(ce, "ShapesNotAlignedException", phpsci_ce_CArrayShapesNotAlignedException_methods);
     phpsci_ce_CArrayShapesNotAlignedException = zend_register_internal_class_ex(&ce, zend_ce_exception);
+
+    INIT_CLASS_ENTRY(ce, "AtLeast2DException", phpsci_ce_CArrayAtLeast2DException_methods);
+    phpsci_ce_CArrayAtLeast2DException = zend_register_internal_class_ex(&ce, zend_ce_exception);
 }
 
 /**
  * Throw CArrayBroadcastException
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param msg
  */
 void
 throw_could_not_broadcast_exception(char * msg)
@@ -68,9 +78,22 @@ throw_could_not_broadcast_exception(char * msg)
  * Throw CArrayBroadcastException
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param msg
  */
 void
 throw_shapes_not_aligned_exception(char * msg)
 {
     zend_throw_exception_ex(phpsci_ce_CArrayBroadcastException, SHAPES_NOT_ALIGNED_EXCEPTION, "%s", msg);
+}
+
+/**
+ * Throw AtLeast2DException
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param msg
+ */
+void
+throw_atleast2d_exception(char * msg)
+{
+    zend_throw_exception_ex(phpsci_ce_CArrayAtLeast2DException, ATLEAST2D_EXCEPTION, "%s", msg);
 }

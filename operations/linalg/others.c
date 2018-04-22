@@ -21,8 +21,44 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_NORMS_H
-#define PHPSCI_EXT_NORMS_H
+#include "others.h"
+#include "../../kernel/buffer/memory_manager.h"
+#include "../../kernel/memory_pointer/utils.h"
 #include "../../kernel/carray/carray.h"
-void norm(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr, char * order);
-#endif //PHPSCI_EXT_NORMS_H
+#include "../../kernel/memory_pointer/memory_pointer.h"
+#include "../../kernel/exceptions.h"
+#include "lapacke.h"
+
+/**
+ * Compute the determinant of an CArray.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param ptr_a
+ * @param ptr_tr
+ */
+void
+other_determinant(MemoryPointer * ptr_a, MemoryPointer * ptr_rtn)
+{
+    MemoryPointer temp_ptr;
+    int ret, iterator_x;
+    double det = -1.0;
+    lapack_int ipiv[ptr_a->x];
+    COPY_PTR(ptr_a, &temp_ptr);
+    if(IS_2D(ptr_a)) {
+        CArray target_carray = ptr_to_carray(&temp_ptr);
+        ret = LAPACKE_dgetrf(LAPACK_COL_MAJOR, ptr_a->x, ptr_a->y, target_carray.array2d, ptr_a->x, ipiv);
+        for(iterator_x = 0; iterator_x < ptr_a->x; ++iterator_x) {
+            det *= target_carray.array2d[(iterator_x * ptr_a->x) + iterator_x];
+            if(ipiv[iterator_x] != iterator_x) {
+                det = -det;
+            }
+        }
+        carray_init0d(ptr_rtn);
+        CArray rtn_array = ptr_to_carray(ptr_rtn);
+        rtn_array.array0d[0] = det;
+        ptr_rtn->y = 0;
+        ptr_rtn->x = 0;
+        return;
+    }
+    throw_atleast2d_exception("Matrix must be 2D");
+}
