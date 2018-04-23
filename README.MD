@@ -231,7 +231,7 @@ That's what makes PHPSci so much faster them PHP Arrays.
 ## Transformations
 See: https://docs.scipy.org/doc/numpy/reference/routines.array-manipulation.html
 - **Transpose**: `transpose [100%]`
-- **Shape**: `reshape`, `flatten [100%]`, `atleast_1d [100%]`, `atleast_2d [100%]`
+- **Shape**: `flatten [100%]`, `atleast_1d [100%]`, `atleast_2d [100%]`
 - **Property**: `T [100%]`, flat [100%]`
 
 ## Initializers (Matrix Creation)
@@ -239,7 +239,6 @@ See: https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.array-creation.h
 - **Ones & Zeros**: `eye [100%]`, `identity [100%]`, `ones [100%]`, `ones_like [100%]`, `zeros [100%]`, `zeros_like [100%]`, `full [100%]`, `full_like [100%]`
 - **Native PHP**: `fromArray [100%]`
 - **Ranges**: `arange [100%]`, `linspace [100%]`, `logspace [100%]`
-- **Randoms**: `randn`, `randint`, `rand`, `random`
 - **Distributions**: `standard_normal [100%]`
 
 ## Linear Algebra
@@ -248,5 +247,5 @@ See: https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.linalg.html
 - **Decompositions**: `svd [100%]`
 - **Eigenvalues**: `eig [100%]`, `eigvals [100%]`
 - **Linear Equations**: `solve [100%]`
-- **Inverse**: `lstsq`, `inv [100%]`
+- **Inverse**: `inv [100%]`
 - **Others**: `norm [100%]`, `cond` [100%], `det [100%]`

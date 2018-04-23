@@ -24,6 +24,5 @@
 #define PHPSCI_EXT_MEMORY_POINTER_H
 #include "../buffer/memory_manager.h"
 
-
 void COPY_PTR(MemoryPointer * ptr_a, MemoryPointer * ptr_b);
 #endif //PHPSCI_EXT_MEMORY_POINTER_H

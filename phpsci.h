@@ -37,6 +37,7 @@
 static zend_class_entry *phpsci_sc_entry;
 static zend_object_handlers phpsci_object_handlers;
 static zend_class_entry *phpsci_exception_sc_entry;
+static zend_class_entry *phpsci_iterator_sc_entry;
 
 extern zend_module_entry phpsci_module_entry;
 

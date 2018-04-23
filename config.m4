@@ -71,6 +71,7 @@ CFLAGS="$CFLAGS -lopenblas -llapacke"
 PHP_NEW_EXTENSION(phpsci,
 	  phpsci.c \
 	  kernel/carray/carray.c \
+	  kernel/carray/tuple.c \
 	  kernel/exceptions.c \
 	  kernel/memory_pointer/memory_pointer.c \
 	  kernel/memory_pointer/utils.c \
