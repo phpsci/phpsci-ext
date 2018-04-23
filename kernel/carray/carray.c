@@ -24,6 +24,7 @@
 #include "carray.h"
 #include "../../phpsci.h"
 #include "../buffer/memory_manager.h"
+#include "../memory_pointer/utils.h"
 #include "php.h"
 
 /**
@@ -195,4 +196,52 @@ double_to_carray(double input, MemoryPointer * rtn_ptr)
     carray_init0d(rtn_ptr);
     CArray rtn_arr = ptr_to_carray(rtn_ptr);
     rtn_arr.array0d[0] = input;
+}
+
+/**
+ * Set CArray Value
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param ptr_a
+ * @param index
+ * @param value
+ */
+void
+carray_set_value(MemoryPointer * ptr_a, Tuple * index, double value)
+{
+    CArray target_carray = ptr_to_carray(ptr_a);
+    if(IS_2D(ptr_a)) {
+        target_carray.array2d[(index->t[1] * ptr_a->x) + index->t[0]] = value;
+        return;
+    }
+    if(IS_1D(ptr_a)) {
+        target_carray.array1d[index->t[0]] = value;
+        return;
+    }
+    if(IS_0D(ptr_a)) {
+        target_carray.array0d[0] = value;
+        return;
+    }
+}
+
+/**
+ * Get CArray Value
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param ptr_a
+ * @param index
+ */
+double
+carray_get_value(MemoryPointer * ptr_a, Tuple * index)
+{
+    CArray target_carray = ptr_to_carray(ptr_a);
+    if(IS_2D(ptr_a)) {
+        return target_carray.array2d[(index->t[1] * ptr_a->x) + index->t[0]];
+    }
+    if(IS_1D(ptr_a)) {
+        return target_carray.array1d[index->t[0]];
+    }
+    if(IS_0D(ptr_a)) {
+        return target_carray.array0d[0];
+    }
 }

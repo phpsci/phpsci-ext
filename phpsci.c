@@ -46,8 +46,12 @@
 #include "kernel/buffer/memory_manager.h"
 #include "kernel/php/php_array.h"
 #include "kernel/exceptions.h"
+#include "kernel/memory_pointer/utils.h"
 #include "php.h"
 #include "ext/standard/info.h"
+#include "Zend/zend_interfaces.h"
+
+
 
 /**
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
@@ -97,14 +101,23 @@ PHP_METHOD(CArray, identity)
 }
 PHP_METHOD(CArray, zeros)
 {
-    long x, y;
-    ZEND_PARSE_PARAMETERS_START(2,2)
-        Z_PARAM_LONG(x)
-        Z_PARAM_LONG(y)
-    ZEND_PARSE_PARAMETERS_END();
-
+    int x, y;
+    zval * a;
     MemoryPointer ptr;
-    zeros(&ptr, (int)x, (int)y);
+    Tuple shape;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ARRAY(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_TUPLE(a, &shape);
+    if(shape.size == 1) {
+        x = shape.t[0];
+        y = 0;
+    }
+    if(shape.size == 2) {
+        x = shape.t[0];
+        y = shape.t[1];
+    }
+    zeros(&ptr, x, y);
     RETURN_CARRAY(return_value, ptr.uuid, x, y);
 }
 PHP_METHOD(CArray, ones)
@@ -349,13 +362,12 @@ PHP_METHOD(CArray, logspace)
 }
 PHP_METHOD(CArray, toDouble)
 {
-    long uuid;
-    ZEND_PARSE_PARAMETERS_START(1, 1)
-        Z_PARAM_LONG(uuid)
-    ZEND_PARSE_PARAMETERS_END();
-
+    zval * a;
     MemoryPointer ptr;
-    ptr.uuid = (int)uuid;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr);
     CArray arr = ptr_to_carray(&ptr);
     ZVAL_DOUBLE(return_value, (double)arr.array0d[0]);
 }
@@ -751,6 +763,66 @@ PHP_METHOD(CArray, svd)
     add_next_index_zval(return_value, &left_obj);
     add_next_index_zval(return_value, &right_obj);
 }
+
+PHP_METHOD(CArray, offsetExists)
+{
+    zval *index;
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
+        return;
+    }
+}
+PHP_METHOD(CArray, offsetGet)
+{
+    MemoryPointer target_ptr;
+    Tuple index_t;
+    zval *index;
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
+        return;
+    }
+    OBJ_TO_PTR(getThis(), &target_ptr);
+    if(Z_TYPE_P(index) == IS_ARRAY) {
+        OBJ_TO_TUPLE(index, &index_t);
+        if(index_t.size == 2 && IS_2D(&target_ptr)) {
+            ZVAL_DOUBLE(return_value, carray_get_value(&target_ptr, &index_t));
+        }
+        if(index_t.size == 1 && IS_2D(&target_ptr)) {
+            ZVAL_DOUBLE(return_value, carray_get_value(&target_ptr, &index_t));
+        }
+        if(index_t.size == 1 && IS_1D(&target_ptr)) {
+            ZVAL_DOUBLE(return_value, carray_get_value(&target_ptr, &index_t));
+        }
+    }
+}
+ZEND_BEGIN_ARG_INFO_EX(arginfo_array_offsetGet, 0, 0, 1)
+    ZEND_ARG_INFO(0, index)
+ZEND_END_ARG_INFO()
+PHP_METHOD(CArray, offsetSet)
+{
+    MemoryPointer target_ptr;
+    Tuple index_t;
+    zval *index, *value;
+    int dim;
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "zz", &index, &value) == FAILURE) {
+        return;
+    }
+    OBJ_TO_PTR(getThis(), &target_ptr);
+    if(Z_TYPE_P(index) == IS_ARRAY) {
+        OBJ_TO_TUPLE(index, &index_t);
+        convert_to_double(value);
+        carray_set_value(&target_ptr, &index_t, (int)Z_DVAL_P(value));
+    }
+}
+ZEND_BEGIN_ARG_INFO_EX(arginfo_array_offsetSet, 0, 0, 2)
+    ZEND_ARG_INFO(0, index)
+    ZEND_ARG_INFO(0, newval)
+ZEND_END_ARG_INFO()
+PHP_METHOD(CArray, offsetUnset)
+{
+    zval *index;
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
+        return;
+    }
+}
 PHP_METHOD(CArray, __toString)
 {
     zend_string *str;
@@ -766,6 +838,12 @@ PHP_METHOD(CArray, __toString)
  */
 static zend_function_entry phpsci_class_methods[] =
 {
+   // CARRAY ITERATOR
+   PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, offsetSet, arginfo_array_offsetSet, ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, offsetGet, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, offsetExists, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
+
    // PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
    // RANGES SECTION
    PHP_ME(CArray, arange, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
@@ -871,10 +949,8 @@ static PHP_MINIT_FUNCTION(phpsci)
     memcpy(&phpsci_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     init_exception_objects();
     INIT_CLASS_ENTRY(ce, "CArray", phpsci_class_methods);
-    ce.create_object = NULL;
-    phpsci_object_handlers.clone_obj = NULL;
-    phpsci_sc_entry = zend_register_internal_class(&ce TSRMLS_CC);
-
+    phpsci_sc_entry = zend_register_internal_class(&ce);
+    zend_class_implements(phpsci_sc_entry, 1, zend_ce_arrayaccess);
     return SUCCESS;
 }
 
