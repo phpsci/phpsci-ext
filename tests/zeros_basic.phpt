@@ -2,8 +2,8 @@
 basic test for CArray::zeros()
 --FILE--
 <?php
-$a = CArray::zeros(2, 2);
-$b = CArray::zeros(4, 3);
+$a = CArray::zeros([2, 2]);
+$b = CArray::zeros([4, 3]);
 print_r(CArray::toArray($a));
 print_r(CArray::toArray($b));
 ?>
