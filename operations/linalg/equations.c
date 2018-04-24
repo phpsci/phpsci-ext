@@ -42,7 +42,7 @@ void
 equation_solve(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
 {
     int info;
-    lapack_int ipiv[ptr_a->x];
+    lapack_int * ipiv = emalloc(ptr_a->x * sizeof(lapack_int));
     if(IS_2D(ptr_a) && IS_2D(ptr_b) && carray_shapecmp(ptr_a, ptr_b)) {
         CArray carray_a = ptr_to_carray(ptr_a);
         COPY_PTR(ptr_b, rtn_ptr);

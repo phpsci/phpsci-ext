@@ -126,7 +126,7 @@ largest_absolute_norm(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr)
  * @param order
  */
 void
-norm(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr, char * order)
+carray_norm(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr, char * order)
 {
     if(!strcmp("fro", order)) {
         // Frobenius Norm ( normF(A) )
