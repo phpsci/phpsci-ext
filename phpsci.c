@@ -76,20 +76,20 @@ void RETURN_CARRAY(zval * return_value, int uuid, int x, int y)
 
 PHP_METHOD(CArray, __construct)
 {
-    long uuid, x, y;
+    zend_long uuid, x, y;
     ZEND_PARSE_PARAMETERS_START(3,3)
         Z_PARAM_LONG(uuid)
         Z_PARAM_LONG(x)
         Z_PARAM_LONG(y)
     ZEND_PARSE_PARAMETERS_END();
     zval * obj = getThis();
-    set_obj_uuid(obj, uuid);
+    set_obj_uuid(obj, (int)uuid);
     zend_update_property_long(phpsci_sc_entry, obj, "x", sizeof("x") - 1, x);
     zend_update_property_long(phpsci_sc_entry, obj, "y", sizeof("y") - 1, y);
 }
 PHP_METHOD(CArray, identity)
 {
-    long m;
+    zend_long m;
     ZEND_PARSE_PARAMETERS_START(1,1)
         Z_PARAM_LONG(m)
     ZEND_PARSE_PARAMETERS_END();
@@ -97,7 +97,7 @@ PHP_METHOD(CArray, identity)
     carray_init((int)m, (int)m, &ptr);
     CArray arr = ptr_to_carray(&ptr);
     identity(&arr, (int)m);
-    RETURN_CARRAY(return_value, ptr.uuid, m, m);
+    RETURN_CARRAY(return_value, ptr.uuid, (int)m, (int)m);
 }
 PHP_METHOD(CArray, zeros)
 {
@@ -122,18 +122,18 @@ PHP_METHOD(CArray, zeros)
 }
 PHP_METHOD(CArray, ones)
 {
-    long x, y;
+    zend_long x, y;
     ZEND_PARSE_PARAMETERS_START(2,2)
         Z_PARAM_LONG(x)
         Z_PARAM_LONG(y)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
     ones(&ptr, (int)x, (int)y);
-    RETURN_CARRAY(return_value, ptr.uuid, x, y);
+    RETURN_CARRAY(return_value, ptr.uuid, (int)x, (int)y);
 }
 PHP_METHOD(CArray, full)
 {
-    long x, y;
+    zend_long x, y;
     double num;
     ZEND_PARSE_PARAMETERS_START(3,3)
         Z_PARAM_DOUBLE(num)
@@ -142,7 +142,7 @@ PHP_METHOD(CArray, full)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
     full(&ptr, (int)x, (int)y, num);
-    RETURN_CARRAY(return_value, ptr.uuid, x, y);
+    RETURN_CARRAY(return_value, ptr.uuid, (int)x, (int)y);
 }
 PHP_METHOD(CArray, full_like)
 {
@@ -184,7 +184,7 @@ PHP_METHOD(CArray, zeros_like)
 }
 PHP_METHOD(CArray, standard_normal)
 {
-    long x, y, seed;
+    zend_long x, y, seed;
     ZEND_PARSE_PARAMETERS_START(2, 3)
         Z_PARAM_LONG(seed)
         Z_PARAM_LONG(x)
@@ -302,14 +302,14 @@ PHP_METHOD(CArray, transpose)
 }
 PHP_METHOD(CArray, eye)
 {
-    long x, y, k;
+    zend_long x, y, k;
     ZEND_PARSE_PARAMETERS_START(3, 3)
         Z_PARAM_LONG(x)
         Z_PARAM_LONG(y)
         Z_PARAM_LONG(k)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
-    eye(&ptr, x, y, k);
+    eye(&ptr, (int)x, (int)y, (int)k);
     RETURN_CARRAY(return_value, (int)ptr.uuid, (int)x, (int)y);
 }
 PHP_METHOD(CArray, print_r) {
@@ -336,7 +336,7 @@ PHP_METHOD(CArray, toArray)
 PHP_METHOD(CArray, linspace)
 {
     double start, stop;
-    long num;
+    zend_long num;
     ZEND_PARSE_PARAMETERS_START(3, 3)
         Z_PARAM_DOUBLE(start)
         Z_PARAM_DOUBLE(stop)
@@ -349,7 +349,7 @@ PHP_METHOD(CArray, linspace)
 PHP_METHOD(CArray, logspace)
 {
     double start, stop, base;
-    long num;
+    zend_long num;
     ZEND_PARSE_PARAMETERS_START(4, 4)
         Z_PARAM_DOUBLE(start)
         Z_PARAM_DOUBLE(stop)
@@ -373,7 +373,7 @@ PHP_METHOD(CArray, toDouble)
 }
 PHP_METHOD(CArray, exp)
 {
-    long axis;
+    zend_long axis;
     zval *a;
     ZEND_PARSE_PARAMETERS_START(1, 2)
         Z_PARAM_OBJECT(a)
@@ -531,7 +531,7 @@ PHP_METHOD(CArray, cosh)
 }
 PHP_METHOD(CArray, sum)
 {
-    long axis;
+    zend_long axis;
     int size_x, size_y;
     zval * a;
     ZEND_PARSE_PARAMETERS_START(1, 2)
@@ -554,7 +554,6 @@ PHP_METHOD(CArray, sum)
 }
 PHP_METHOD(CArray, inner)
 {
-    long a_uuid, a_x, a_y, b_uuid, b_x, b_y;
     MemoryPointer a_ptr, b_ptr, rtn_ptr;
     int rtn_x = 0, rtn_y = 0;
     zval * a, *b;
@@ -697,10 +696,10 @@ PHP_METHOD(CArray, norm)
     ZEND_PARSE_PARAMETERS_END();
     OBJ_TO_PTR(a, &this_ptr);
     if (ZEND_NUM_ARGS() == 1) {
-        norm(&this_ptr, &new_ptr, "fro");
+        carray_norm(&this_ptr, &new_ptr, "fro");
     }
     if (ZEND_NUM_ARGS() == 2) {
-        norm(&this_ptr, &new_ptr, order_name);
+        carray_norm(&this_ptr, &new_ptr, order_name);
     }
     RETURN_CARRAY(return_value, new_ptr.uuid, new_ptr.x, new_ptr.y);
 }

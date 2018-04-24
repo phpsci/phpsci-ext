@@ -44,7 +44,7 @@ other_determinant(MemoryPointer * ptr_a, MemoryPointer * ptr_rtn)
     MemoryPointer temp_ptr;
     int ret, iterator_x;
     double det = -1.0;
-    lapack_int ipiv[ptr_a->x];
+    lapack_int * ipiv = emalloc(ptr_a->x * sizeof(lapack_int));
     COPY_PTR(ptr_a, &temp_ptr);
     if(IS_2D(ptr_a)) {
         CArray target_carray = ptr_to_carray(&temp_ptr);
@@ -78,7 +78,7 @@ other_cond(MemoryPointer * ptr_a, MemoryPointer * ptr_rtn)
     MemoryPointer inverse_ptr;
     if(IS_2D(ptr_a)) {
         inv(ptr_a, &inverse_ptr);
-        norm(&inverse_ptr, ptr_rtn, "fro");
+        carray_norm(&inverse_ptr, ptr_rtn, "fro");
         return;
     }
     throw_atleast2d_exception("Matrix must be at least 2-D");

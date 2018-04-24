@@ -24,5 +24,5 @@
 #ifndef PHPSCI_EXT_NORMS_H
 #define PHPSCI_EXT_NORMS_H
 #include "../../kernel/carray/carray.h"
-void norm(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr, char * order);
+void carray_norm(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr, char * order);
 #endif //PHPSCI_EXT_NORMS_H

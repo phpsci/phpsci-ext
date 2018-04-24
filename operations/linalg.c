@@ -39,7 +39,8 @@ void
 svd(MemoryPointer * a_ptr, MemoryPointer * rtn_ptr, MemoryPointer * singularvalues_ptr,
     MemoryPointer * left_vectors_ptr, MemoryPointer * right_vectors_ptr)
 {
-    double u[a_ptr->x*a_ptr->x], vt[a_ptr->y*a_ptr->y];
+    double * u = emalloc((int)(a_ptr->x*a_ptr->x) * sizeof(double));
+    double * vt = emalloc((int)(a_ptr->x*a_ptr->x) * sizeof(double));
 
     // Initialize Singular Vectors array
     carray_init1d(a_ptr->y, singularvalues_ptr);
