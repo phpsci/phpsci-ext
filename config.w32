@@ -2,12 +2,41 @@ ARG_ENABLE("phpsci", "enable phpsci", "no");
 
 
 if (PHP_PHPSCI != "no") {
-    if (CHECK_LIB("libopenblas.lib", "libopenblas", configure_module_dirname + "\\openblas\\bin") &&
-    CHECK_HEADER_ADD_INCLUDE("cblas.h", "CFLAGS_OPENBLAS", configure_module_dirname + "\\openblas\\include")) {
-        ADD_SOURCES(configure_module_dirname + "/kernel", "carray.c carray_printer.c exceptions.c memory_manager.c");
-        ADD_SOURCES(configure_module_dirname + "/carray", "arithmetic.c basic_operations.c initializers.c linalg.c random.c ranges.c transformations.c");
-        EXTENSION("phpsci", "phpsci.c");
-    } else {
-        WARNING( "OpenBlas not found! " );
+    if (!CHECK_LIB("libopenblas_a.lib", "phpsci", PHP_PHP_BUILD + "\\libs")) {
+        ERROR("Unable to find libopenblas.lib");
     }
+    if (CHECK_LIB("libopenblas_a.lib", "phpsci", PHP_PHP_BUILD + "\\libs") &&
+        CHECK_HEADER_ADD_INCLUDE("cblas.h", "CFLAGS_OPENBLAS", PHP_PHP_BUILD + "\\include") &&
+        CHECK_HEADER_ADD_INCLUDE("lapacke.h", "CFLAGS_LAPACKE", PHP_PHP_BUILD + "\\include"))  {
+        EXTENSION("phpsci", "phpsci.c", PHP_PHPSCI_SHARED, "-I"+configure_module_dirname);
+        ADD_SOURCES(configure_module_dirname  + "/kernel",
+            "exceptions.c"
+            , "phpsci");
+        ADD_SOURCES(configure_module_dirname  + "/kernel/carray",
+            "carray.c tuple.c"
+            , "phpsci");
+        ADD_SOURCES(configure_module_dirname  + "/kernel/carray/utils",
+            "carray_printer.c"
+            , "phpsci");
+        ADD_SOURCES(configure_module_dirname  + "/kernel/memory_pointer",
+            "memory_pointer.c utils.c"
+            , "phpsci");
+        ADD_SOURCES(configure_module_dirname  + "/kernel/buffer",
+            "memory_manager.c"
+            , "phpsci");
+        ADD_SOURCES(configure_module_dirname  + "/kernel/php",
+            "php_array.c"
+            , "phpsci");
+        ADD_SOURCES(configure_module_dirname  + "/operations",
+            "initializers.c linalg.c ranges.c basic_operations.c random.c arithmetic.c exponents.c logarithms.c trigonometric.c hyperbolic.c transformations.c magic_properties.c"
+            , "phpsci");
+        ADD_SOURCES(configure_module_dirname  + "/operations/linalg",
+            "norms.c others.c eigenvalues.c equations.c"
+            , "phpsci");
+
+
+    } else {
+        ERROR( "OpenBlas not found! " );
+    }
+
 }
