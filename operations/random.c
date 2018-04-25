@@ -41,6 +41,6 @@ void standard_normal(MemoryPointer * ptr, int seed, int x, int y)
     if(x > 0 && y == 0) {
         carray_init1d(x, ptr);
         CArray new_array = ptr_to_carray(ptr);
-        info = LAPACKE_dlarnv(3, seed_vector, x, new_array.array1d);
+        info = LAPACKE_dlarnv(2, seed_vector, x, new_array.array1d);
     }
 }
