@@ -65,5 +65,4 @@ void
 free_tuple(Tuple * tuple)
 {
     efree(tuple->t);
-    tuple->size = 0;
 }
