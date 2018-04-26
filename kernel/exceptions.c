@@ -29,6 +29,7 @@
 static zend_class_entry * phpsci_ce_CArrayBroadcastException;
 static zend_class_entry * phpsci_ce_CArrayShapesNotAlignedException;
 static zend_class_entry * phpsci_ce_CArrayAtLeast2DException;
+static zend_class_entry * phpsci_ce_OutOfBoundsException;
 
 static const zend_function_entry phpsci_ce_CArrayBroadcastException_methods[] = {
         PHP_FE_END
@@ -42,6 +43,9 @@ static const zend_function_entry phpsci_ce_CArrayAtLeast2DException_methods[] = 
         PHP_FE_END
 };
 
+static const zend_function_entry phpsci_ce_OutOfBoundsException_methods[] = {
+        PHP_FE_END
+};
 
 /**
  * Initialize Exception Classes
@@ -60,6 +64,9 @@ init_exception_objects()
 
     INIT_CLASS_ENTRY(ce, "AtLeast2DException", phpsci_ce_CArrayAtLeast2DException_methods);
     phpsci_ce_CArrayAtLeast2DException = zend_register_internal_class_ex(&ce, zend_ce_exception);
+
+    INIT_CLASS_ENTRY(ce, "OutOfBoundsException", phpsci_ce_OutOfBoundsException_methods);
+    phpsci_ce_OutOfBoundsException = zend_register_internal_class_ex(&ce, zend_ce_exception);
 }
 
 /**
@@ -96,4 +103,16 @@ void
 throw_atleast2d_exception(char * msg)
 {
     zend_throw_exception_ex(phpsci_ce_CArrayAtLeast2DException, ATLEAST2D_EXCEPTION, "%s", msg);
+}
+
+/**
+ * Throw OutOfBoundsException
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param msg
+ */
+void
+throw_outofbounds_exception(char * msg)
+{
+    zend_throw_exception_ex(phpsci_ce_OutOfBoundsException, OUTOFBOUNDS_EXCEPTION, "%s", msg);
 }

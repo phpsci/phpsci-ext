@@ -209,15 +209,36 @@ double_to_carray(double input, MemoryPointer * rtn_ptr)
 void
 carray_set_value(MemoryPointer * ptr_a, Tuple * index, double value)
 {
+    int iterator_a;
     CArray target_carray = ptr_to_carray(ptr_a);
+    Tuple temp_tu;
+    // FOR MATRICES
     if(IS_2D(ptr_a)) {
-        target_carray.array2d[(index->t[1] * ptr_a->x) + index->t[0]] = value;
+        if(index->size == 2)
+            target_carray.array2d[(index->t[1] * ptr_a->x) + index->t[0]] = value;
+        if(index->size == 1) {
+            init_tuple(2, &temp_tu);
+            temp_tu.t[0] = index->t[0];
+            for(iterator_a = 0; iterator_a < ptr_a->y; iterator_a ++) {
+                temp_tu.t[1] = iterator_a;
+                carray_set_value(ptr_a, &temp_tu, value);
+            }
+            free_tuple(&temp_tu);
+        }
+        if(index->size > 2)
+            throw_outofbounds_exception("Index Error");
         return;
     }
+    // FOR VECTORS
     if(IS_1D(ptr_a)) {
-        target_carray.array1d[index->t[0]] = value;
+        if(index->size == 1) {
+            target_carray.array1d[index->t[0]] = value;
+        }
+        if(index->size != 1)
+            throw_outofbounds_exception("Index Error");
         return;
     }
+    // FOR SCALAR
     if(IS_0D(ptr_a)) {
         target_carray.array0d[0] = value;
         return;
@@ -244,4 +265,57 @@ carray_get_value(MemoryPointer * ptr_a, Tuple * index)
     if(IS_0D(ptr_a)) {
         return target_carray.array0d[0];
     }
+}
+
+/**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param target_ptr
+ * @param rtn_ptr
+ */
+void
+carray_get_inner_carray(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr, Tuple index)
+{
+    Tuple tu, temp_tu;
+    int iterator_a;
+    if(IS_2D(target_ptr)) {
+
+        init_tuple(2, &tu);
+        init_tuple(1, &temp_tu);
+        carray_init1d(target_ptr->y, rtn_ptr);
+        tu.t[0] = index.t[0];
+
+        for(iterator_a = 0; iterator_a < target_ptr->y; ++iterator_a) {
+            tu.t[1] = iterator_a;
+            temp_tu.t[0] = iterator_a;
+            carray_set_value(rtn_ptr, &temp_tu, carray_get_value(target_ptr, &tu));
+        }
+    }
+    free_tuple(&tu);
+    free_tuple(&temp_tu);
+    return;
+}
+
+/**
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param target_ptr
+ * @param rtn_ptr
+ */
+void
+carray_set_inner_carray(MemoryPointer * target_ptr, MemoryPointer * inner_carray, Tuple index)
+{
+    Tuple tu, temp_tu;
+    int iterator_a;
+    if(IS_2D(target_ptr) && IS_1D(inner_carray)) {
+        init_tuple(2, &tu);
+        init_tuple(1, &temp_tu);
+        tu.t[0] = index.t[0];
+        for(iterator_a = 0; iterator_a < target_ptr->y; ++iterator_a) {
+            tu.t[1] = iterator_a;
+            temp_tu.t[0] = iterator_a;
+            carray_set_value(target_ptr, &tu, carray_get_value(inner_carray, &temp_tu));
+        }
+        return;
+    }
+    free_tuple(&tu);
+    free_tuple(&temp_tu);
 }

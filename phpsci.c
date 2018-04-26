@@ -759,7 +759,7 @@ PHP_METHOD(CArray, offsetExists)
 }
 PHP_METHOD(CArray, offsetGet)
 {
-    MemoryPointer target_ptr;
+    MemoryPointer target_ptr, rtn_ptr;
     Tuple index_t;
     zval *index;
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
@@ -772,7 +772,8 @@ PHP_METHOD(CArray, offsetGet)
             ZVAL_DOUBLE(return_value, carray_get_value(&target_ptr, &index_t));
         }
         if(index_t.size == 1 && IS_2D(&target_ptr)) {
-            ZVAL_DOUBLE(return_value, carray_get_value(&target_ptr, &index_t));
+            carray_get_inner_carray(&target_ptr, &rtn_ptr, index_t);
+            RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
         }
         if(index_t.size == 1 && IS_1D(&target_ptr)) {
             ZVAL_DOUBLE(return_value, carray_get_value(&target_ptr, &index_t));
@@ -784,9 +785,10 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_array_offsetGet, 0, 0, 1)
 ZEND_END_ARG_INFO()
 PHP_METHOD(CArray, offsetSet)
 {
-    MemoryPointer target_ptr;
+    MemoryPointer target_ptr, inner_ptr;
     Tuple index_t;
     zval *index, *value;
+    int x, y;
     int dim;
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "zz", &index, &value) == FAILURE) {
         return;
@@ -794,8 +796,19 @@ PHP_METHOD(CArray, offsetSet)
     OBJ_TO_PTR(getThis(), &target_ptr);
     if(Z_TYPE_P(index) == IS_ARRAY) {
         OBJ_TO_TUPLE(index, &index_t);
-        convert_to_double(value);
-        carray_set_value(&target_ptr, &index_t, (int)Z_DVAL_P(value));
+        if(Z_TYPE_P(value) == IS_DOUBLE || Z_TYPE_P(value) == IS_LONG) {
+            convert_to_double(value);
+            carray_set_value(&target_ptr, &index_t,(int)Z_DVAL_P(value));
+            return;
+        }
+        if(Z_TYPE_P(value) == IS_ARRAY) {
+            array_to_carray_ptr(&inner_ptr, value, &x, &y);
+            carray_set_inner_carray(&target_ptr, &inner_ptr, index_t);
+            return;
+        }
+        OBJ_TO_PTR(value, &inner_ptr);
+        carray_set_inner_carray(&target_ptr, &inner_ptr, index_t);
+        return;
     }
 }
 ZEND_BEGIN_ARG_INFO_EX(arginfo_array_offsetSet, 0, 0, 2)

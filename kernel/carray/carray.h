@@ -68,4 +68,7 @@ void double_to_carray(double input, MemoryPointer * rtn_ptr);
 
 double carray_get_value(MemoryPointer * ptr_a, Tuple * index);
 void carray_set_value(MemoryPointer * ptr_a, Tuple * index, double value);
+
+void carray_get_inner_carray(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr, Tuple index);
+void carray_set_inner_carray(MemoryPointer * target_ptr, MemoryPointer * inner_carray, Tuple index);
 #endif //PHPSCI_EXT_CARRAY_H
