@@ -545,8 +545,8 @@ PHP_METHOD(CArray, inner)
     int rtn_x = 0, rtn_y = 0;
     zval * a, *b;
     ZEND_PARSE_PARAMETERS_START(2, 2)
-        Z_PARAM_OBJECT(a)
-        Z_PARAM_OBJECT(b)
+        Z_PARAM_ZVAL(a)
+        Z_PARAM_ZVAL(b)
     ZEND_PARSE_PARAMETERS_END();
     OBJ_TO_PTR(a, &a_ptr);
     OBJ_TO_PTR(b, &b_ptr);
