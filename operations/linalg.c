@@ -142,7 +142,6 @@ inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPoi
     int i, j, k;
     CArray a = ptr_to_carray(a_ptr);
     CArray b = ptr_to_carray(b_ptr);
-
     if (IS_1D(a_ptr) && IS_1D(b_ptr)) {
         carray_init0d(ptr);
         CArray rtn_arr = ptr_to_carray(ptr);
@@ -163,18 +162,24 @@ inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPoi
         return;
     }
     if (IS_2D(a_ptr) && IS_2D(b_ptr)) {
-        carray_init(x_a, x_a, ptr);
+        if(a_ptr->y != b_ptr->y) {
+            throw_shapes_not_aligned_exception("Shapes are not aligned.");
+        }
+        if(a_ptr->x != b_ptr->x && a_ptr->x != 1 && b_ptr->x != 1) {
+            throw_shapes_not_aligned_exception("Shapes are not aligned.");
+        }
+        carray_init(a_ptr->x, b_ptr->x, ptr);
         CArray rtn_arr = ptr_to_carray(ptr);
         for(i = 0; i < x_a; i++) {
-            for(j = 0; j < x_a; j++) {
+            for(j = 0; j < x_b; j++) {
                 rtn_arr.array2d[(j * x_a) + i] = 0;
                 for(k = 0; k < y_b; k++) {
-                    rtn_arr.array2d[(j * x_a) + i] += a.array2d[(k * x_a) + i] * b.array2d[(k * x_a) + j];
+                    rtn_arr.array2d[(j * x_a) + i] += a.array2d[(k * x_a) + i] * b.array2d[(k * x_b) + j];
                 }
             }
         }
         *rtn_x = x_a;
-        *rtn_y = x_a;
+        *rtn_y = x_b;
         return;
     }
     if (IS_2D(a_ptr) && IS_0D(b_ptr)) {
@@ -187,6 +192,22 @@ inner(int * rtn_x, int * rtn_y, MemoryPointer * ptr, int x_a, int y_a, MemoryPoi
         }
         *rtn_x = x_a;
         *rtn_y = y_a;
+        return;
+    }
+    if (IS_2D(a_ptr) && IS_1D(b_ptr)) {
+        if(a_ptr->y != b_ptr->x) {
+            throw_shapes_not_aligned_exception("Shapes are not aligned.");
+        }
+        carray_init1d(x_a, ptr);
+        CArray rtn_arr = ptr_to_carray(ptr);
+        for(i = 0; i < x_a; i++) {
+            rtn_arr.array1d[i] = 0;
+            for(j = 0; j < y_a; j++) {
+                rtn_arr.array1d[i] += a.array2d[(j * x_a) + i] * b.array1d[j];
+            }
+        }
+        *rtn_x = x_a;
+        *rtn_y = 0;
         return;
     }
 }
