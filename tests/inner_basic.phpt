@@ -1,5 +1,5 @@
 --TEST--
-basic test for CArray::inner();
+basic test for CArray::inner() - 1D x 1D
 --FILE--
 <?php
 $a = CArray::fromArray([1, 2, 3]);
