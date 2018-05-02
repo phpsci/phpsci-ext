@@ -545,12 +545,16 @@ PHP_METHOD(CArray, inner)
     int rtn_x = 0, rtn_y = 0;
     zval * a, *b;
     ZEND_PARSE_PARAMETERS_START(2, 2)
-        Z_PARAM_OBJECT(a)
-        Z_PARAM_OBJECT(b)
+        Z_PARAM_ZVAL(a)
+        Z_PARAM_ZVAL(b)
     ZEND_PARSE_PARAMETERS_END();
     OBJ_TO_PTR(a, &a_ptr);
     OBJ_TO_PTR(b, &b_ptr);
     inner(&rtn_x, &rtn_y, &rtn_ptr, (int)a_ptr.x, (int)a_ptr.y, &a_ptr, (int)b_ptr.x, (int)b_ptr.y, &b_ptr);
+    if(IS_0D(&rtn_ptr)) {
+        CArray rtn_carray = ptr_to_carray(&rtn_ptr);
+        ZVAL_DOUBLE(return_value, rtn_carray.array0d[0]);
+    }
     RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_x, rtn_y);
 }
 PHP_METHOD(CArray, outer)

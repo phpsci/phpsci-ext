@@ -25,6 +25,7 @@
 #include "../../phpsci.h"
 #include "../buffer/memory_manager.h"
 #include "../memory_pointer/utils.h"
+#include "../php/php_array.h"
 #include "php.h"
 
 /**
@@ -95,10 +96,21 @@ carray_init0d(MemoryPointer * ptr)
 void
 OBJ_TO_PTR(zval * obj, MemoryPointer * ptr)
 {
-    zval rv;
-    ptr->uuid = (int)zval_get_long(zend_read_property(phpsci_sc_entry, obj, "uuid", sizeof("uuid") - 1, 1, &rv));
-    ptr->x = (int)zval_get_long(zend_read_property(phpsci_sc_entry, obj, "x", sizeof("x") - 1, 1, &rv));
-    ptr->y = (int)zval_get_long(zend_read_property(phpsci_sc_entry, obj, "y", sizeof("y") - 1, 1, &rv));
+    int x, y;
+    if(Z_TYPE_P(obj) == IS_OBJECT) {
+        zval rv;
+        ptr->uuid = (int)zval_get_long(zend_read_property(phpsci_sc_entry, obj, "uuid", sizeof("uuid") - 1, 1, &rv));
+        ptr->x = (int)zval_get_long(zend_read_property(phpsci_sc_entry, obj, "x", sizeof("x") - 1, 1, &rv));
+        ptr->y = (int)zval_get_long(zend_read_property(phpsci_sc_entry, obj, "y", sizeof("y") - 1, 1, &rv));
+        return;
+    }
+    if(Z_TYPE_P(obj) == IS_LONG || Z_TYPE_P(obj) == IS_DOUBLE) {
+        convert_to_double(obj);
+        double_to_carray((double)Z_DVAL_P(obj), ptr);
+        ptr->x = 0;
+        ptr->y = 0;
+        return;
+    }
 }
 
 /**

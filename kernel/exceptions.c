@@ -90,7 +90,7 @@ throw_could_not_broadcast_exception(char * msg)
 void
 throw_shapes_not_aligned_exception(char * msg)
 {
-    zend_throw_exception_ex(phpsci_ce_CArrayBroadcastException, SHAPES_NOT_ALIGNED_EXCEPTION, "%s", msg);
+    zend_throw_exception_ex(phpsci_ce_CArrayShapesNotAlignedException, SHAPES_NOT_ALIGNED_EXCEPTION, "%s", msg);
 }
 
 /**
