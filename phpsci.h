@@ -21,11 +21,11 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHPSCI_EXT_PHPSCI_H
-#define PHPSCI_EXT_PHPSCI_H
+#ifndef CARRAY_EXT_PHPSCI_H
+#define CARRAY_EXT_PHPSCI_H
 
-#define PHP_PHPSCI_EXTNAME "PHPSci"
-#define PHP_PHPSCI_VERSION "0.0.1"
+#define PHP_CARRAY_EXTNAME "CArray"
+#define PHP_CARRAY_VERSION "0.0.1"
 
 #ifdef ZTS
 #include "TSRM.h"
@@ -34,16 +34,16 @@
 #include "php.h"
 
 
-static zend_class_entry *phpsci_sc_entry;
-static zend_object_handlers phpsci_object_handlers;
-static zend_class_entry *phpsci_exception_sc_entry;
-static zend_class_entry *phpsci_iterator_sc_entry;
+static zend_class_entry *carray_sc_entry;
+static zend_object_handlers carray_object_handlers;
+static zend_class_entry *carray_exception_sc_entry;
+static zend_class_entry *carray_iterator_sc_entry;
 
-extern zend_module_entry phpsci_module_entry;
+extern zend_module_entry carray_module_entry;
 
-#define phpext_phpsci_ptr &phpsci_module_entry
+#define phpext_carray_ptr &carray_module_entry
 #define PHPSCI_THROW(message, code) \
-		zend_throw_exception(phpsci_exception_sc_entry, message, (long)code TSRMLS_CC); \
+		zend_throw_exception(carray_exception_sc_entry, message, (long)code TSRMLS_CC); \
 		return;
 
 
