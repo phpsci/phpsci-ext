@@ -60,7 +60,7 @@
  */
 void set_obj_uuid(zval * obj, long uuid)
 {
-    zend_update_property_long(phpsci_sc_entry, obj, "uuid", sizeof("uuid") - 1, uuid);
+    zend_update_property_long(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, uuid);
 }
 
 /**
@@ -68,10 +68,10 @@ void set_obj_uuid(zval * obj, long uuid)
  */
 void RETURN_CARRAY(zval * return_value, int uuid, int x, int y)
 {
-    object_init_ex(return_value, phpsci_sc_entry);
-    zend_update_property_long(phpsci_sc_entry, return_value, "uuid", sizeof("uuid") - 1, uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, x);
-    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, y);
+    object_init_ex(return_value, carray_sc_entry);
+    zend_update_property_long(carray_sc_entry, return_value, "uuid", sizeof("uuid") - 1, uuid);
+    zend_update_property_long(carray_sc_entry, return_value, "x", sizeof("x") - 1, x);
+    zend_update_property_long(carray_sc_entry, return_value, "y", sizeof("y") - 1, y);
 }
 
 PHP_METHOD(CArray, __construct)
@@ -84,8 +84,8 @@ PHP_METHOD(CArray, __construct)
     ZEND_PARSE_PARAMETERS_END();
     zval * obj = getThis();
     set_obj_uuid(obj, (int)uuid);
-    zend_update_property_long(phpsci_sc_entry, obj, "x", sizeof("x") - 1, x);
-    zend_update_property_long(phpsci_sc_entry, obj, "y", sizeof("y") - 1, y);
+    zend_update_property_long(carray_sc_entry, obj, "x", sizeof("x") - 1, x);
+    zend_update_property_long(carray_sc_entry, obj, "y", sizeof("y") - 1, y);
 }
 PHP_METHOD(CArray, identity)
 {
@@ -190,10 +190,10 @@ PHP_METHOD(CArray, standard_normal)
     ZEND_PARSE_PARAMETERS_END();
     MemoryPointer ptr;
     standard_normal(&ptr,(int)seed, (int)x, 0);
-    object_init_ex(return_value, phpsci_sc_entry);
+    object_init_ex(return_value, carray_sc_entry);
     set_obj_uuid(return_value, ptr.uuid);
-    zend_update_property_long(phpsci_sc_entry, return_value, "x", sizeof("x") - 1, x);
-    zend_update_property_long(phpsci_sc_entry, return_value, "y", sizeof("y") - 1, 0);
+    zend_update_property_long(carray_sc_entry, return_value, "x", sizeof("x") - 1, x);
+    zend_update_property_long(carray_sc_entry, return_value, "y", sizeof("y") - 1, 0);
     return;
 }
 PHP_METHOD(CArray, atleast_1d)
@@ -839,7 +839,7 @@ PHP_METHOD(CArray, __toString)
 /**
  * CLASS METHODS
  */
-static zend_function_entry phpsci_class_methods[] =
+static zend_function_entry carray_class_methods[] =
 {
    // CARRAY ITERATOR
    PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
@@ -939,57 +939,57 @@ static zend_function_entry phpsci_class_methods[] =
    PHP_ME(CArray, standard_normal, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }
 };
-zend_function_entry phpsci_functions[] = {
+zend_function_entry carray_functions[] = {
         {NULL, NULL, NULL}
 };
 
 /**
  * MINIT
  */
-static PHP_MINIT_FUNCTION(phpsci)
+static PHP_MINIT_FUNCTION(carray)
 {
     zend_class_entry ce;
-    memcpy(&phpsci_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    memcpy(&carray_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     init_exception_objects();
-    INIT_CLASS_ENTRY(ce, "CArray", phpsci_class_methods);
-    phpsci_sc_entry = zend_register_internal_class(&ce);
-    zend_class_implements(phpsci_sc_entry, 1, zend_ce_arrayaccess);
+    INIT_CLASS_ENTRY(ce, "CArray", carray_class_methods);
+    carray_sc_entry = zend_register_internal_class(&ce);
+    zend_class_implements(carray_sc_entry, 1, zend_ce_arrayaccess);
     return SUCCESS;
 }
 
 /**
  * MINFO
  */
-static PHP_MINFO_FUNCTION(phpsci)
+static PHP_MINFO_FUNCTION(carray)
 {
     php_info_print_table_start();
-    php_info_print_table_row(2, "PHPSci support", "enabled");
-    php_info_print_table_row(2, "PHPSci version", PHP_PHPSCI_VERSION);
+    php_info_print_table_row(2, "CArray support", "enabled");
+    php_info_print_table_row(2, "CArray version", PHP_CARRAY_VERSION);
     php_info_print_table_end();
 }
 
 /**
  * MSHUTDOWN
  */
-static PHP_MSHUTDOWN_FUNCTION(phpsci)
+static PHP_MSHUTDOWN_FUNCTION(carray)
 {
     UNREGISTER_INI_ENTRIES();
     return SUCCESS;
 }
 
-zend_module_entry phpsci_module_entry = {
+zend_module_entry carray_module_entry = {
         STANDARD_MODULE_HEADER,
-        PHP_PHPSCI_EXTNAME,
-        phpsci_functions,				/* Functions */
-        PHP_MINIT(phpsci),				/* MINIT */
-        PHP_MSHUTDOWN(phpsci),			/* MSHUTDOWN */
+        PHP_CARRAY_EXTNAME,
+        carray_functions,				/* Functions */
+        PHP_MINIT(carray),				/* MINIT */
+        PHP_MSHUTDOWN(carray),			/* MSHUTDOWN */
         NULL,						    /* RINIT */
         NULL,						    /* RSHUTDOWN */
-        PHP_MINFO(phpsci),				/* MINFO */
-        PHP_PHPSCI_VERSION,				/* version */
+        PHP_MINFO(carray),				/* MINFO */
+        PHP_CARRAY_VERSION,				/* version */
         STANDARD_MODULE_PROPERTIES
 };
 
-#ifdef COMPILE_DL_PHPSCI
-ZEND_GET_MODULE(phpsci)
-#endif /* COMPILE_DL_PHPSCI */
+#ifdef COMPILE_DL_CARRAY
+ZEND_GET_MODULE(carray)
+#endif /* COMPILE_DL_CARRAY */

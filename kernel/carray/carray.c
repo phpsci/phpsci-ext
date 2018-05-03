@@ -99,9 +99,9 @@ OBJ_TO_PTR(zval * obj, MemoryPointer * ptr)
     int x, y;
     if(Z_TYPE_P(obj) == IS_OBJECT) {
         zval rv;
-        ptr->uuid = (int)zval_get_long(zend_read_property(phpsci_sc_entry, obj, "uuid", sizeof("uuid") - 1, 1, &rv));
-        ptr->x = (int)zval_get_long(zend_read_property(phpsci_sc_entry, obj, "x", sizeof("x") - 1, 1, &rv));
-        ptr->y = (int)zval_get_long(zend_read_property(phpsci_sc_entry, obj, "y", sizeof("y") - 1, 1, &rv));
+        ptr->uuid = (int)zval_get_long(zend_read_property(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, 1, &rv));
+        ptr->x = (int)zval_get_long(zend_read_property(carray_sc_entry, obj, "x", sizeof("x") - 1, 1, &rv));
+        ptr->y = (int)zval_get_long(zend_read_property(carray_sc_entry, obj, "y", sizeof("y") - 1, 1, &rv));
         return;
     }
     if(Z_TYPE_P(obj) == IS_LONG || Z_TYPE_P(obj) == IS_DOUBLE) {

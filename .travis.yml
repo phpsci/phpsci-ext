@@ -31,7 +31,7 @@ before_script:
   - ./configure
   - make
   - make install
-  - echo "extension=phpsci.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - echo "extension=carray.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
   - REPORT_EXIT_STATUS=1 php ./run-tests.php -P -q --show-diff
