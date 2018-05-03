@@ -94,7 +94,7 @@ PHP_NEW_EXTENSION(carray,
 	  operations/linalg/equations.c \
 	  kernel/carray/utils/carray_printer.c \
 	  kernel/php/php_array.c ,
-	  $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+	  $ext_shared,, )
   PHP_INSTALL_HEADERS([ext/carray], [phpsci.h])
   PHP_SUBST(CARRAY_SHARED_LIBADD)
 fi
