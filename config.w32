@@ -34,7 +34,6 @@ if (PHP_CARRAY != "no") {
             "norms.c others.c eigenvalues.c equations.c"
             , "carray");
 
-
     } else {
         ERROR( "OpenBlas not found! " );
     }

@@ -232,7 +232,8 @@ That's what makes PHPSci so much faster them PHP Arrays.
 See: https://docs.scipy.org/doc/numpy/reference/routines.array-manipulation.html
 - **Transpose**: `transpose [100%]`
 - **Shape**: `flatten [100%]`, `atleast_1d [100%]`, `atleast_2d [100%]`
-- **Property**: `T [100%]`, flat [100%]`
+- **Property**: `T [100%]`, `flat [100%]`
+- **Others**: `unique [50%]`
 
 ## Initializers (Matrix Creation)
 See: https://docs.scipy.org/doc/numpy-1.13.0/reference/routines.array-creation.html

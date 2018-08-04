@@ -25,6 +25,8 @@
 #include "../phpsci.h"
 #include "../kernel/carray/carray.h"
 #include "../kernel/memory_pointer/utils.h"
+#include "../kernel/memory_pointer/memory_pointer.h"
+#include "../operations/initializers.h"
 
 /**
  * Transpose a CArray 2D
@@ -160,6 +162,51 @@ atleast_2d(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
         new_ptr->x = target_ptr->x;
         new_ptr->y = target_ptr->y;
         return;
+    }
+}
+
+int cmpfunc (const void * a, const void * b)
+{
+    return ( *(double*)a - *(double*)b );
+}
+
+/**
+ * Find the unique elements of an array.
+ *
+ * @author Henrique Borba <henrique.borba.dev@gmail.com>
+ * @param new_ptr
+ * @param target_ptr
+ */
+void unique(MemoryPointer * new_ptr, MemoryPointer * target_ptr) {
+    int i, j, k = 0, size;
+    MemoryPointer tmp_ptr, sorted_target;
+    int total_unique = 0;
+    if(IS_1D(target_ptr)) {
+        COPY_PTR(target_ptr, &sorted_target);
+        carray_init1d(target_ptr->x, &tmp_ptr);
+        CArray tmp_carray = ptr_to_carray(&tmp_ptr);
+        CArray target_carray = ptr_to_carray(&sorted_target);
+        qsort(target_carray.array1d, target_ptr->x, sizeof(double), cmpfunc);
+        for( i = 0 ; i < target_ptr->x; i++ )
+        {
+            if(total_unique==0)
+                tmp_carray.array1d[total_unique++]=target_carray.array1d[i];
+            else
+            {
+                if(target_carray.array1d[i] == tmp_carray.array1d[total_unique-1]) {
+                    continue;
+                } else {
+                    tmp_carray.array1d[total_unique++] = target_carray.array1d[i];
+                }
+            }
+        }
+        carray_init1d(total_unique, new_ptr);
+        CArray rtn_carray = ptr_to_carray(new_ptr);
+        for(i = 0; i < total_unique; i++) {
+            rtn_carray.array1d[i] = tmp_carray.array1d[i];
+        }
+        destroy_carray(&tmp_ptr);
+        destroy_carray(&sorted_target);
     }
 }
 

@@ -299,6 +299,18 @@ PHP_METHOD(CArray, eye)
     eye(&ptr, (int)x, (int)y, (int)k);
     RETURN_CARRAY(return_value, (int)ptr.uuid, (int)x, (int)y);
 }
+PHP_METHOD(CArray, unique)
+{
+    zval * obj;
+    MemoryPointer target_ptr;
+    MemoryPointer return_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(obj)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(obj, &target_ptr);
+    unique(&return_ptr, &target_ptr);
+    RETURN_CARRAY(return_value, return_ptr.uuid, return_ptr.x, return_ptr.y);
+}
 PHP_METHOD(CArray, print_r) {
     zval * a;
     ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -596,13 +608,17 @@ PHP_METHOD(CArray, arange)
     double start, stop, step;
     int width;
     ZEND_PARSE_PARAMETERS_START(1, 3)
-        Z_PARAM_DOUBLE(stop)
-        Z_PARAM_OPTIONAL
         Z_PARAM_DOUBLE(start)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_DOUBLE(stop)
         Z_PARAM_DOUBLE(step)
     ZEND_PARSE_PARAMETERS_END();
     if (ZEND_NUM_ARGS() == 1) {
+        stop = start;
         start = 0.0;
+        step =  1.0;
+    }
+    if (ZEND_NUM_ARGS() == 2) {
         step =  1.0;
     }
     arange(&ptr, start, stop, step, &width);
@@ -800,9 +816,14 @@ PHP_METHOD(CArray, offsetSet)
     OBJ_TO_PTR(getThis(), &target_ptr);
     if(Z_TYPE_P(index) == IS_ARRAY) {
         OBJ_TO_TUPLE(index, &index_t);
-        if(Z_TYPE_P(value) == IS_DOUBLE || Z_TYPE_P(value) == IS_LONG) {
+        if(Z_TYPE_P(value) == IS_LONG) {
             convert_to_double(value);
-            carray_set_value(&target_ptr, &index_t,(int)Z_DVAL_P(value));
+            carray_set_value(&target_ptr, &index_t, Z_DVAL_P(value));
+            return;
+        }
+        if(Z_TYPE_P(value) == IS_DOUBLE) {
+            convert_to_double(value);
+            carray_set_value(&target_ptr, &index_t, Z_DVAL_P(value));
             return;
         }
         if(Z_TYPE_P(value) == IS_ARRAY) {
@@ -867,6 +888,7 @@ static zend_function_entry carray_class_methods[] =
    PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, atleast_1d, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, atleast_2d, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, unique, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, flatten, NULL, ZEND_ACC_PUBLIC)
 
    // EIGENVALUES
