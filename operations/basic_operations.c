@@ -460,7 +460,7 @@ absolute(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr)
         carray_init(ptr_a->x, ptr_a->y, rtn_ptr);
         rtn = ptr_to_carray(rtn_ptr);
         for(i = 0; i < ptr_a->x; i++) {
-            for (int j = 0; j < ptr_a->y; j++) {
+            for (j = 0; j < ptr_a->y; j++) {
                 rtn.array2d[(j * rtn_ptr->x) + i] = fabs(target.array2d[(j * ptr_a->x) + i]);
             }
         }
