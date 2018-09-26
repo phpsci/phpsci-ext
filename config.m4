@@ -83,6 +83,10 @@ PHP_NEW_EXTENSION(carray,
 	  operations/random.c \
 	  operations/arithmetic.c \
 	  operations/exponents.c \
+	  operations/statistics.c \
+	  operations/manipulation.c \
+	  operations/set_routines.c \
+	  operations/search.c \
 	  operations/logarithms.c \
 	  operations/trigonometric.c \
 	  operations/hyperbolic.c \

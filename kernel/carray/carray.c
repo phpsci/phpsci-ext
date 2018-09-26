@@ -49,7 +49,6 @@ carray_init(int rows, int cols, MemoryPointer * ptr)
     add_to_stack(ptr, x,(rows * cols * sizeof(double)));
 }
 
-
 /**
  * Initialize CArray 1D
  *

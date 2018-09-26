@@ -29,4 +29,10 @@ void exponential(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y);
 
 void sum_noaxis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y);
 void sum_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int axis, int * size_x, int * size_y);
+void negative(MemoryPointer * ptr, MemoryPointer * target_ptr);
+void multiply(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr);
+void divide(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr);
+void square(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr);
+void absolute(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr);
+int all(MemoryPointer * ptr_a, int axis);
 #endif //PHPSCI_EXT_BASIC_OPERATIONS_H

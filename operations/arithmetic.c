@@ -47,7 +47,7 @@ void subtract(MemoryPointer * ptr_a,  MemoryPointer * ptr_b, MemoryPointer * rtn
         return;
     }
     if(GET_DIM(ptr_a) == 0 && GET_DIM(ptr_b) == 1) {
-        subtract_carray_1d(ptr_b, ptr_a, rtn_ptr, size_x, size_y);
+        subtract_carray_1d(ptr_a, ptr_b, rtn_ptr, size_x, size_y);
         return;
     }
     if(GET_DIM(ptr_a) == 1 && GET_DIM(ptr_b) == 0) {
@@ -131,6 +131,16 @@ void subtract_carray_1d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPoin
         *size_y = 0;
         for(i = 0; i < ptr_a->x; ++i) {
             rtn_arr.array1d[i] = carray_a.array1d[i] - carray_b.array0d[0];
+        }
+        return;
+    }
+    if(GET_DIM(ptr_b) == 1 && GET_DIM(ptr_a) == 0) {
+        carray_init1d(ptr_b->x, rtn_ptr);
+        CArray rtn_arr = ptr_to_carray(rtn_ptr);
+        *size_x = ptr_b->x;
+        *size_y = 0;
+        for(i = 0; i < ptr_b->x; ++i) {
+            rtn_arr.array1d[i] = carray_a.array0d[0] - carray_b.array1d[i];
         }
         return;
     }

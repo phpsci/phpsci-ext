@@ -62,6 +62,27 @@ magic_property_T(zval * return_value, MemoryPointer * target_ptr, MemoryPointer 
 }
 
 /**
+ * @param return_value
+ * @param target_ptr
+ * @param rtn_ptr
+ */
+void
+magic_property_shape(zval * return_value, MemoryPointer * target_ptr, MemoryPointer * rtn_ptr) {
+    if(IS_2D(target_ptr)) {
+        carray_init1d(2, rtn_ptr);
+        CArray rtn_arr = ptr_to_carray(rtn_ptr);
+        rtn_arr.array1d[0] = target_ptr->y;
+        rtn_arr.array1d[1] = target_ptr->x;
+        RETURN_CARRAY(return_value, rtn_ptr->uuid, 2, 0);
+        return;
+    }
+    carray_init1d(1, rtn_ptr);
+    CArray rtn_arr = ptr_to_carray(rtn_ptr);
+    rtn_arr.array1d[0] = target_ptr->x;
+    RETURN_CARRAY(return_value, rtn_ptr->uuid, 1, 0);
+}
+
+/**
  * Handle "magic properties"
  *
  * @author Henrique Borba <henrique.borba.dev@gmail.com>
@@ -74,6 +95,10 @@ run_property_or_die(char * prop, zval * return_value, MemoryPointer * target_ptr
     }
     if(strcmp(prop, "T") == 0) {
         magic_property_T(return_value, target_ptr, rtn_ptr);
+        return;
+    }
+    if(strcmp(prop, "shape") == 0) {
+        magic_property_shape(return_value, target_ptr, rtn_ptr);
         return;
     }
 }

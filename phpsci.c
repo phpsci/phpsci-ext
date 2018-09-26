@@ -35,12 +35,16 @@
 #include "operations/arithmetic.h"
 #include "operations/logarithms.h"
 #include "operations/exponents.h"
+#include "operations/search.h"
 #include "operations/trigonometric.h"
 #include "operations/hyperbolic.h"
+#include "operations/statistics.h"
 #include "operations/magic_properties.h"
 #include "operations/linalg/norms.h"
 #include "operations/linalg/others.h"
 #include "operations/linalg/eigenvalues.h"
+#include "operations/manipulation.h"
+#include "operations/set_routines.h"
 #include "operations/linalg/equations.h"
 #include "kernel/carray/utils/carray_printer.h"
 #include "kernel/buffer/memory_manager.h"
@@ -299,6 +303,18 @@ PHP_METHOD(CArray, eye)
     eye(&ptr, (int)x, (int)y, (int)k);
     RETURN_CARRAY(return_value, (int)ptr.uuid, (int)x, (int)y);
 }
+PHP_METHOD(CArray, unique)
+{
+    zval * obj;
+    MemoryPointer target_ptr;
+    MemoryPointer return_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(obj)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(obj, &target_ptr);
+    unique(&return_ptr, &target_ptr);
+    RETURN_CARRAY(return_value, return_ptr.uuid, return_ptr.x, return_ptr.y);
+}
 PHP_METHOD(CArray, print_r) {
     zval * a;
     ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -382,6 +398,17 @@ PHP_METHOD(CArray, log)
     ZEND_PARSE_PARAMETERS_END();
     OBJ_TO_PTR(a, &target_ptr);
     natural_log(&target_ptr, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
+}
+PHP_METHOD(CArray, negative)
+{
+    zval * a;
+    MemoryPointer target_ptr, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &target_ptr);
+    negative(&target_ptr, &rtn_ptr);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, target_ptr.x, target_ptr.y);
 }
 PHP_METHOD(CArray, log10)
@@ -585,10 +612,29 @@ PHP_METHOD(CArray, matmul)
         RETURN_CARRAY(return_value, rtn_ptr.uuid, a_ptr.x, b_ptr.y);
         return;
     }
+    if(a_ptr.y == 0 && b_ptr.y == 0) {
+        RETURN_CARRAY(return_value, rtn_ptr.uuid, 0, 0);
+        return;
+    }
     if(a_ptr.y == 0) {
         RETURN_CARRAY(return_value, rtn_ptr.uuid, a_ptr.x, a_ptr.y);
         return;
     }
+}
+PHP_METHOD(CArray, randint)
+{
+    MemoryPointer ptr;
+    long length;
+    ZEND_PARSE_PARAMETERS_START(0, 1)
+        Z_PARAM_LONG(length)
+    ZEND_PARSE_PARAMETERS_END();
+    if (ZEND_NUM_ARGS() == 1) {
+        randint(&ptr, length);
+    }
+    if (ZEND_NUM_ARGS() == 0) {
+        randint(&ptr, 0);
+    }
+    RETURN_CARRAY(return_value, length, 0, 0);
 }
 PHP_METHOD(CArray, arange)
 {
@@ -596,13 +642,17 @@ PHP_METHOD(CArray, arange)
     double start, stop, step;
     int width;
     ZEND_PARSE_PARAMETERS_START(1, 3)
-        Z_PARAM_DOUBLE(stop)
-        Z_PARAM_OPTIONAL
         Z_PARAM_DOUBLE(start)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_DOUBLE(stop)
         Z_PARAM_DOUBLE(step)
     ZEND_PARSE_PARAMETERS_END();
     if (ZEND_NUM_ARGS() == 1) {
+        stop = start;
         start = 0.0;
+        step =  1.0;
+    }
+    if (ZEND_NUM_ARGS() == 2) {
         step =  1.0;
     }
     arange(&ptr, start, stop, step, &width);
@@ -639,6 +689,42 @@ PHP_METHOD(CArray, subtract)
     subtract(&ptr_a, &ptr_b, &rtn_ptr, &size_x, &size_y);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, size_x, size_y);
 }
+PHP_METHOD(CArray, square)
+{
+    MemoryPointer rtn_ptr, ptr_a;
+    zval * a;
+    int  size_x, size_y;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    square(&ptr_a, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
+}
+PHP_METHOD(CArray, abs)
+{
+    MemoryPointer rtn_ptr, ptr_a;
+    zval * a;
+    int  size_x, size_y;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    absolute(&ptr_a, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
+}
+PHP_METHOD(CArray, absolute)
+{
+    MemoryPointer rtn_ptr, ptr_a;
+    zval * a;
+    int  size_x, size_y;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    absolute(&ptr_a, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
+}
 PHP_METHOD(CArray, det)
 {
     MemoryPointer ptr_a, rtn_ptr;
@@ -650,6 +736,34 @@ PHP_METHOD(CArray, det)
     other_determinant(&ptr_a, &rtn_ptr);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
 }
+PHP_METHOD(CArray, multiply)
+{
+    MemoryPointer ptr_a, ptr_b, rtn_ptr;
+    zval * a;
+    zval * b;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OBJECT(b)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    OBJ_TO_PTR(b, &ptr_b);
+    multiply(&ptr_a, &ptr_b, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
+}
+PHP_METHOD(CArray, divide)
+{
+    MemoryPointer ptr_a, ptr_b, rtn_ptr;
+    zval * a;
+    zval * b;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OBJECT(b)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    OBJ_TO_PTR(b, &ptr_b);
+    divide(&ptr_a, &ptr_b, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
+}
 PHP_METHOD(CArray, cond)
 {
     MemoryPointer ptr_a, rtn_ptr;
@@ -659,6 +773,14 @@ PHP_METHOD(CArray, cond)
     ZEND_PARSE_PARAMETERS_END();
     OBJ_TO_PTR(a, &ptr_a);
     other_cond(&ptr_a, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, 0, 0);
+}
+PHP_METHOD(CArray, randn)
+{
+    MemoryPointer rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(0, 0)
+    ZEND_PARSE_PARAMETERS_END();
+    randn(&rtn_ptr, 0, 0);
     RETURN_CARRAY(return_value, rtn_ptr.uuid, 0, 0);
 }
 PHP_METHOD(CArray, solve)
@@ -732,6 +854,73 @@ PHP_METHOD(CArray, inv)
     inv(&ptr_a, &rtn);
     RETURN_CARRAY(return_value, rtn.uuid, ptr_a.x, ptr_a.y);
 }
+PHP_METHOD(CArray, var)
+{
+    zval * a;
+    MemoryPointer ptr_a;
+    MemoryPointer rtn;
+    long axis;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    var(&ptr_a, &rtn, 0);
+    RETURN_CARRAY(return_value, rtn.uuid, rtn.x, rtn.y);
+}
+PHP_METHOD(CArray, amin)
+{
+    zval * a;
+    MemoryPointer ptr_a;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    RETURN_DOUBLE(amin(&ptr_a));
+}
+PHP_METHOD(CArray, amax)
+{
+    zval * a;
+    MemoryPointer ptr_a;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_OBJECT(a)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    RETURN_DOUBLE(amax(&ptr_a));
+}
+PHP_METHOD(CArray, argmax)
+{
+    zval * a;
+    MemoryPointer ptr_a, rtn_ptr;
+    zend_long axis;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    if (ZEND_NUM_ARGS() == 1) {
+        axis = INT_MAX;
+    }
+    OBJ_TO_PTR(a, &ptr_a);
+    argmax(&ptr_a, &rtn_ptr, (int)axis);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
+}
+PHP_METHOD(CArray, in1d)
+{
+    zval * a, * b;
+    MemoryPointer ptr_a, ptr_b, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OBJECT(b)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    OBJ_TO_PTR(b, &ptr_b);
+    in1d(&ptr_a, &ptr_b, &rtn_ptr);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
+}
+
+
 PHP_METHOD(CArray, svd)
 {
     zval * a, singular_obj, left_obj, right_obj;
@@ -763,13 +952,19 @@ PHP_METHOD(CArray, offsetExists)
 }
 PHP_METHOD(CArray, offsetGet)
 {
-    MemoryPointer target_ptr, rtn_ptr;
+    MemoryPointer target_ptr, rtn_ptr, indices_array;
     Tuple index_t;
     zval *index;
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
         return;
     }
     OBJ_TO_PTR(getThis(), &target_ptr);
+    if(Z_TYPE_P(index) == IS_OBJECT) {
+        OBJ_TO_PTR(index, &indices_array);
+        get_indices(&target_ptr, &indices_array, &rtn_ptr);
+        RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
+    }
+
     if(Z_TYPE_P(index) == IS_ARRAY) {
         OBJ_TO_TUPLE(index, &index_t);
         if(index_t.size == 2 && IS_2D(&target_ptr)) {
@@ -800,9 +995,14 @@ PHP_METHOD(CArray, offsetSet)
     OBJ_TO_PTR(getThis(), &target_ptr);
     if(Z_TYPE_P(index) == IS_ARRAY) {
         OBJ_TO_TUPLE(index, &index_t);
-        if(Z_TYPE_P(value) == IS_DOUBLE || Z_TYPE_P(value) == IS_LONG) {
+        if(Z_TYPE_P(value) == IS_LONG) {
             convert_to_double(value);
-            carray_set_value(&target_ptr, &index_t,(int)Z_DVAL_P(value));
+            carray_set_value(&target_ptr, &index_t, Z_DVAL_P(value));
+            return;
+        }
+        if(Z_TYPE_P(value) == IS_DOUBLE) {
+            convert_to_double(value);
+            carray_set_value(&target_ptr, &index_t, Z_DVAL_P(value));
             return;
         }
         if(Z_TYPE_P(value) == IS_ARRAY) {
@@ -836,6 +1036,54 @@ PHP_METHOD(CArray, __toString)
     print_carray(&ptr, ptr.x, ptr.y);
     RETURN_STR(str);
 }
+PHP_METHOD(CArray, mean)
+{
+    MemoryPointer rtn_ptr;
+    zend_string *str;
+    zval * a;
+    zend_long axis;
+    MemoryPointer ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    if (ZEND_NUM_ARGS() == 1) {
+        axis = INT_MAX;
+    }
+    OBJ_TO_PTR(a, &ptr);
+    mean(&ptr, &rtn_ptr, axis);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
+}
+PHP_METHOD(CArray, all)
+{
+    zval * a;
+    zend_long axis;
+    MemoryPointer ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    if (ZEND_NUM_ARGS() == 1) {
+        axis = INT_MAX;
+    }
+    OBJ_TO_PTR(a, &ptr);
+    RETURN_BOOL(all(&ptr, axis));
+}
+PHP_METHOD(CArray, search_keys)
+{
+    zval * a;
+    double needle;
+    MemoryPointer ptr_a, rtn_ptr;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_OBJECT(a)
+        Z_PARAM_DOUBLE(needle)
+    ZEND_PARSE_PARAMETERS_END();
+    OBJ_TO_PTR(a, &ptr_a);
+    search_keys(&ptr_a, &rtn_ptr, needle);
+    RETURN_CARRAY(return_value, rtn_ptr.uuid, rtn_ptr.x, rtn_ptr.y);
+}
 /**
  * CLASS METHODS
  */
@@ -867,6 +1115,7 @@ static zend_function_entry carray_class_methods[] =
    PHP_ME(CArray, transpose, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, atleast_1d, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, atleast_2d, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, unique, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, flatten, NULL, ZEND_ACC_PUBLIC)
 
    // EIGENVALUES
@@ -886,6 +1135,9 @@ static zend_function_entry carray_class_methods[] =
    PHP_ME(CArray, outer, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, inv, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, svd, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+
+   // SET ROUTINES
+   PHP_ME(CArray, in1d, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
    // EQUATIONS SECTION
    PHP_ME(CArray, solve, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
@@ -921,6 +1173,23 @@ static zend_function_entry carray_class_methods[] =
    
    // BASIC OPERATIONS
    PHP_ME(CArray, sum, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, negative, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, multiply, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, divide, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, abs, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, absolute, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, square, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, all, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+
+   // SEARCH
+   PHP_ME(CArray, search_keys, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, argmax, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+
+   // STATISTICS
+   PHP_ME(CArray, amin, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, amax, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, mean, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, var, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
 
    // EXPONENTIAL
    PHP_ME(CArray, exp, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
@@ -934,9 +1203,11 @@ static zend_function_entry carray_class_methods[] =
    // VISUALIZATION
    PHP_ME(CArray, print_r, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    PHP_ME(CArray, __toString, NULL, ZEND_ACC_PUBLIC)
-   
+
    // RANDOM SECTION
    PHP_ME(CArray, standard_normal, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, randn, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
+   PHP_ME(CArray, randint, NULL, ZEND_ACC_STATIC | ZEND_ACC_PUBLIC)
    { NULL, NULL, NULL }
 };
 zend_function_entry carray_functions[] = {

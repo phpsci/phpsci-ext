@@ -26,6 +26,7 @@
 #include "lapacke.h"
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 
 
 /**
@@ -34,7 +35,8 @@
  * @author Henrique Borba
  * @param ptr
  */
-void standard_normal(MemoryPointer * ptr, int seed, int x, int y)
+void
+standard_normal(MemoryPointer * ptr, int seed, int x, int y)
 {
     int i, j, info;
     lapack_int seed_vector[4];
@@ -43,4 +45,40 @@ void standard_normal(MemoryPointer * ptr, int seed, int x, int y)
         CArray new_array = ptr_to_carray(ptr);
         info = LAPACKE_dlarnv(2, seed_vector, x, new_array.array1d);
     }
+}
+
+/**
+ *
+ * @param length
+ */
+void
+randint(MemoryPointer * rtn_ptr, int length)
+{
+    int i;
+    if(!length) {
+        carray_init0d(rtn_ptr);
+        CArray rtn_carray = ptr_to_carray(rtn_ptr);
+        srand(time(0));
+        rtn_carray.array0d[0] = rand();
+        return;
+    }
+
+    carray_init1d(length, rtn_ptr);
+    CArray rtn_carray = ptr_to_carray(rtn_ptr);
+    for(i = 0; i < length; i++) {
+        srand(time(0));
+        rtn_carray.array1d[i] = rand();
+    }
+    return;
+}
+
+
+/**
+ * @param rtn_ptr
+ * @see https://phoxis.org/2013/05/04/generating-random-numbers-from-normal-distribution-in-c/
+ */
+void
+randn(MemoryPointer * rtn_ptr, int x, int y)
+{
+
 }

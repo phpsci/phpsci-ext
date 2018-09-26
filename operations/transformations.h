@@ -30,4 +30,5 @@ void transpose(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
 void flatten(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
 void atleast_1d(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
 void atleast_2d(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
+void unique(MemoryPointer * new_ptr, MemoryPointer * target_ptr);
 #endif //PHPSCI_EXT_TRANSFORMATIONS_H

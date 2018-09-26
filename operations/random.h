@@ -25,4 +25,6 @@
 #include "../kernel/buffer/memory_manager.h"
 
 void standard_normal(MemoryPointer * ptr, int seed, int x, int y);
+void randn(MemoryPointer * rtn_ptr, int x, int y);
+void randint(MemoryPointer * rtn_ptr, int length);
 #endif //PHPSCI_EXT_RANDOM_H
