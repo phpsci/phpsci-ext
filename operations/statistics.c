@@ -37,13 +37,14 @@
  */
 double amin(MemoryPointer * ptr_a)
 {
+    int i, j;
     double lowest;
     CArray input_carray = ptr_to_carray(ptr_a);
     if (IS_0D(ptr_a)) {
         lowest = input_carray.array0d[0];
     }
     if (IS_1D(ptr_a)) {
-        for(int i = 0; i < ptr_a->x; i++) {
+        for(i = 0; i < ptr_a->x; i++) {
             if(!lowest) {
                 lowest = input_carray.array1d[i];
             }
@@ -53,8 +54,8 @@ double amin(MemoryPointer * ptr_a)
         }
     }
     if (IS_2D(ptr_a)) {
-        for(int i = 0; i < ptr_a->x; i++) {
-            for(int j = 0; j < ptr_a->y; j++) {
+        for(i = 0; i < ptr_a->x; i++) {
+            for(j = 0; j < ptr_a->y; j++) {
                 if(!lowest) {
                     lowest = input_carray.array2d[(j * ptr_a->x) + i];
                 }
@@ -74,13 +75,14 @@ double amin(MemoryPointer * ptr_a)
  */
 double amax(MemoryPointer * ptr_a)
 {
+    int i, j;
     double lowest;
     CArray input_carray = ptr_to_carray(ptr_a);
     if (IS_0D(ptr_a)) {
         lowest = input_carray.array0d[0];
     }
     if (IS_1D(ptr_a)) {
-        for(int i = 0; i < ptr_a->x; i++) {
+        for(i = 0; i < ptr_a->x; i++) {
             if(!lowest) {
                 lowest = input_carray.array1d[i];
             }
@@ -90,8 +92,8 @@ double amax(MemoryPointer * ptr_a)
         }
     }
     if (IS_2D(ptr_a)) {
-        for(int i = 0; i < ptr_a->x; i++) {
-            for(int j = 0; j < ptr_a->y; j++) {
+        for(i = 0; i < ptr_a->x; i++) {
+            for(j = 0; j < ptr_a->y; j++) {
                 if(!lowest) {
                     lowest = input_carray.array2d[(j * ptr_a->x) + i];
                 }
@@ -112,11 +114,12 @@ double amax(MemoryPointer * ptr_a)
 void
 mean(MemoryPointer * ptr, MemoryPointer * rtn_ptr, int axis)
 {
+    int i, j;
     CArray target = ptr_to_carray(ptr);
     CArray rtn;
     int totalsum = 0;
     if(IS_1D(ptr)) {
-        for(int i; i < ptr->x; i++) {
+        for(i; i < ptr->x; i++) {
             totalsum += target.array1d[i];
         }
         carray_init0d(rtn_ptr);
@@ -126,8 +129,8 @@ mean(MemoryPointer * ptr, MemoryPointer * rtn_ptr, int axis)
     if(IS_2D(ptr)) {
         // 2D MATRIX WITH AXIS 0
         if(axis == INT_MAX) {
-            for(int i; i < ptr->x; i++) {
-                for(int j = 0; j < ptr->y; j++) {
+            for(i; i < ptr->x; i++) {
+                for(j = 0; j < ptr->y; j++) {
                     totalsum += target.array2d[(j * ptr->x) + i];
                 }
             }
@@ -138,12 +141,12 @@ mean(MemoryPointer * ptr, MemoryPointer * rtn_ptr, int axis)
         if(axis == 0) {
             zeros(rtn_ptr, ptr->y, 0);
             rtn = ptr_to_carray(rtn_ptr);
-            for(int i; i < ptr->x; i++) {
-                for(int j = 0; j < ptr->y; j++) {
+            for(i; i < ptr->x; i++) {
+                for(j = 0; j < ptr->y; j++) {
                     rtn.array1d[j] += target.array2d[(j * ptr->x) + i];
                 }
             }
-            for(int j = 0; j < ptr->y; j++) {
+            for(j = 0; j < ptr->y; j++) {
                 rtn.array1d[j] = rtn.array1d[j] / ((double)(ptr->x));
             }
         }

@@ -33,13 +33,14 @@
 void
 get_indices(MemoryPointer * ptr_a, MemoryPointer * ptr_indices, MemoryPointer * rtn_ptr)
 {
+    int i, j;
     CArray target = ptr_to_carray(ptr_a);
     CArray indices = ptr_to_carray(ptr_indices);
     if(IS_2D(ptr_a)) {
         carray_init(ptr_indices->x, ptr_a->y, rtn_ptr);
         CArray rtn = ptr_to_carray(rtn_ptr);
-        for(int i = 0; i < ptr_indices->x; i++) {
-            for(int j = 0; j < ptr_a->y; j++) {
+        for(i = 0; i < ptr_indices->x; i++) {
+            for(j = 0; j < ptr_a->y; j++) {
                 rtn.array2d[(j * ptr_indices->x) + i] = target.array2d[(j * ptr_a->x) + (int)indices.array1d[i]];
             }
         }
@@ -54,11 +55,12 @@ get_indices(MemoryPointer * ptr_a, MemoryPointer * ptr_indices, MemoryPointer * 
 void
 search_keys(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr, double search)
 {
+    int i;
     CArray target = ptr_to_carray(target_ptr);
     int num_allocated = 0;
     if(IS_1D(target_ptr)) {
         int count_found = 0;
-        for(int i; i < target_ptr->x; i++) {
+        for(i; i < target_ptr->x; i++) {
             if(target.array1d[i] == search) {
                 count_found++;
             }
@@ -66,7 +68,7 @@ search_keys(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr, double search)
 
         carray_init1d(count_found, rtn_ptr);
         CArray rtn = ptr_to_carray(rtn_ptr);
-        for(int i; i < target_ptr->x; i++) {
+        for(i; i < target_ptr->x; i++) {
             if(target.array1d[i] == search) {
                 rtn.array1d[num_allocated] = i;
                 num_allocated++;
@@ -84,6 +86,7 @@ search_keys(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr, double search)
 void
 argmax(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr, int axis)
 {
+    int i, j;
     MemoryPointer values_ptr;
     CArray target = ptr_to_carray(target_ptr);
     if(axis == 1) {
@@ -92,8 +95,8 @@ argmax(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr, int axis)
             carray_init1d(target_ptr->x, &values_ptr);
             CArray rtn = ptr_to_carray(rtn_ptr);
             CArray values = ptr_to_carray(&values_ptr);
-            for(int i = 0; i < target_ptr->x; i++) {
-                for(int j = 0; j < target_ptr->y; j++) {
+            for(i = 0; i < target_ptr->x; i++) {
+                for(j = 0; j < target_ptr->y; j++) {
                     if(!values.array1d[i]) {
                         values.array1d[i] = -INFINITY;
                     }

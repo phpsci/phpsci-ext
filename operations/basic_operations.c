@@ -117,6 +117,7 @@ sum_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int axis
 void
 negative(MemoryPointer * ptr, MemoryPointer * target_ptr)
 {
+    int i, j;
     CArray input = ptr_to_carray(ptr);
     if(IS_0D(ptr)) {
         carray_init0d(target_ptr);
@@ -127,15 +128,15 @@ negative(MemoryPointer * ptr, MemoryPointer * target_ptr)
     if(IS_1D(ptr)) {
         carray_init1d(ptr->x, target_ptr);
         CArray target = ptr_to_carray(target_ptr);
-        for(int i = 0; i < ptr->x; i++) {
+        for(i = 0; i < ptr->x; i++) {
             target.array1d[i] = input.array1d[i] * -1;
         }
     }
     if(IS_2D(ptr)) {
         carray_init(ptr->x, ptr->y, target_ptr);
         CArray target = ptr_to_carray(target_ptr);
-        for(int i = 0; i < ptr->x; i++) {
-            for(int j = 0; j < ptr->y; j++) {
+        for(i = 0; i < ptr->x; i++) {
+            for(j = 0; j < ptr->y; j++) {
                 target.array2d[(j * ptr->x) + i] = input.array2d[(j * ptr->x) + i] * -1;
             }
         }
@@ -151,6 +152,7 @@ negative(MemoryPointer * ptr, MemoryPointer * target_ptr)
 void
 multiply_0d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
 {
+    int i, j;
     CArray carray_a = ptr_to_carray(ptr_a);
     CArray carray_b = ptr_to_carray(ptr_b);
     CArray rtn_carray;
@@ -163,15 +165,15 @@ multiply_0d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_pt
     if(IS_1D(ptr_b)) {
         carray_init1d(ptr_b->x, rtn_ptr);
         rtn_carray = ptr_to_carray(rtn_ptr);
-        for(int i; i < ptr_b->x; i++) {
+        for(i; i < ptr_b->x; i++) {
             rtn_carray.array1d[i] = carray_a.array0d[0] * carray_b.array1d[i];
         }
     }
     if(IS_2D(ptr_b)) {
         carray_init(ptr_b->x, ptr_b->y, rtn_ptr);
         rtn_carray = ptr_to_carray(rtn_ptr);
-        for(int i; i < ptr_b->x; i++) {
-            for(int j; j < ptr_b->y; j++) {
+        for(i; i < ptr_b->x; i++) {
+            for(j; j < ptr_b->y; j++) {
                 rtn_carray.array2d[(j * ptr_b->x) + i] = carray_a.array0d[0] / carray_b.array2d[(j * ptr_b->x) + i];
             }
         }
@@ -187,13 +189,14 @@ multiply_0d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_pt
 void
 multiply_1d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
 {
+    int i;
     CArray carray_a = ptr_to_carray(ptr_a);
     CArray carray_b = ptr_to_carray(ptr_b);
     CArray rtn_carray;
     if(IS_1D(ptr_b)) {
         carray_init1d(ptr_b->x, rtn_ptr);
         rtn_carray = ptr_to_carray(rtn_ptr);
-        for(int i; i < ptr_b->x; i++) {
+        for(i; i < ptr_b->x; i++) {
             rtn_carray.array1d[i] = carray_a.array1d[i] * carray_b.array1d[i];
         }
     }
@@ -260,6 +263,7 @@ multiply(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
 void
 divide_0d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
 {
+    int i, j;
     CArray carray_a = ptr_to_carray(ptr_a);
     CArray carray_b = ptr_to_carray(ptr_b);
     CArray rtn_carray;
@@ -273,15 +277,15 @@ divide_0d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
         if(IS_1D(ptr_b)) {
             carray_init1d(ptr_b->x, rtn_ptr);
             rtn_carray = ptr_to_carray(rtn_ptr);
-            for(int i; i < ptr_b->x; i++) {
+            for(i; i < ptr_b->x; i++) {
                 rtn_carray.array1d[i] = carray_a.array0d[0] / carray_b.array1d[i];
             }
         }
         if(IS_2D(ptr_b)) {
             carray_init(ptr_b->x, ptr_b->y, rtn_ptr);
             rtn_carray = ptr_to_carray(rtn_ptr);
-            for(int i = 0; i < ptr_b->x; i++) {
-                for(int j = 0; j < ptr_b->y; j++) {
+            for(i = 0; i < ptr_b->x; i++) {
+                for(j = 0; j < ptr_b->y; j++) {
                     rtn_carray.array2d[(j * ptr_b->x) + i] = carray_a.array0d[0] / carray_b.array2d[(j * ptr_b->x) + i];
                 }
             }
@@ -298,15 +302,15 @@ divide_0d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
         if(IS_1D(ptr_a)) {
             carray_init1d(ptr_a->x, rtn_ptr);
             rtn_carray = ptr_to_carray(rtn_ptr);
-            for(int i; i < ptr_a->x; i++) {
+            for(i; i < ptr_a->x; i++) {
                 rtn_carray.array1d[i] = carray_a.array1d[i] / carray_b.array0d[0];
             }
         }
         if(IS_2D(ptr_a)) {
             carray_init(ptr_a->x, ptr_a->y, rtn_ptr);
             rtn_carray = ptr_to_carray(rtn_ptr);
-            for(int i = 0; i < ptr_a->x; i++) {
-                for(int j = 0; j < ptr_a->y; j++) {
+            for(i = 0; i < ptr_a->x; i++) {
+                for(j = 0; j < ptr_a->y; j++) {
                     rtn_carray.array2d[(j * ptr_a->x) + i] = carray_a.array2d[(j * ptr_a->x) + i] / carray_b.array0d[0];
                 }
             }
@@ -416,18 +420,19 @@ divide(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
 void
 square(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr)
 {
+    int i, j;
     CArray target = ptr_to_carray(ptr_a);
     CArray rtn;
     zeros(rtn_ptr, ptr_a->x, ptr_a->y);
     rtn = ptr_to_carray(rtn_ptr);
     if(IS_1D(ptr_a)) {
-        for(int i = 0; i < ptr_a->x; i++) {
+        for(i = 0; i < ptr_a->x; i++) {
             rtn.array1d[i] = target.array1d[i] * target.array1d[i];
         }
     }
     if(IS_2D(ptr_a)) {
-        for(int i = 0; i < ptr_a->x; i++) {
-            for (int j = 0; j < ptr_a->y; j++) {
+        for(i = 0; i < ptr_a->x; i++) {
+            for (j = 0; j < ptr_a->y; j++) {
                 rtn.array2d[(j * ptr_a->x) + i] = target.array2d[(j * ptr_a->x) + i] * target.array2d[(j * ptr_a->x) + i];
             }
         }
@@ -441,19 +446,20 @@ square(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr)
 void
 absolute(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr)
 {
+    int i, j;
     CArray target = ptr_to_carray(ptr_a);
     CArray rtn;
     if(IS_1D(ptr_a)) {
         carray_init1d(ptr_a->x, rtn_ptr);
         rtn = ptr_to_carray(rtn_ptr);
-        for(int i = 0; i < ptr_a->x; i++) {
+        for(i = 0; i < ptr_a->x; i++) {
             rtn.array1d[i] = fabs(target.array1d[i]);
         }
     }
     if(IS_2D(ptr_a)) {
         carray_init(ptr_a->x, ptr_a->y, rtn_ptr);
         rtn = ptr_to_carray(rtn_ptr);
-        for(int i = 0; i < ptr_a->x; i++) {
+        for(i = 0; i < ptr_a->x; i++) {
             for (int j = 0; j < ptr_a->y; j++) {
                 rtn.array2d[(j * rtn_ptr->x) + i] = fabs(target.array2d[(j * ptr_a->x) + i]);
             }
@@ -468,12 +474,13 @@ absolute(MemoryPointer * ptr_a, MemoryPointer * rtn_ptr)
 int
 all(MemoryPointer * ptr_a, int axis)
 {
+    int i;
     CArray array_a = ptr_to_carray(ptr_a);
     MemoryPointer temp;
     if(IS_1D(ptr_a)) {
         mean(ptr_a, &temp, INT_MAX);
         CArray temp_ca = ptr_to_carray(&temp);
-        for(int i = 0; i < ptr_a->x; i++) {
+        for(i = 0; i < ptr_a->x; i++) {
             if(array_a.array1d[i] != temp_ca.array0d[0]) {
                 return 0;
             }

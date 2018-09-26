@@ -54,6 +54,7 @@ standard_normal(MemoryPointer * ptr, int seed, int x, int y)
 void
 randint(MemoryPointer * rtn_ptr, int length)
 {
+    int i;
     if(!length) {
         carray_init0d(rtn_ptr);
         CArray rtn_carray = ptr_to_carray(rtn_ptr);
@@ -64,7 +65,7 @@ randint(MemoryPointer * rtn_ptr, int length)
 
     carray_init1d(length, rtn_ptr);
     CArray rtn_carray = ptr_to_carray(rtn_ptr);
-    for(int i = 0; i < length; i++) {
+    for(i = 0; i < length; i++) {
         srand(time(0));
         rtn_carray.array1d[i] = rand();
     }

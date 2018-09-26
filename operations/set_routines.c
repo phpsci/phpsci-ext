@@ -35,12 +35,13 @@
 void
 in1d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
 {
+    int i, j;
    CArray array_a = ptr_to_carray(ptr_a);
    CArray array_b = ptr_to_carray(ptr_b);
    zeros(rtn_ptr, ptr_a->x, 0);
    CArray rtn = ptr_to_carray(rtn_ptr);
-   for(int i = 0; i < ptr_a->x; i++) {
-       for(int j = 0; j < ptr_b->x; j++) {
+   for(i = 0; i < ptr_a->x; i++) {
+       for(j = 0; j < ptr_b->x; j++) {
            if(array_a.array1d[i] == array_b.array1d[j]) {
                rtn.array1d[i] = 1;
            }
