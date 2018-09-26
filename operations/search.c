@@ -101,7 +101,7 @@ argmax(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr, int axis)
                         values.array1d[i] = -INFINITY;
                     }
                     if(target.array2d[(j * target_ptr->x) + i] > values.array1d[i]) {
-                        rtn.array1d[i] = j;
+                        rtn.array1d[i] = (double)j;
                     }
                 }
             }
