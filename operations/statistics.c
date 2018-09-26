@@ -119,7 +119,7 @@ mean(MemoryPointer * ptr, MemoryPointer * rtn_ptr, int axis)
     CArray rtn;
     int totalsum = 0;
     if(IS_1D(ptr)) {
-        for(i; i < ptr->x; i++) {
+        for(i = 0; i < ptr->x; i++) {
             totalsum += target.array1d[i];
         }
         carray_init0d(rtn_ptr);
@@ -129,7 +129,7 @@ mean(MemoryPointer * ptr, MemoryPointer * rtn_ptr, int axis)
     if(IS_2D(ptr)) {
         // 2D MATRIX WITH AXIS 0
         if(axis == INT_MAX) {
-            for(i; i < ptr->x; i++) {
+            for(i = 0; i < ptr->x; i++) {
                 for(j = 0; j < ptr->y; j++) {
                     totalsum += target.array2d[(j * ptr->x) + i];
                 }
@@ -141,7 +141,7 @@ mean(MemoryPointer * ptr, MemoryPointer * rtn_ptr, int axis)
         if(axis == 0) {
             zeros(rtn_ptr, ptr->y, 0);
             rtn = ptr_to_carray(rtn_ptr);
-            for(i; i < ptr->x; i++) {
+            for(i = 0; i < ptr->x; i++) {
                 for(j = 0; j < ptr->y; j++) {
                     rtn.array1d[j] += target.array2d[(j * ptr->x) + i];
                 }

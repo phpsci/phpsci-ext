@@ -60,7 +60,7 @@ search_keys(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr, double search)
     int num_allocated = 0;
     if(IS_1D(target_ptr)) {
         int count_found = 0;
-        for(i; i < target_ptr->x; i++) {
+        for(i = 0; i < target_ptr->x; i++) {
             if(target.array1d[i] == search) {
                 count_found++;
             }
@@ -68,7 +68,7 @@ search_keys(MemoryPointer * target_ptr, MemoryPointer * rtn_ptr, double search)
 
         carray_init1d(count_found, rtn_ptr);
         CArray rtn = ptr_to_carray(rtn_ptr);
-        for(i; i < target_ptr->x; i++) {
+        for(i = 0; i < target_ptr->x; i++) {
             if(target.array1d[i] == search) {
                 rtn.array1d[num_allocated] = i;
                 num_allocated++;
