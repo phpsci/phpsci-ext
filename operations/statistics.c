@@ -83,10 +83,7 @@ double amax(MemoryPointer * ptr_a)
     }
     if (IS_1D(ptr_a)) {
         for(i = 0; i < ptr_a->x; i++) {
-            if(!lowest) {
-                lowest = input_carray.array1d[i];
-            }
-            if(lowest < input_carray.array1d[i]) {
+            if(input_carray.array1d[i] > lowest) {
                 lowest = input_carray.array1d[i];
             }
         }
@@ -94,10 +91,7 @@ double amax(MemoryPointer * ptr_a)
     if (IS_2D(ptr_a)) {
         for(i = 0; i < ptr_a->x; i++) {
             for(j = 0; j < ptr_a->y; j++) {
-                if(!lowest) {
-                    lowest = input_carray.array2d[(j * ptr_a->x) + i];
-                }
-                if (lowest < input_carray.array2d[(j * ptr_a->x) + i]) {
+                if (input_carray.array2d[(j * ptr_a->x) + i] > lowest) {
                     lowest = input_carray.array2d[(j * ptr_a->x) + i];
                 }
             }
