@@ -117,7 +117,7 @@ sum_axis(MemoryPointer * ptr, MemoryPointer * target_ptr, int x, int y, int axis
 void
 negative(MemoryPointer * ptr, MemoryPointer * target_ptr)
 {
-    int i, j;
+    int i = 0, j = 0;
     CArray input = ptr_to_carray(ptr);
     if(IS_0D(ptr)) {
         carray_init0d(target_ptr);
@@ -152,7 +152,7 @@ negative(MemoryPointer * ptr, MemoryPointer * target_ptr)
 void
 multiply_0d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
 {
-    int i, j;
+    int i = 0, j = 0;
     CArray carray_a = ptr_to_carray(ptr_a);
     CArray carray_b = ptr_to_carray(ptr_b);
     CArray rtn_carray;
@@ -165,15 +165,15 @@ multiply_0d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_pt
     if(IS_1D(ptr_b)) {
         carray_init1d(ptr_b->x, rtn_ptr);
         rtn_carray = ptr_to_carray(rtn_ptr);
-        for(i; i < ptr_b->x; i++) {
+        for(i = 0; i < ptr_b->x; i++) {
             rtn_carray.array1d[i] = carray_a.array0d[0] * carray_b.array1d[i];
         }
     }
     if(IS_2D(ptr_b)) {
         carray_init(ptr_b->x, ptr_b->y, rtn_ptr);
         rtn_carray = ptr_to_carray(rtn_ptr);
-        for(i; i < ptr_b->x; i++) {
-            for(j; j < ptr_b->y; j++) {
+        for(i = 0; i < ptr_b->x; i++) {
+            for(j = 0; j < ptr_b->y; j++) {
                 rtn_carray.array2d[(j * ptr_b->x) + i] = carray_a.array0d[0] / carray_b.array2d[(j * ptr_b->x) + i];
             }
         }
@@ -189,7 +189,7 @@ multiply_0d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_pt
 void
 multiply_1d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
 {
-    int i;
+    int i = 0;
     CArray carray_a = ptr_to_carray(ptr_a);
     CArray carray_b = ptr_to_carray(ptr_b);
     CArray rtn_carray;
@@ -211,7 +211,19 @@ multiply_1d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_pt
 void
 multiply_2d(MemoryPointer * ptr_a, MemoryPointer * ptr_b, MemoryPointer * rtn_ptr)
 {
-    // @todo IMPLEMENT MULTIPLY 2D
+    int i = 0, j = 0;
+    CArray carray_a = ptr_to_carray(ptr_a);
+    CArray carray_b = ptr_to_carray(ptr_b);
+    CArray rtn_carray;
+    if(IS_2D(ptr_b)) {
+        carray_init(ptr_a->x, ptr_a->y, rtn_ptr);
+        rtn_carray = ptr_to_carray(rtn_ptr);
+        for(i; i < ptr_a->x; i++) {
+            for(j; j < ptr_a->y; j++) {
+                rtn_carray.array2d[(j * ptr_a->x) + i] = carray_a.array2d[(j * ptr_a->x) + i] * carray_b.array2d[(j * ptr_a->x) + i];
+            }
+        }
+    }
 }
 
 /**
