@@ -1,11 +1,8 @@
 //
 // Created by Henrique Borba on 19/11/2018.
 //
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "carray.h"
+#include "alloc.h"
 #include "php.h"
 #include "php_ini.h"
 #include "zend_smart_str.h"
@@ -207,7 +204,11 @@ CArray_Dump(CArray ca)
     }
     php_printf(" ]\n");
     php_printf("CArray.ndim\t\t\t%d\n", ca.ndim);
-    php_printf("CArray.descriptor.elsize\t%d\n", ca.descriptor.elsize);
+    php_printf("CArray.descriptor.elsize\t%d\n", ca.descriptor->elsize);
+    php_printf("CArray.descriptor.numElements\t%d\n", ca.descriptor->numElements);
+    php_printf("CArray.descriptor.type\t\t%c\n", ca.descriptor->type);
+    php_printf("CArray.descriptor.type_num\t%d\n", ca.descriptor->type_num);
+    php_printf("CArray.descriptor.elsize\t%d\n", ca.descriptor->elsize);
 }
 
 /**
@@ -236,12 +237,18 @@ CArray_INIT(MemoryPointer * ptr, int * dims, int ndim, char type)
     output_ca_dscr.type = type;
     output_ca_dscr.elsize = target_stride[ndim-1];
     output_ca_dscr.type_num = CHAR_TYPE_INT(type);
+    output_ca_dscr.numElements = num_elements;
 
     // Build CArray
-    output_ca.descriptor = output_ca_dscr;
+    output_ca.descriptor = &output_ca_dscr;
     output_ca.dimensions = dims;
     output_ca.ndim = ndim;
     output_ca.strides = target_stride;
+
+    php_printf("%d \n\n", CArray_DIMS(&output_ca)[0]);
+
+    CArray_Data_alloc(&output_ca);
+    CArray_Dump(output_ca);
 }
 
 /**
