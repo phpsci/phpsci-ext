@@ -70,34 +70,9 @@ CFLAGS="$CFLAGS -lopenblas -llapacke"
 
 PHP_NEW_EXTENSION(carray,
 	  phpsci.c \
-	  kernel/carray/carray.c \
-	  kernel/carray/tuple.c \
-	  kernel/exceptions.c \
-	  kernel/memory_pointer/memory_pointer.c \
-	  kernel/memory_pointer/utils.c \
-	  kernel/buffer/memory_manager.c \
-	  operations/initializers.c \
-	  operations/linalg.c \
-	  operations/ranges.c \
-	  operations/basic_operations.c \
-	  operations/random.c \
-	  operations/arithmetic.c \
-	  operations/exponents.c \
-	  operations/statistics.c \
-	  operations/manipulation.c \
-	  operations/set_routines.c \
-	  operations/search.c \
-	  operations/logarithms.c \
-	  operations/trigonometric.c \
-	  operations/hyperbolic.c \
-	  operations/transformations.c \
-	  operations/magic_properties.c \
-	  operations/linalg/norms.c \
-	  operations/linalg/others.c \
-	  operations/linalg/eigenvalues.c \
-	  operations/linalg/equations.c \
-	  kernel/carray/utils/carray_printer.c \
-	  kernel/php/php_array.c ,
+	  kernel/alloc.c \
+	  kernel/carray.c \
+	  kernel/buffer.c ,
 	  $ext_shared,, )
   PHP_INSTALL_HEADERS([ext/carray], [phpsci.h])
   PHP_SUBST(CARRAY_SHARED_LIBADD)

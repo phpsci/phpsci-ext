@@ -30,7 +30,6 @@
 #ifdef ZTS
 #include "TSRM.h"
 #endif
-#include "kernel/exceptions.h"
 #include "php.h"
 
 
@@ -42,11 +41,4 @@ static zend_class_entry *carray_iterator_sc_entry;
 extern zend_module_entry carray_module_entry;
 
 #define phpext_carray_ptr &carray_module_entry
-#define PHPSCI_THROW(message, code) \
-		zend_throw_exception(carray_exception_sc_entry, message, (long)code TSRMLS_CC); \
-		return;
-
-
-void RETURN_CARRAY(zval * return_value, int uuid, int x, int y);
-void set_obj_uuid(zval * obj, long uuid);
 #endif //PHPSCI_EXT_PHPSCI_H
