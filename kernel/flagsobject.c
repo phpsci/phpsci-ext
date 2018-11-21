@@ -1,5 +1,6 @@
 #include "flagsobject.h"
 #include "carray.h"
+#include "assign.h"
 
 /**
  * Check whether the given array is stored contiguously

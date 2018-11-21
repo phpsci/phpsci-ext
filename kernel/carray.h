@@ -52,13 +52,6 @@
  */
 #define CARRAY_ARRAY_ALIGNED         0x0100
 
-/*
- * If set, the array owns the data: it will be free'd when the array
- * is deleted.
- *
- */
-#define CARRAY_ARRAY_OWNDATA         0x0004
-
 /**
  * CArray Descriptor
  */
@@ -101,6 +94,7 @@ typedef struct CArrayFlags
     int      flags;
 } CArrayFlags;
 
+
 /**
  * CArray Data Macros
  **/ 
@@ -114,18 +108,36 @@ typedef struct CArrayFlags
 
 /**
  * CArrays Func Macros
- **/ 
+ **/
+#define CArray_BYTES(a) (a->data)
 #define CArray_DATA(a) ((void *)((a)->data))
-#define CArray_NDIM(a) ((int)((a)->ndim))
 #define CArray_ITEMSIZE(a) ((int)((a)->descriptor->elsize))
 #define CArray_DIMS(a) ((int *)((a)->dimensions))
 #define CArray_STRIDES(a) ((int *)((a)->strides))
 #define CArray_DESCR(a) ((a)->descriptor)
 
+static inline int
+CArray_FLAGS(const CArray *arr)
+{
+    return arr->flags;
+}
+
+static inline int
+CArray_CHKFLAGS(const CArray *arr, int flags) {
+    return (CArray_FLAGS(arr) & flags) == flags;
+}
+
+static inline int
+CArray_NDIM(const CArray *arr) {
+    return arr->ndim;
+}
+int CArray_MultiplyList(const int * list, unsigned int size);
+
+#define CArray_SIZE(m) CArray_MultiplyList(CArray_DIMS(m), CArray_NDIM(m))
+#define CArray_ISCONTIGUOUS(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS)
+
 int CHAR_TYPE_INT(char CHAR_TYPE);
-
-
 void CArray_INIT(MemoryPointer * ptr, int * dims, int ndim, char type);
 void CArray_FromZval(zval * php_obj, char * type);
-void CArray_Dump(CArray ca);
+void CArray_Dump(CArray * ca);
 #endif //PHPSCI_EXT_CARRAY_H

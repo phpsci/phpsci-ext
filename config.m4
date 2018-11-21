@@ -77,7 +77,7 @@ PHP_NEW_EXTENSION(carray,
       kernel/assign.c \
 	  kernel/buffer.c ,
 	  $ext_shared,, )
-  PHP_INSTALL_HEADERS([ext/carray], [phpsci.h])
+  PHP_INSTALL_HEADERS([ext/carray], [phpsci.h, kernel/carray.h, kernel/types.h])
   PHP_SUBST(CARRAY_SHARED_LIBADD)
 fi
 

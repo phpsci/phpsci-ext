@@ -37,7 +37,7 @@ PHP_METHOD(CArray, __construct)
     zval * obj_zval;
     char * type;
     size_t type_name_len;
-    char type_parsed;
+    char   type_parsed;
 
     ZEND_PARSE_PARAMETERS_START(1, 2)
         Z_PARAM_ZVAL(obj_zval)

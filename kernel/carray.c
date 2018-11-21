@@ -3,6 +3,7 @@
 //
 #include "carray.h"
 #include "alloc.h"
+#include "iterators.h"
 #include "php.h"
 #include "php_ini.h"
 #include "zend_smart_str.h"
@@ -190,25 +191,46 @@ CArray_FromZval_Hashtable(zval * php_array, char * type)
  * Dump CArray
  */
 void
-CArray_Dump(CArray ca)
+CArray_Dump(CArray * ca)
 {
     int i;
     php_printf("CArray.dims\t\t\t[");
-    for(i = 0; i < ca.ndim; i ++) {
-        php_printf(" %d", ca.dimensions[i]);
+    for(i = 0; i < ca->ndim; i ++) {
+        php_printf(" %d", ca->dimensions[i]);
     }
     php_printf(" ]\n");
     php_printf("CArray.strides\t\t\t[");
-    for(i = 0; i < ca.ndim; i ++) {
-        php_printf(" %d", ca.strides[i]);
+    for(i = 0; i < ca->ndim; i ++) {
+        php_printf(" %d", ca->strides[i]);
     }
     php_printf(" ]\n");
-    php_printf("CArray.ndim\t\t\t%d\n", ca.ndim);
-    php_printf("CArray.descriptor.elsize\t%d\n", ca.descriptor->elsize);
-    php_printf("CArray.descriptor.numElements\t%d\n", ca.descriptor->numElements);
-    php_printf("CArray.descriptor.type\t\t%c\n", ca.descriptor->type);
-    php_printf("CArray.descriptor.type_num\t%d\n", ca.descriptor->type_num);
-    php_printf("CArray.descriptor.elsize\t%d\n", ca.descriptor->elsize);
+    php_printf("CArray.ndim\t\t\t%d\n", ca->ndim);
+    php_printf("CArray.descriptor.elsize\t%d\n", ca->descriptor->elsize);
+    php_printf("CArray.descriptor.numElements\t%d\n", ca->descriptor->numElements);
+    php_printf("CArray.descriptor.type\t\t%c\n", ca->descriptor->type);
+    php_printf("CArray.descriptor.type_num\t%d\n", ca->descriptor->type_num);
+    php_printf("CArray.descriptor.elsize\t%d\n", ca->descriptor->elsize);
+
+    CArrayIterator * iter = CArray_NewIter(ca);
+}
+
+/**
+ * Multiply vector list by scalar
+ *
+ * @param list
+ * @param scalar
+ * @return
+ */
+int
+CArray_MultiplyList(const int * list, unsigned int size)
+{
+    int i;
+    int total = 0;
+    for(i = size; i >= 0; i--) {
+        if(i != size)
+            total += list[i] * list[i+1];
+    }
+    return total;
 }
 
 /**
@@ -245,10 +267,8 @@ CArray_INIT(MemoryPointer * ptr, int * dims, int ndim, char type)
     output_ca.ndim = ndim;
     output_ca.strides = target_stride;
 
-    php_printf("%d \n\n", CArray_DIMS(&output_ca)[0]);
-
     CArray_Data_alloc(&output_ca);
-    CArray_Dump(output_ca);
+    CArray_Dump(&output_ca);
 }
 
 /**
