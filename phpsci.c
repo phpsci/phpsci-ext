@@ -32,8 +32,16 @@
 
 #include "kernel/carray.h"
 
+void RETURN_MEMORYPOINTER(zval * return_value, MemoryPointer * ptr)
+{
+    object_init_ex(return_value, carray_sc_entry);
+    zend_update_property_long(carray_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr->uuid);
+}
+
+
 PHP_METHOD(CArray, __construct)
 {
+    MemoryPointer ptr;
     zval * obj_zval;
     char * type;
     size_t type_name_len;
@@ -50,8 +58,9 @@ PHP_METHOD(CArray, __construct)
     if(ZEND_NUM_ARGS() > 1) {
         type_parsed = type[0];
     }
-    CArray_FromZval(obj_zval, &type_parsed);
+    CArray_FromZval(obj_zval, &type_parsed, &ptr);
     zval * obj = getThis();
+    zend_update_property_long(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, ptr.uuid);
 }
 
 /**

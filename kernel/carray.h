@@ -139,6 +139,6 @@ int CArray_MultiplyList(const int * list, unsigned int size);
 int CHAR_TYPE_INT(char CHAR_TYPE);
 void CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char type);
 void CArray_Hashtable_Data_Copy(CArray * target_carray, zval * target_zval, int * first_index);
-void CArray_FromZval(zval * php_obj, char * type);
+void CArray_FromZval(zval * php_obj, char * type, MemoryPointer * ptr);
 void CArray_Dump(CArray * ca);
 #endif //PHPSCI_EXT_CARRAY_H

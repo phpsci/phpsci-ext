@@ -4,6 +4,7 @@
 #include "carray.h"
 #include "alloc.h"
 #include "iterators.h"
+#include "buffer.h"
 #include "php.h"
 #include "php_ini.h"
 #include "zend_smart_str.h"
@@ -173,10 +174,9 @@ Hashtable_type(zval * target_zval, char * type)
  * @return
  */
 void
-CArray_FromZval_Hashtable(zval * php_array, char * type)
+CArray_FromZval_Hashtable(zval * php_array, char * type, MemoryPointer * ptr)
 {
     CArray new_carray;
-    MemoryPointer ptr;
     int * dims, ndims = 1;
     int last_index = 0;
     Hashtable_ndim(php_array, &ndims);
@@ -187,7 +187,7 @@ CArray_FromZval_Hashtable(zval * php_array, char * type)
         Hashtable_type(php_array, type);
     }
 
-    CArray_INIT(&ptr, &new_carray, dims, ndims, *type);
+    CArray_INIT(ptr, &new_carray, dims, ndims, *type);
     CArray_Hashtable_Data_Copy(&new_carray, php_array, &last_index);
 }
 
@@ -302,7 +302,7 @@ CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char 
     output_ca->ndim = ndim;
     output_ca->strides = target_stride;
     CArray_Data_alloc(output_ca);
-    //CArray_Dump(output_ca);
+    add_to_buffer(ptr, *output_ca, sizeof(output_ca));
 }
 
 /**
@@ -310,13 +310,13 @@ CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char 
  * @return MemoryPointer
  */
 void
-CArray_FromZval(zval * php_obj, char * type)
+CArray_FromZval(zval * php_obj, char * type, MemoryPointer * ptr)
 {
     if(Z_TYPE_P(php_obj) == IS_LONG) {
         php_printf("LONG");
     }
     if(Z_TYPE_P(php_obj) == IS_ARRAY) {
-        CArray_FromZval_Hashtable(php_obj, type);
+        CArray_FromZval_Hashtable(php_obj, type, ptr);
     }
     if(Z_TYPE_P(php_obj) == IS_DOUBLE) {
         php_printf("DOUBLE");
