@@ -175,8 +175,10 @@ Hashtable_type(zval * target_zval, char * type)
 void
 CArray_FromZval_Hashtable(zval * php_array, char * type)
 {
+    CArray new_carray;
     MemoryPointer ptr;
     int * dims, ndims = 1;
+    int last_index = 0;
     Hashtable_ndim(php_array, &ndims);
     dims = (int*)emalloc(ndims * sizeof(int));
     Hashtable_dimensions(php_array, dims, ndims, 0);
@@ -184,7 +186,9 @@ CArray_FromZval_Hashtable(zval * php_array, char * type)
     if(!strcmp("a", type)) {
         Hashtable_type(php_array, type);
     }
-    CArray_INIT(&ptr, dims, ndims, *type);
+
+    CArray_INIT(&ptr, &new_carray, dims, ndims, *type);
+    CArray_Hashtable_Data_Copy(&new_carray, php_array, &last_index);
 }
 
 /**
@@ -234,15 +238,46 @@ CArray_MultiplyList(const int * list, unsigned int size)
 }
 
 /**
+ * @param target_carray
+ */
+void
+CArray_Hashtable_Data_Copy(CArray * target_carray, zval * target_zval, int * first_index)
+{
+    zval * element;
+    int * data_int;
+    double * data_double;
+    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(target_zval), element) {
+        ZVAL_DEREF(element);
+        if (Z_TYPE_P(element) == IS_ARRAY) {
+            CArray_Hashtable_Data_Copy(target_carray, element, first_index);
+        }
+        if (Z_TYPE_P(element) == IS_LONG) {
+            convert_to_long(element);
+            data_int = (int*)CArray_DATA(target_carray);
+            data_int[*first_index] = (int)zval_get_long(element);
+            *first_index = *first_index + 1;
+        }
+        if (Z_TYPE_P(element) == IS_DOUBLE) {
+            convert_to_double(element);
+            data_double = (double*)CArray_DATA(target_carray);
+            data_double[*first_index] = (double)zval_get_double(element);
+            *first_index = *first_index + 1;
+        }
+        if (Z_TYPE_P(element) == IS_STRING) {
+
+        }
+    } ZEND_HASH_FOREACH_END();
+}
+
+/**
  * @param ptr
  * @param num_elements
  * @param dims
  * @param ndim
  */
 void
-CArray_INIT(MemoryPointer * ptr, int * dims, int ndim, char type)
+CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char type)
 {
-    CArray output_ca;
     CArrayDescriptor output_ca_dscr;
     int * target_stride;
     int i, num_elements = 0;
@@ -262,13 +297,12 @@ CArray_INIT(MemoryPointer * ptr, int * dims, int ndim, char type)
     output_ca_dscr.numElements = num_elements;
 
     // Build CArray
-    output_ca.descriptor = &output_ca_dscr;
-    output_ca.dimensions = dims;
-    output_ca.ndim = ndim;
-    output_ca.strides = target_stride;
-
-    CArray_Data_alloc(&output_ca);
-    CArray_Dump(&output_ca);
+    output_ca->descriptor = &output_ca_dscr;
+    output_ca->dimensions = dims;
+    output_ca->ndim = ndim;
+    output_ca->strides = target_stride;
+    CArray_Data_alloc(output_ca);
+    //CArray_Dump(output_ca);
 }
 
 /**

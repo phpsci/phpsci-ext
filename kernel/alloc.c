@@ -12,7 +12,7 @@
 void
 CArray_Data_alloc(CArray * ca)
 {
-    ca->data = (void*)emalloc((ca->descriptor->numElements * ca->descriptor->elsize));
+    ca->data = emalloc((ca->descriptor->numElements * ca->descriptor->elsize));
 }
 
 

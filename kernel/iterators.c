@@ -136,6 +136,7 @@ iterator_base_init(CArrayIterator * iterator, CArray * array)
     destination[0] = 1;
     destination[1] = 1;
     destination[2] = 1;
+    destination[3] = 1;
     CArrayIterator_Dump(iterator);
     CArrayIterator_GOTO(iterator, destination);
     CArrayIterator_Dump(iterator);
