@@ -198,12 +198,6 @@ CArray_FromZval_Hashtable(zval * php_array, char * type, MemoryPointer * ptr)
 
     CArray_INIT(ptr, &new_carray, dims, ndims, *type);
     CArray_Hashtable_Data_Copy(&new_carray, php_array, &last_index);
-    
-    CArrayIterator * it = CArray_NewIter(&new_carray);
-    CArrayIterator_Dump(it);
-    php_printf("\n%d\n", *((int*)CArrayIterator_DATA(it)));
-    CArrayIterator_NEXT(it);
-    CArrayIterator_Dump(it);
 }
 
 /**
