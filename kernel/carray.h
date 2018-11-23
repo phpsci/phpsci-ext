@@ -7,6 +7,7 @@
 
 #include "php.h"
 
+#define CARRAY_MAXDIMS   100
 #define TYPE_INTEGER     'i'
 #define TYPE_DOUBLE      'd'
 #define TYPE_INTEGER_INT  2
@@ -141,4 +142,5 @@ void CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, 
 void CArray_Hashtable_Data_Copy(CArray * target_carray, zval * target_zval, int * first_index);
 void CArray_FromZval(zval * php_obj, char * type, MemoryPointer * ptr);
 void CArray_Dump(CArray * ca);
+CArray * CArray_FromMemoryPointer(MemoryPointer * ptr);
 #endif //PHPSCI_EXT_CARRAY_H

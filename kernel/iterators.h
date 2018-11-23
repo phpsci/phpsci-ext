@@ -21,8 +21,13 @@ typedef struct CArrayIterator
     CArray * array;         // Pointer to represented CArray
 } CArrayIterator;
 
+
+#define CArrayIterator_DATA(it) ((void *)((it)->data_pointer))
+#define CArrayIterator_NOTDONE(it) ((it)->index < (it)->size)
+
 CArrayIterator * CArray_NewIter(CArray * array);
 static char* get_ptr(CArrayIterator * iter, uintptr_t * coordinates);
 void CArrayIterator_Dump(CArrayIterator * iterator);
 void CArrayIterator_GOTO(CArrayIterator * iterator, int * destination);
+void CArrayIterator_NEXT(CArrayIterator * iterator);
 #endif //PHPSCI_EXT_ITERATORS_H

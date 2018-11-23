@@ -31,6 +31,7 @@
 #include "Zend/zend_interfaces.h"
 
 #include "kernel/carray.h"
+#include "kernel/iterators.h"
 
 void RETURN_MEMORYPOINTER(zval * return_value, MemoryPointer * ptr)
 {
@@ -38,6 +39,11 @@ void RETURN_MEMORYPOINTER(zval * return_value, MemoryPointer * ptr)
     zend_update_property_long(carray_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr->uuid);
 }
 
+void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
+{
+    zval rv;
+    ptr->uuid = (int)zval_get_long(zend_read_property(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, 1, &rv));
+}
 
 PHP_METHOD(CArray, __construct)
 {
@@ -62,6 +68,60 @@ PHP_METHOD(CArray, __construct)
     zval * obj = getThis();
     zend_update_property_long(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, ptr.uuid);
 }
+PHP_METHOD(CArray, offsetExists)
+{
+    zval *index;
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
+        return;
+    }
+}
+ZEND_BEGIN_ARG_INFO_EX(arginfo_array_offsetGet, 0, 0, 1)
+    ZEND_ARG_INFO(0, index)
+ZEND_END_ARG_INFO()
+PHP_METHOD(CArray, offsetGet)
+{
+    CArray * _this_ca;
+    MemoryPointer ptr;
+    CArrayIterator * it;
+    zval *index;
+    int * destination;
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
+        return;
+    }
+    convert_to_long(index);
+    zval * obj = getThis();
+    ZVAL_TO_MEMORYPOINTER(obj, &ptr);
+    _this_ca = CArray_FromMemoryPointer(&ptr);
+    destination = (int*)emalloc(_this_ca->ndim * sizeof(int));
+    destination[1] = (int)zval_get_long(index);
+    it = CArray_NewIter(_this_ca);
+    php_printf("%d\n\n", destination[0]);
+    CArrayIterator_GOTO(it, destination);
+}
+ZEND_BEGIN_ARG_INFO_EX(arginfo_array_offsetSet, 0, 0, 2)
+    ZEND_ARG_INFO(0, index)
+    ZEND_ARG_INFO(0, newval)
+ZEND_END_ARG_INFO()
+PHP_METHOD(CArray, offsetSet)
+{
+}
+PHP_METHOD(CArray, offsetUnset)
+{
+    zval *index;
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
+        return;
+    }
+}
+
+PHP_METHOD(CArray, iterator)
+{
+    object_init_ex(return_value, carray_iterator_sc_entry);
+}
+
+PHP_METHOD(CArrayIterator, next)
+{
+
+}
 
 /**
  * CLASS METHODS
@@ -69,6 +129,18 @@ PHP_METHOD(CArray, __construct)
 static zend_function_entry carray_class_methods[] =
 {
         PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, iterator, NULL, ZEND_ACC_PUBLIC)
+
+        // CARRAY ITERATOR
+        PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, offsetSet, arginfo_array_offsetSet, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, offsetGet, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, offsetExists, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
+        { NULL, NULL, NULL }
+};
+static zend_function_entry carray_iterator_class_methods[] =
+{
+        PHP_ME(CArrayIterator, next, NULL, ZEND_ACC_PUBLIC)
         { NULL, NULL, NULL }
 };
 zend_function_entry carray_functions[] = {
@@ -80,11 +152,13 @@ zend_function_entry carray_functions[] = {
  */
 static PHP_MINIT_FUNCTION(carray)
 {
-    zend_class_entry ce;
+    zend_class_entry ce, it_ce;
     memcpy(&carray_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     INIT_CLASS_ENTRY(ce, "CArray", carray_class_methods);
+    INIT_CLASS_ENTRY(it_ce, "CArrayIterator", carray_iterator_class_methods);
     carray_sc_entry = zend_register_internal_class(&ce);
-    zend_class_implements(carray_sc_entry, 0, zend_ce_arrayaccess);
+    carray_iterator_sc_entry = zend_register_internal_class(&it_ce);
+    zend_class_implements(carray_sc_entry, 2, zend_ce_arrayaccess);
     return SUCCESS;
 }
 

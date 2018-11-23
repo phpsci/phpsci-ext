@@ -33,6 +33,15 @@ CHAR_TYPE_INT(char CHAR_TYPE)
     }
 }
 
+/**
+ * Print current CArray
+ **/ 
+void
+CArray_ToString(CArray * carray)
+{
+
+}
+
 
 /**
  * Create CArray from Double ZVAL
@@ -189,6 +198,12 @@ CArray_FromZval_Hashtable(zval * php_array, char * type, MemoryPointer * ptr)
 
     CArray_INIT(ptr, &new_carray, dims, ndims, *type);
     CArray_Hashtable_Data_Copy(&new_carray, php_array, &last_index);
+    
+    CArrayIterator * it = CArray_NewIter(&new_carray);
+    CArrayIterator_Dump(it);
+    php_printf("\n%d\n", *((int*)CArrayIterator_DATA(it)));
+    CArrayIterator_NEXT(it);
+    CArrayIterator_Dump(it);
 }
 
 /**
@@ -214,8 +229,6 @@ CArray_Dump(CArray * ca)
     php_printf("CArray.descriptor.type\t\t%c\n", ca->descriptor->type);
     php_printf("CArray.descriptor.type_num\t%d\n", ca->descriptor->type_num);
     php_printf("CArray.descriptor.elsize\t%d\n", ca->descriptor->elsize);
-
-    CArrayIterator * iter = CArray_NewIter(ca);
 }
 
 /**
@@ -278,7 +291,7 @@ CArray_Hashtable_Data_Copy(CArray * target_carray, zval * target_zval, int * fir
 void
 CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char type)
 {
-    CArrayDescriptor output_ca_dscr;
+    CArrayDescriptor * output_ca_dscr;
     int * target_stride;
     int i, num_elements = 0;
     for(i = 0; i < ndim; i++) {
@@ -289,15 +302,16 @@ CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char 
         num_elements = dims[i] * num_elements;
     }
     target_stride = CArray_Generate_Strides(dims, ndim, type);
-
+    output_ca_dscr = (CArrayDescriptor*)emalloc(sizeof(CArrayDescriptor));
     // Build CArray Data Descriptor
-    output_ca_dscr.type = type;
-    output_ca_dscr.elsize = target_stride[ndim-1];
-    output_ca_dscr.type_num = CHAR_TYPE_INT(type);
-    output_ca_dscr.numElements = num_elements;
+    output_ca_dscr->type = type;
+    output_ca_dscr->elsize = target_stride[ndim-1];
+    output_ca_dscr->type_num = CHAR_TYPE_INT(type);
+    output_ca_dscr->numElements = num_elements;
 
     // Build CArray
-    output_ca->descriptor = &output_ca_dscr;
+    
+    output_ca->descriptor = output_ca_dscr;
     output_ca->dimensions = dims;
     output_ca->ndim = ndim;
     output_ca->strides = target_stride;
@@ -327,8 +341,8 @@ CArray_FromZval(zval * php_obj, char * type, MemoryPointer * ptr)
  * Convert MemoryPointer to CArray
  * @param ptr
  */
-void
+CArray *
 CArray_FromMemoryPointer(MemoryPointer * ptr)
 {
-
+    return &(PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid]);
 }

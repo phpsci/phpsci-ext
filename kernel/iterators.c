@@ -6,6 +6,40 @@
 #include "carray.h"
 #include "flagsobject.h"
 
+void 
+CArray_ITER_RESET(CArrayIterator * iterator)
+{
+    do {
+        iterator->index = 0;
+        iterator->data_pointer = CArray_BYTES(iterator->array);
+        memset(iterator->coordinates, 0, (iterator->ndims_m1+1)*sizeof(int));
+    } while(0);
+}
+
+void 
+_CArrayIterator_NEXT1(CArrayIterator * iterator)
+{
+    do {
+        iterator->data_pointer += iterator->strides[0];
+        iterator->coordinates[0]++;
+    } while(0);
+}
+
+void 
+_CArrayIterator_NEXT2(CArrayIterator * iterator)
+{
+    do {
+        if(iterator->coordinates[1] < iterator->dims_m1[1]) {
+            iterator->coordinates[1]++;
+            iterator->data_pointer += iterator->strides[1];
+        } else {
+            iterator->coordinates[1] = 0;
+            iterator->coordinates[0]++;
+            iterator->data_pointer += iterator->strides[0] - iterator->backstrides[1];
+        }
+    } while(0);
+}
+
 void
 CArrayIterator_GOTO(CArrayIterator * iterator, int * destination)
 {
@@ -20,7 +54,36 @@ CArrayIterator_GOTO(CArrayIterator * iterator, int * destination)
         iterator->coordinates[i] = destination[i];
         iterator->index += destination[i] * ( i == iterator->ndims_m1 ? 1 :iterator->dims_m1[i+1]+1) ;
     }
-    php_printf("\n\nDEBUG: %d", iterator->index);
+}
+
+void
+CArrayIterator_NEXT(CArrayIterator * iterator)
+{
+    do {
+        iterator->index = iterator->index + 1;
+        if(iterator->ndims_m1 == 0) {
+            _CArrayIterator_NEXT1(iterator);
+        }
+        else if(iterator->contiguous) {
+            iterator->data_pointer += CArray_DESCR(iterator->array)->elsize;
+        }
+        else if(iterator->ndims_m1 == 1) {
+            _CArrayIterator_NEXT2(iterator);
+        }
+        else {
+            int i;
+            for(i = iterator->ndims_m1; i >= 0; i--) {
+                if(iterator->coordinates[i] < iterator->dims_m1[i]) {
+                    iterator->coordinates[i]++;
+                    iterator->data_pointer += iterator->strides[i];
+                    break;
+                } else  {
+                    iterator->coordinates[i] = 0;
+                    iterator->data_pointer -= iterator->backstrides[i];
+                }
+            }
+        }
+    } while(0);
 }
 
 /**
@@ -52,6 +115,8 @@ void
 CArrayIterator_Dump(CArrayIterator * iterator)
 {
     int i;
+    php_printf("CArrayIterator.index\t%d\n", iterator->index);
+    php_printf("CArrayIterator.ndims_m1\t%d\n", iterator->ndims_m1);
     php_printf("CArrayIterator.factors\t\t[");
     for(i = 0; i < iterator->ndims_m1+1; i ++) {
         php_printf(" %d", iterator->factors[i]);
@@ -94,6 +159,7 @@ iterator_base_init(CArrayIterator * iterator, CArray * array)
     } else {
         iterator->contiguous = 0;
     }
+    
     iterator->array = array;
     iterator->size = array->descriptor->numElements;
     iterator->ndims_m1 = nd - 1;
@@ -131,15 +197,7 @@ iterator_base_init(CArrayIterator * iterator, CArray * array)
         iterator->limits[i][1] = CArray_DIMS(array)[i] - 1;
         iterator->limits_sizes[i] = iterator->limits[i][1] - iterator->limits[i][0] + 1;
     }
-    int * destination;
-    destination = (int*)emalloc(12);
-    destination[0] = 1;
-    destination[1] = 1;
-    destination[2] = 1;
-    destination[3] = 1;
-    CArrayIterator_Dump(iterator);
-    CArrayIterator_GOTO(iterator, destination);
-    CArrayIterator_Dump(iterator);
+    CArray_ITER_RESET(iterator);
 }
 
 /**
@@ -151,4 +209,5 @@ CArray_NewIter(CArray * array)
     CArrayIterator * iterator;
     iterator = (CArrayIterator *)emalloc(sizeof(CArrayIterator));
     iterator_base_init(iterator, array);
+    return iterator;
 }
