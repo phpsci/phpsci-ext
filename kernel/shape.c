@@ -22,7 +22,7 @@
  *
  * The "is_f_order" argument describes how the array should be viewed
  * during the reshape, not how it is stored in memory (that
- * information is in PyArray_STRIDES(self)).
+ * information is in CArray_STRIDES(self)).
  *
  * If some output dimensions have length 1, the strides assigned to
  * them are arbitrary. In the current implementation, they are the
