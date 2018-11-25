@@ -13,4 +13,6 @@ void * carray_data_alloc(uintptr_t size);
 
 void CArray_INCREF(CArray * target);
 void CArray_DECREF(CArray * target);
+void CArrayDescriptor_INCREF(CArrayDescriptor * descriptor);
+void CArrayDescriptor_DECREF(CArrayDescriptor * descriptor);
 #endif //PHPSCI_EXT_ALLOC_H

@@ -75,6 +75,8 @@ PHP_NEW_EXTENSION(carray,
       kernel/iterators.c \
       kernel/flagsobject.c \
       kernel/assign.c \
+      kernel/convert.c \
+      kernel/shape.c \
 	  kernel/buffer.c ,
 	  $ext_shared,, )
   PHP_INSTALL_HEADERS([ext/carray], [phpsci.h, kernel/carray.h, kernel/types.h])

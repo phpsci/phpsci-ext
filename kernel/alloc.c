@@ -59,4 +59,21 @@ carray_data_alloc(uintptr_t size)
     return (void*)emalloc(size);
 }
 
+/**
+ * @param descriptor
+ */
+void
+CArrayDescriptor_INCREF(CArrayDescriptor * descriptor)
+{
+    descriptor->refcount++;
+}
+
+/**
+ * @param descriptor
+ */
+void
+CArrayDescriptor_DECREF(CArrayDescriptor * descriptor)
+{
+    descriptor->refcount--;
+}
 

@@ -32,6 +32,7 @@
 
 #include "kernel/carray.h"
 #include "kernel/iterators.h"
+#include "kernel/shape.h"
 
 void RETURN_MEMORYPOINTER(zval * return_value, MemoryPointer * ptr)
 {
@@ -45,6 +46,25 @@ void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
     ptr->uuid = (int)zval_get_long(zend_read_property(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, 1, &rv));
 }
 
+void * FREE_TUPLE(int * tuple)
+{
+    efree(tuple);
+}
+
+int * ZVAL_TO_TUPLE(zval * obj, int * size)
+{
+    zval * element;
+    *size = 0;
+    int * data_int;
+    data_int = (int *)emalloc(zend_hash_num_elements(Z_ARRVAL_P(obj)) * sizeof(int));
+
+    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(obj), element) {
+        convert_to_long(element);
+        data_int[*size] = (int)zval_get_long(element);
+        *size = *size + 1;
+    } ZEND_HASH_FOREACH_END();
+    return data_int;
+}
 
 void RETURN_MEMORY_POINTER(zval * return_value, MemoryPointer * ptr)
 {
@@ -80,9 +100,46 @@ PHP_METHOD(CArray, __construct)
     zend_update_property_long(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, (int)ptr.uuid);
     zend_update_property_long(carray_sc_entry, obj, "ndim", sizeof("ndim") - 1, (int)arr->ndim);
 }
+PHP_METHOD(CArray, reshape)
+{
+    MemoryPointer ptr;
+    CArray * carray, * newcarray;
+    zval * new_shape_zval;
+    int * new_shape;
+    int ndim;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(new_shape_zval)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(getThis(), &ptr);
+    carray = CArray_FromMemoryPointer(&ptr);
+    new_shape = ZVAL_TO_TUPLE(new_shape_zval, &ndim);
+    newcarray = CArray_Newshape(carray, new_shape, zend_hash_num_elements(Z_ARRVAL_P(new_shape_zval)), CARRAY_CORDER, &ptr);
+    CArray_Dump(newcarray);
+    RETURN_MEMORY_POINTER(return_value, &ptr);
+}
+PHP_METHOD(CArray, dump)
+{
+    MemoryPointer ptr;
+    CArray * array;
+    zval * obj = getThis();
+    ZVAL_TO_MEMORYPOINTER(obj, &ptr);
+    array = CArray_FromMemoryPointer(&ptr);
+    CArray_Dump(array);
+}
+
+PHP_METHOD(CArray, print)
+{
+    zval * obj = getThis();
+    CArray * array;
+    MemoryPointer ptr;
+    ZVAL_TO_MEMORYPOINTER(obj, &ptr);
+    array = CArray_FromMemoryPointer(&ptr);
+    CArray_Print(array);
+}
+
 PHP_METHOD(CArray, __destruct)
 {
-    php_printf("UNUSED");
+
 }
 PHP_METHOD(CArray, offsetExists)
 {
@@ -147,6 +204,9 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, __destruct, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, iterator, NULL, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, reshape, NULL, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, dump, NULL, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, print, NULL, ZEND_ACC_PUBLIC)
 
         // CARRAY ITERATOR
         PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)

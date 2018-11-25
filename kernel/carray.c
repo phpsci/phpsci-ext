@@ -222,6 +222,7 @@ CArray_Dump(CArray * ca)
     }
     php_printf(" ]\n");
     php_printf("CArray.ndim\t\t\t%d\n", ca->ndim);
+    php_printf("CArray.refcount\t\t\t%d\n", ca->refcount);
     php_printf("CArray.descriptor.elsize\t%d\n", ca->descriptor->elsize);
     php_printf("CArray.descriptor.numElements\t%d\n", ca->descriptor->numElements);
     php_printf("CArray.descriptor.type\t\t%c\n", ca->descriptor->type);
@@ -337,6 +338,7 @@ CArray_FromZval(zval * php_obj, char type, MemoryPointer * ptr)
 int
 CArray_SetBaseCArray(CArray * target, CArray * base)
 {
+    CArray_INCREF(base);
     target->base = base;
     return 0;
 }
@@ -459,7 +461,6 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
     CArray_UpdateFlags(self, CARRAY_ARRAY_UPDATE_ALL);
 
     if (base != NULL) {
-        CArray_INCREF(base);
         if(CArray_SetBaseCArray(self, base) < 0) {
             goto fail;
         }
@@ -467,6 +468,130 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
     return self;
 fail:
     return NULL;
+}
+
+/**
+ * @param array
+ * @param index
+ * @param current_dim
+ */
+void
+_print_recursive(CArray * array, CArrayIterator * iterator, int * index, int current_dim)
+{
+    int i, index_jumps;
+    int * value;
+    index_jumps = ((int *)CArray_STRIDES(array))[current_dim] / CArray_ITEMSIZE(array);
+    php_printf("[");
+
+    if(current_dim < array->ndim-1) {
+        *index = 0;
+        for (i = *index; i < array->dimensions[current_dim]; i++) {
+            _print_recursive(array, iterator, index, current_dim + 1);
+        }
+    }
+    if(current_dim >= array->ndim-1) {
+        *index = *index + 1;
+
+        for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
+            value = (int *)CArrayIterator_DATA(iterator);
+            php_printf(" %d ", *value);
+            CArrayIterator_NEXT(iterator);
+        }
+    }
+    php_printf("]");
+}
+
+/**
+ * @param array
+ */
+void
+CArray_Print(CArray *array)
+{
+    int start_index = 0;
+    CArrayIterator * it = CArray_NewIter(array);
+    _print_recursive(array, it, &start_index, 0);
+}
+
+/**
+ * @param prototype
+ * @param order
+ * @param dtype
+ * @param subok
+ * @return
+ */
+CArray *
+CArray_NewLikeArray(CArray *prototype, CARRAY_ORDER order, CArrayDescriptor *dtype, int subok)
+{
+    CArray *ret = NULL;
+    int ndim = CArray_NDIM(prototype);
+
+    /* If no override data type, use the one from the prototype */
+    if (dtype == NULL) {
+        dtype = CArray_DESCR(prototype);
+        CArrayDescriptor_INCREF(dtype);
+    }
+
+    /* Handle ANYORDER and simple KEEPORDER cases */
+    switch (order) {
+        case CARRAY_ANYORDER:
+            order = CArray_ISFORTRAN(prototype) ?
+                    CARRAY_FORTRANORDER : CARRAY_CORDER;
+            break;
+        case CARRAY_KEEPORDER:
+            if (CArray_IS_C_CONTIGUOUS(prototype) || ndim <= 1) {
+                order = CARRAY_CORDER;
+                break;
+            }
+            else if (CArray_IS_F_CONTIGUOUS(prototype)) {
+                order = CARRAY_FORTRANORDER;
+                break;
+            }
+            break;
+        default:
+            break;
+    }
+
+    if (order != CARRAY_KEEPORDER) {
+
+        //ret = CArray_NewFromDescr(prototype,
+        //                           dtype,
+        //                           ndim,
+        //                           CArray_DIMS(prototype),
+        //                           NULL,
+        //                           NULL,
+        //                           order,
+        //                           subok ? (PyObject *)prototype : NULL);
+    } /* KEEPORDER needs some analysis of the strides */
+    else {
+        //npy_intp strides[NPY_MAXDIMS], stride;
+        //npy_intp *shape = PyArray_DIMS(prototype);
+        //npy_stride_sort_item strideperm[NPY_MAXDIMS];
+        int idim;
+
+        //PyArray_CreateSortedStridePerm(PyArray_NDIM(prototype),
+        //                               PyArray_STRIDES(prototype),
+        //                               strideperm);
+
+        /* Build the new strides */
+        //stride = dtype->elsize;
+        //for (idim = ndim-1; idim >= 0; --idim) {
+        //    npy_intp i_perm = strideperm[idim].perm;
+        //    strides[i_perm] = stride;
+        //    stride *= shape[i_perm];
+        //}
+
+        /* Finally, allocate the array */
+        //ret = PyArray_NewFromDescr(subok ? Py_TYPE(prototype) : &PyArray_Type,
+        //                           dtype,
+        //                           ndim,
+        //                           shape,
+        //                           strides,
+        //                           NULL,
+        //                           0,
+        //                           subok ? (PyObject *)prototype : NULL);
+    }
+
+    return ret;
 }
 
 /**

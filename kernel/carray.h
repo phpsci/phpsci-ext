@@ -7,12 +7,25 @@
 
 #include "php.h"
 
+static const int CARRAY_ARRAY_WARN_ON_WRITE = (1 << 31);
+
 #define CARRAY_MAXDIMS   100
 #define TYPE_INTEGER     'i'
 #define TYPE_DOUBLE      'd'
 #define TYPE_INTEGER_INT  2
 #define TYPE_DOUBLE_INT   1
 
+/* For specifying array memory layout or iteration order */
+typedef enum {
+    /* Fortran order if inputs are all Fortran, C otherwise */
+    CARRAY_ANYORDER=-1,
+    /* C order */
+    CARRAY_CORDER=0,
+    /* Fortran order */
+    CARRAY_FORTRANORDER=1,
+    /* An order as close to the inputs as possible */
+    CARRAY_KEEPORDER=2
+} CARRAY_ORDER;
 
 /*
  * Means c-style contiguous (last index varies the fastest). The data
@@ -85,6 +98,10 @@
 #define CARRAY_ALIGNED_STRUCT  0x80
 
 #define CArrayDataType_FLAGCHK(dtype, flag) (((dtype)->flags & (flag)) == (flag))
+#define CArray_ISFORTRAN(m) (CArray_CHKFLAGS(m, CARRAY_ARRAY_F_CONTIGUOUS) && \
+                             (!CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS)))
+#define CArray_IS_F_CONTIGUOUS(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_F_CONTIGUOUS)
+#define CArray_IS_C_CONTIGUOUS(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS)
 
 /**
  * CArray Descriptor
@@ -96,6 +113,7 @@ typedef struct CArrayDescriptor {
     int elsize;         // Datatype size
     int numElements;    // Number of elements
     int alignment;      // Alignment Information
+    int refcount;
 } CArrayDescriptor;
 
 /**
@@ -158,6 +176,12 @@ CArray_FLAGS(const CArray *arr)
 }
 
 static inline int
+CArray_DIM(const CArray *arr, int index)
+{
+    return ((arr)->dimensions[index]);
+}
+
+static inline int
 CArray_CHKFLAGS(const CArray *arr, int flags) {
     return (CArray_FLAGS(arr) & flags) == flags;
 }
@@ -166,19 +190,27 @@ static inline int
 CArray_NDIM(const CArray *arr) {
     return arr->ndim;
 }
-int CArray_MultiplyList(const int * list, unsigned int size);
-
 #define CArray_SIZE(m) CArray_MultiplyList(CArray_DIMS(m), CArray_NDIM(m))
 #define CArray_ISCONTIGUOUS(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS)
 
+
+
+
 int CHAR_TYPE_INT(char CHAR_TYPE);
+int CArray_MultiplyList(const int * list, unsigned int size);
 void CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char type);
+
 CArray * CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
                                  int *dims, int *strides, void *data,
                                  int flags, CArray *base, int zeroed,
                                  int allow_emptystring);
+CArray * CArray_NewLikeArray(CArray *prototype, CARRAY_ORDER order, CArrayDescriptor *dtype, int subok);
+
 void CArray_Hashtable_Data_Copy(CArray * target_carray, zval * target_zval, int * first_index);
 void CArray_FromZval(zval * php_obj, char type, MemoryPointer * ptr);
 void CArray_Dump(CArray * ca);
+int * CArray_Generate_Strides(int * dims, int ndims, char type);
+void CArray_Print(CArray *array);
 CArray * CArray_FromMemoryPointer(MemoryPointer * ptr);
+
 #endif //PHPSCI_EXT_CARRAY_H
