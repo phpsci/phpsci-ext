@@ -13,6 +13,7 @@
 #define TYPE_INTEGER_INT  2
 #define TYPE_DOUBLE_INT   1
 
+
 /*
  * Means c-style contiguous (last index varies the fastest). The data
  * elements right after each other.
@@ -37,8 +38,8 @@
  * at the same time if they have either zero or one element.
  * If NPY_RELAXED_STRIDES_CHECKING is set, a higher dimensional
  * array is always C_CONTIGUOUS and F_CONTIGUOUS if it has zero elements
- * and the array is contiguous if ndarray.squeeze() is contiguous.
- * I.e. dimensions for which `ndarray.shape[dimension] == 1` are
+ * and the array is contiguous if carray.squeeze() is contiguous.
+ * I.e. dimensions for which `carray.shape[dimension] == 1` are
  * ignored.
  */
 #define CARRAY_ARRAY_OWNDATA         0x0004
@@ -52,6 +53,38 @@
  * This flag may be requested in constructor functions.
  */
 #define CARRAY_ARRAY_ALIGNED         0x0100
+
+/*
+ * Array data is writeable
+ *
+ * This flag may be requested in constructor functions.
+ */
+#define CARRAY_ARRAY_WRITEABLE       0x0400
+#define CARRAY_ARRAY_WRITEBACKIFCOPY 0x2000
+
+
+#define CARRAY_ARRAY_BEHAVED         (CARRAY_ARRAY_ALIGNED | CARRAY_ARRAY_WRITEABLE)
+#define CARRAY_ARRAY_DEFAULT      (CARRAY_ARRAY_CARRAY)
+#define CARRAY_ARRAY_CARRAY       (CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_BEHAVED)
+#define CARRAY_ARRAY_UPDATE_ALL   (CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_ALIGNED)
+#define CARRAY_ARRAY_UPDATEIFCOPY    0x1000
+
+/* The item must be reference counted when it is inserted or extracted. */
+#define CARRAY_ITEM_REFCOUNT   0x01
+/* Same as needing REFCOUNT */
+#define CARRAY_ITEM_HASOBJECT  0x01
+/* The item is a POINTER  */
+#define CARRAY_ITEM_IS_POINTER 0x04
+/* memory needs to be initialized for this data-type */
+#define CARRAY_NEEDS_INIT      0x08
+/* Use f.getitem when extracting elements of this data-type */
+#define CARRAY_USE_GETITEM     0x20
+/* Use f.setitem when setting creating 0-d array from this data-type.*/
+#define CARRAY_USE_SETITEM     0x40
+/* A sticky flag specifically for structured arrays */
+#define CARRAY_ALIGNED_STRUCT  0x80
+
+#define CArrayDataType_FLAGCHK(dtype, flag) (((dtype)->flags & (flag)) == (flag))
 
 /**
  * CArray Descriptor
@@ -77,6 +110,7 @@ struct CArray {
     CArray * base;      // Used when sharing memory from other CArray (slices, etc)
     int flags;          // Describes CArray memory approach (Memory related flags)
     CArrayDescriptor * descriptor;    // CArray data descriptor
+    int refcount;
 };
 
 /**
@@ -139,8 +173,12 @@ int CArray_MultiplyList(const int * list, unsigned int size);
 
 int CHAR_TYPE_INT(char CHAR_TYPE);
 void CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char type);
+CArray * CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
+                                 int *dims, int *strides, void *data,
+                                 int flags, CArray *base, int zeroed,
+                                 int allow_emptystring);
 void CArray_Hashtable_Data_Copy(CArray * target_carray, zval * target_zval, int * first_index);
-void CArray_FromZval(zval * php_obj, char * type, MemoryPointer * ptr);
+void CArray_FromZval(zval * php_obj, char type, MemoryPointer * ptr);
 void CArray_Dump(CArray * ca);
 CArray * CArray_FromMemoryPointer(MemoryPointer * ptr);
 #endif //PHPSCI_EXT_CARRAY_H

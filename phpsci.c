@@ -45,6 +45,15 @@ void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
     ptr->uuid = (int)zval_get_long(zend_read_property(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, 1, &rv));
 }
 
+
+void RETURN_MEMORY_POINTER(zval * return_value, MemoryPointer * ptr)
+{
+    object_init_ex(return_value, carray_sc_entry);
+    CArray * arr = CArray_FromMemoryPointer(ptr);
+    zend_update_property_long(carray_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr->uuid);
+    zend_update_property_long(carray_sc_entry, return_value, "ndim", sizeof("ndim") - 1, arr->ndim);
+}
+
 PHP_METHOD(CArray, __construct)
 {
     MemoryPointer ptr;
@@ -64,9 +73,16 @@ PHP_METHOD(CArray, __construct)
     if(ZEND_NUM_ARGS() > 1) {
         type_parsed = type[0];
     }
-    CArray_FromZval(obj_zval, &type_parsed, &ptr);
+    CArray_FromZval(obj_zval, type_parsed, &ptr);
     zval * obj = getThis();
-    zend_update_property_long(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, ptr.uuid);
+    CArray * arr = CArray_FromMemoryPointer(&ptr);
+    CArray_Dump(arr);
+    zend_update_property_long(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, (int)ptr.uuid);
+    zend_update_property_long(carray_sc_entry, obj, "ndim", sizeof("ndim") - 1, (int)arr->ndim);
+}
+PHP_METHOD(CArray, __destruct)
+{
+    php_printf("UNUSED");
 }
 PHP_METHOD(CArray, offsetExists)
 {
@@ -129,6 +145,7 @@ PHP_METHOD(CArrayIterator, next)
 static zend_function_entry carray_class_methods[] =
 {
         PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, __destruct, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, iterator, NULL, ZEND_ACC_PUBLIC)
 
         // CARRAY ITERATOR
@@ -152,13 +169,10 @@ zend_function_entry carray_functions[] = {
  */
 static PHP_MINIT_FUNCTION(carray)
 {
-    zend_class_entry ce, it_ce;
+    zend_class_entry ce;
     memcpy(&carray_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     INIT_CLASS_ENTRY(ce, "CArray", carray_class_methods);
-    INIT_CLASS_ENTRY(it_ce, "CArrayIterator", carray_iterator_class_methods);
     carray_sc_entry = zend_register_internal_class(&ce);
-    carray_iterator_sc_entry = zend_register_internal_class(&it_ce);
-    zend_class_implements(carray_sc_entry, 2, zend_ce_arrayaccess);
     return SUCCESS;
 }
 

@@ -48,14 +48,13 @@
 #define HAVE__USR_INCLUDE_LAPACKE_H 1
 
 /* Define to 1 if you have the </usr/include/openblas/cblas.h> header file. */
-/* #undef HAVE__USR_INCLUDE_OPENBLAS_CBLAS_H */
+#define HAVE__USR_INCLUDE_OPENBLAS_CBLAS_H 1
 
 /* Define to 1 if you have the </usr/include/openblas/lapacke.h> header file.
    */
 /* #undef HAVE__USR_INCLUDE_OPENBLAS_LAPACKE_H */
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */

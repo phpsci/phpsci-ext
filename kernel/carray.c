@@ -5,6 +5,7 @@
 #include "alloc.h"
 #include "iterators.h"
 #include "buffer.h"
+#include "flagsobject.h"
 #include "php.h"
 #include "php_ini.h"
 #include "zend_smart_str.h"
@@ -73,7 +74,8 @@ CArray_Generate_Strides(int * dims, int ndims, char type)
 {
     int i;
     int * strides;
-    int * target_stride = (int*)emalloc(ndims * sizeof(int));
+    int * target_stride;
+    target_stride = (int*)malloc((ndims * sizeof(int)));
 
     for(i = 0; i < ndims; i++) {
         target_stride[i] = 0;
@@ -183,20 +185,22 @@ Hashtable_type(zval * target_zval, char * type)
  * @return
  */
 void
-CArray_FromZval_Hashtable(zval * php_array, char * type, MemoryPointer * ptr)
+CArray_FromZval_Hashtable(zval * php_array, char type, MemoryPointer * ptr)
 {
     CArray new_carray;
+    char auto_flag = 'a';
     int * dims, ndims = 1;
     int last_index = 0;
     Hashtable_ndim(php_array, &ndims);
     dims = (int*)emalloc(ndims * sizeof(int));
     Hashtable_dimensions(php_array, dims, ndims, 0);
-    // If `a` (auto), find best element type
-    if(!strcmp("a", type)) {
-        Hashtable_type(php_array, type);
+    // If `a` (auto), find be
+    // st element type
+    if(type = auto_flag) {
+        Hashtable_type(php_array, &type);
     }
 
-    CArray_INIT(ptr, &new_carray, dims, ndims, *type);
+    CArray_INIT(ptr, &new_carray, dims, ndims, type);
     CArray_Hashtable_Data_Copy(&new_carray, php_array, &last_index);
 }
 
@@ -303,12 +307,7 @@ CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char 
     output_ca_dscr->type_num = CHAR_TYPE_INT(type);
     output_ca_dscr->numElements = num_elements;
 
-    // Build CArray
-    
-    output_ca->descriptor = output_ca_dscr;
-    output_ca->dimensions = dims;
-    output_ca->ndim = ndim;
-    output_ca->strides = target_stride;
+    CArray_NewFromDescr_int(output_ca, output_ca_dscr, ndim, dims, target_stride, NULL, CARRAY_NEEDS_INIT, NULL, 1, 0);
     CArray_Data_alloc(output_ca);
     add_to_buffer(ptr, *output_ca, sizeof(output_ca));
 }
@@ -318,7 +317,7 @@ CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char 
  * @return MemoryPointer
  */
 void
-CArray_FromZval(zval * php_obj, char * type, MemoryPointer * ptr)
+CArray_FromZval(zval * php_obj, char type, MemoryPointer * ptr)
 {
     if(Z_TYPE_P(php_obj) == IS_LONG) {
         php_printf("LONG");
@@ -329,6 +328,145 @@ CArray_FromZval(zval * php_obj, char * type, MemoryPointer * ptr)
     if(Z_TYPE_P(php_obj) == IS_DOUBLE) {
         php_printf("DOUBLE");
     }
+}
+
+/**
+ * @param target
+ * @param base
+ */
+int
+CArray_SetBaseCArray(CArray * target, CArray * base)
+{
+    target->base = base;
+    return 0;
+}
+
+/**
+ * @return
+ */
+CArray *
+CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
+                        int *dims, int *strides, void *data,
+                        int flags, CArray *base, int zeroed,
+                        int allow_emptystring)
+{
+    int i, is_empty;
+    uintptr_t nbytes;
+
+    if ((unsigned int)nd > (unsigned int)CARRAY_MAXDIMS) {
+        php_printf("number of dimensions must be within [0, %d]", CARRAY_MAXDIMS);
+        return NULL;
+    }
+    self->refcount = 0;
+    nbytes = descr->elsize;
+    /* Check dimensions and multiply them to nbytes */
+    is_empty = 0;
+    for (i = 0; i < nd; i++) {
+        uintptr_t dim = dims[i];
+
+        if (dim == 0) {
+            /*
+             * Compare to PyArray_OverflowMultiplyList that
+             * returns 0 in this case.
+             */
+            is_empty = 1;
+            continue;
+        }
+
+        if (dim < 0) {
+            php_printf("negative dimensions are not allowed");
+            return NULL;
+        }
+    }
+
+    self->ndim = nd;
+    self->dimensions = NULL;
+    self->data = NULL;
+
+    if (data == NULL) {
+        self->flags = CARRAY_ARRAY_DEFAULT;
+        if (flags) {
+            self->flags |= CARRAY_ARRAY_F_CONTIGUOUS;
+            if (nd > 1) {
+                self->flags &= ~CARRAY_ARRAY_C_CONTIGUOUS;
+            }
+            flags = CARRAY_ARRAY_F_CONTIGUOUS;
+        } else {
+            self->flags = (flags & ~CARRAY_ARRAY_WRITEBACKIFCOPY);
+            self->flags &= ~CARRAY_ARRAY_UPDATEIFCOPY;
+        }
+    }
+
+    self->descriptor = descr;
+    self->base =  NULL;
+    self->refcount = 0;
+
+    if (nd > 0) {
+        self->dimensions = (int*)emalloc((2 * nd) * sizeof(int));
+        if (self->dimensions == NULL) {
+            php_printf("MemoryError");
+            goto fail;
+        }
+
+        self->strides = self->dimensions + nd;
+        memcpy(self->dimensions, dims, sizeof(uintptr_t)*nd);
+        if (strides == NULL) {  /* fill it in */
+            //_array_fill_strides(fa->strides, dims, nd, descr->elsize,
+                                //flags, &(fa->flags));
+        }
+        else {
+            /*
+             * we allow strides even when we create
+             * the memory, but be careful with this...
+             */
+            memcpy(self->strides, strides, sizeof(int)*nd);
+        }
+    } else {
+        self->dimensions = self->strides = NULL;
+        self->flags |= CARRAY_ARRAY_F_CONTIGUOUS;
+    }
+
+    if (data == NULL) {
+        /*
+         * Allocate something even for zero-space arrays
+         * e.g. shape=(0,) -- otherwise buffer exposure
+         * (a.data) doesn't work as it should.
+         * Could probably just allocate a few bytes here. -- Chuck
+         */
+        if (is_empty) {
+            nbytes = descr->elsize;
+        }
+        if (zeroed || CArrayDataType_FLAGCHK(descr, CARRAY_NEEDS_INIT)) {
+            data = carray_data_alloc_zeros(nbytes);
+        } else {
+            data = carray_data_alloc(nbytes);
+        }
+        if (data == NULL) {
+            php_printf("MemoryError");
+            goto fail;
+        }
+        self->flags |= CARRAY_ARRAY_OWNDATA;
+    }
+    else {
+        /*
+         * If data is passed in, this object won't own it by default.
+         * Caller must arrange for this to be reset if truly desired
+         */
+        self->flags &= ~CARRAY_ARRAY_OWNDATA;
+    }
+    self->data = data;
+
+    CArray_UpdateFlags(self, CARRAY_ARRAY_UPDATE_ALL);
+
+    if (base != NULL) {
+        CArray_INCREF(base);
+        if(CArray_SetBaseCArray(self, base) < 0) {
+            goto fail;
+        }
+    }
+    return self;
+fail:
+    return NULL;
 }
 
 /**
