@@ -273,9 +273,10 @@ CArray_Hashtable_Data_Copy(CArray * target_carray, zval * target_zval, int * fir
             data_double = (double*)CArray_DATA(target_carray);
             data_double[*first_index] = (double)zval_get_double(element);
             *first_index = *first_index + 1;
+            
         }
         if (Z_TYPE_P(element) == IS_STRING) {
-
+            
         }
     } ZEND_HASH_FOREACH_END();
 }
@@ -560,7 +561,6 @@ void
 _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int current_dim)
 {
     int i, index_jumps;
-    int * value;
     index_jumps = ((int *)CArray_STRIDES(array))[current_dim] / CArray_ITEMSIZE(array);
     php_printf("[");
 
@@ -572,11 +572,21 @@ _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int cur
     }
     if(current_dim >= array->ndim-1) {
         *index = *index + 1;
-
-        for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
-            value = (int *)CArrayIterator_DATA(iterator);
-            php_printf(" %d ", *value);
-            CArrayIterator_NEXT(iterator);
+        if(array->descriptor->type == TYPE_INTEGER) {
+            int * value;
+            for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
+                value = (int *)CArrayIterator_DATA(iterator);
+                php_printf(" %d ", *value);
+                CArrayIterator_NEXT(iterator);
+            }
+        }
+        if(array->descriptor->type == TYPE_DOUBLE) {
+            double * value;
+            for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
+                value = (double *)CArrayIterator_DATA(iterator);
+                php_printf(" %f ", *value);
+                CArrayIterator_NEXT(iterator);
+            }
         }
     }
     php_printf("]");
