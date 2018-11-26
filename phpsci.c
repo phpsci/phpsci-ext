@@ -33,6 +33,7 @@
 #include "kernel/carray.h"
 #include "kernel/iterators.h"
 #include "kernel/shape.h"
+#include "kernel/calculation.h"
 
 void RETURN_MEMORYPOINTER(zval * return_value, MemoryPointer * ptr)
 {
@@ -96,7 +97,6 @@ PHP_METHOD(CArray, __construct)
     CArray_FromZval(obj_zval, type_parsed, &ptr);
     zval * obj = getThis();
     CArray * arr = CArray_FromMemoryPointer(&ptr);
-    CArray_Dump(arr);
     zend_update_property_long(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, (int)ptr.uuid);
     zend_update_property_long(carray_sc_entry, obj, "ndim", sizeof("ndim") - 1, (int)arr->ndim);
 }
@@ -114,7 +114,6 @@ PHP_METHOD(CArray, reshape)
     carray = CArray_FromMemoryPointer(&ptr);
     new_shape = ZVAL_TO_TUPLE(new_shape_zval, &ndim);
     newcarray = CArray_Newshape(carray, new_shape, zend_hash_num_elements(Z_ARRVAL_P(new_shape_zval)), CARRAY_CORDER, &ptr);
-    CArray_Dump(newcarray);
     RETURN_MEMORY_POINTER(return_value, &ptr);
 }
 PHP_METHOD(CArray, dump)
@@ -191,6 +190,32 @@ PHP_METHOD(CArray, iterator)
     object_init_ex(return_value, carray_iterator_sc_entry);
 }
 
+PHP_METHOD(CArray, sum)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_ZVAL(target)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    if(ZEND_NUM_ARGS() == 1) {
+        axis_p = NULL;
+    }
+    if(ZEND_NUM_ARGS() > 1) {
+        axis_p = (int*)emalloc(sizeof(int));
+        *axis_p = axis;
+    }
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Sum(target_ca, axis_p, target_ca->descriptor->type_num, &ptr);
+    efree(axis_p);
+    RETURN_MEMORYPOINTER(return_value, &ptr);
+}
+
 PHP_METHOD(CArrayIterator, next)
 {
 
@@ -207,6 +232,9 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, reshape, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, dump, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, print, NULL, ZEND_ACC_PUBLIC)
+
+        // CALCULATION
+        PHP_ME(CArray, sum, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // CARRAY ITERATOR
         PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)

@@ -8,14 +8,6 @@ dev_addr: '0.0.0.0:8000'
 
 pages:
 - Home: index.md
-- Initializers:
-  - Basic Initializers: initializers.md
-  - Range Initializers: range_init.md
-  - Random Generators: random.md
-- Transformations: transformations.md
-- Math:
-  - Basic Operations: basic_operations.md
-  - Linear Algebra: linear_algebra.md
-  - Blas: blas.md
-- PHP Array with CArrays: phparray_ops.md
-- Performance: performance.md
+- CArray Internals:
+  - Internals Explanation: internals/explanation.md
+  - C Reference: internals/carray_api.md

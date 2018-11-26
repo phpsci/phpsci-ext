@@ -208,13 +208,14 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
     CArrayDescriptor_INCREF(CArray_DESCR(self));
 
     strides = CArray_Generate_Strides(newdims, ndim, self->descriptor->type);
-
+    
     ret =   CArray_NewFromDescr_int(
             ret, CArray_DESCR(self),
-            ndim, dimensions, strides, CArray_DATA(self),
+            ndim, newdims, strides, CArray_DATA(self),
             flags, self, 0, 1);
+              
     CArray_DECREF(self);
     add_to_buffer(ptr, *ret, sizeof(CArray));
 
-    return CArray_FromMemoryPointer(ptr);
+    return ret;
 }

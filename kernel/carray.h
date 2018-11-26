@@ -148,6 +148,9 @@ typedef struct CArrayFlags
 } CArrayFlags;
 
 
+#define CARRAY_LIKELY(x) (!!(x), 1)
+#define CARRAY_UNLIKELY(x) (!!(x), 0)
+
 /**
  * CArray Data Macros
  **/ 
@@ -190,6 +193,28 @@ static inline int
 CArray_NDIM(const CArray *arr) {
     return arr->ndim;
 }
+
+static inline int
+check_and_adjust_axis_msg(int *axis, int ndim)
+{
+    /* Check that index is valid, taking into account negative indices */
+    if (CARRAY_UNLIKELY((*axis < -ndim) || (*axis >= ndim))) {
+        return -1;
+    }
+    /* adjust negative indices */
+    if (*axis < 0) {
+        *axis += ndim;
+    }
+    return 0;
+}
+
+static inline int
+check_and_adjust_axis(int *axis, int ndim)
+{
+    return check_and_adjust_axis_msg(axis, ndim);
+}
+
+
 #define CArray_SIZE(m) CArray_MultiplyList(CArray_DIMS(m), CArray_NDIM(m))
 #define CArray_ISCONTIGUOUS(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS)
 
@@ -205,7 +230,7 @@ CArray * CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
                                  int flags, CArray *base, int zeroed,
                                  int allow_emptystring);
 CArray * CArray_NewLikeArray(CArray *prototype, CARRAY_ORDER order, CArrayDescriptor *dtype, int subok);
-
+CArray * CArray_CheckAxis(CArray * arr, int * axis, int flags);
 void CArray_Hashtable_Data_Copy(CArray * target_carray, zval * target_zval, int * first_index);
 void CArray_FromZval(zval * php_obj, char type, MemoryPointer * ptr);
 void CArray_Dump(CArray * ca);

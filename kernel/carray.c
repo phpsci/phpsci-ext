@@ -75,7 +75,7 @@ CArray_Generate_Strides(int * dims, int ndims, char type)
     int i;
     int * strides;
     int * target_stride;
-    target_stride = (int*)malloc((ndims * sizeof(int)));
+    target_stride = (int*)emalloc((ndims * sizeof(int)));
 
     for(i = 0; i < ndims; i++) {
         target_stride[i] = 0;
@@ -227,7 +227,6 @@ CArray_Dump(CArray * ca)
     php_printf("CArray.descriptor.numElements\t%d\n", ca->descriptor->numElements);
     php_printf("CArray.descriptor.type\t\t%c\n", ca->descriptor->type);
     php_printf("CArray.descriptor.type_num\t%d\n", ca->descriptor->type_num);
-    php_printf("CArray.descriptor.elsize\t%d\n", ca->descriptor->elsize);
 }
 
 /**
@@ -293,6 +292,11 @@ CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char 
     CArrayDescriptor * output_ca_dscr;
     int * target_stride;
     int i, num_elements = 0;
+
+    if(output_ca == NULL) {
+        output_ca = (CArray *)emalloc(sizeof(CArray));
+    }
+
     for(i = 0; i < ndim; i++) {
         if(i == 0) {
             num_elements = dims[i];
@@ -300,13 +304,38 @@ CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char 
         }
         num_elements = dims[i] * num_elements;
     }
-    target_stride = CArray_Generate_Strides(dims, ndim, type);
+
+    // If 0 dimensions, this is a scalar
+    if(ndim == 0) {
+        num_elements = 1;
+    }
+
     output_ca_dscr = (CArrayDescriptor*)emalloc(sizeof(CArrayDescriptor));
     // Build CArray Data Descriptor
     output_ca_dscr->type = type;
-    output_ca_dscr->elsize = target_stride[ndim-1];
+
+    if(ndim != 0) {
+        target_stride = CArray_Generate_Strides(dims, ndim, type);
+        output_ca_dscr->elsize = target_stride[ndim-1];
+    }
+    if(ndim == 0) {
+        switch(type) {
+            case TYPE_DOUBLE:
+                output_ca_dscr->elsize = sizeof(double);
+                break;
+            case TYPE_INTEGER:
+                output_ca_dscr->elsize = sizeof(int);
+                break;
+            default:
+                output_ca_dscr->elsize = sizeof(double);        
+        }
+        
+    }
     output_ca_dscr->type_num = CHAR_TYPE_INT(type);
     output_ca_dscr->numElements = num_elements;
+    if(output_ca == NULL) {
+        output_ca = (CArray *)emalloc(sizeof(CArray));
+    }
 
     CArray_NewFromDescr_int(output_ca, output_ca_dscr, ndim, dims, target_stride, NULL, CARRAY_NEEDS_INIT, NULL, 1, 0);
     CArray_Data_alloc(output_ca);
@@ -471,6 +500,58 @@ fail:
 }
 
 /**
+ * check axis
+ **/ 
+CArray *
+CArray_CheckAxis(CArray * arr, int * axis, int flags)
+{
+    CArray * temp1, * temp2;
+    int n = CArray_NDIM(arr);
+
+    if(axis == NULL) {
+        return arr;
+    }
+
+    if (*axis == CARRAY_MAXDIMS || n == 0) {
+        if (n != 1) {
+            if (temp1 == NULL) {
+                *axis = 0;
+                return NULL;
+            }
+            if (*axis == CARRAY_MAXDIMS) {
+                *axis = CArray_NDIM(temp1)-1;
+            }
+        } else {
+            *axis = 0;
+        }
+        if (!flags && *axis == 0) {
+            return temp1;
+        }
+    }
+    else {
+        temp1 = arr;
+        CArray_INCREF(temp1);
+    }
+
+    if (flags) {
+        //temp2 = CArray_CheckFromAny(, NULL, 0, 0, flags, NULL);
+        //CArray_DECREF(temp1);
+        if (temp2 == NULL) {
+            return NULL;
+        }
+    } else {
+        temp2 = temp1;
+    }
+
+    n = CArray_NDIM(temp2);
+    if (check_and_adjust_axis(axis, n) < 0) {
+        CArray_DECREF(temp2);
+        return NULL;
+    }
+    return temp2;
+}
+
+/**
  * @param array
  * @param index
  * @param current_dim
@@ -509,6 +590,10 @@ CArray_Print(CArray *array)
 {
     int start_index = 0;
     CArrayIterator * it = CArray_NewIter(array);
+    if(array->ndim == 0) {
+        php_printf("%d", ((int*)CArray_DATA(array))[0]);
+        return;
+    }
     _print_recursive(array, it, &start_index, 0);
 }
 
