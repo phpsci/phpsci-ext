@@ -1,5 +1,6 @@
 #include "calculation.h"
 #include "carray.h"
+#include "iterators.h"
 #include "buffer.h"
 
 /**
@@ -8,7 +9,7 @@
 CArray *
 CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
 {
-    int i, j = 0;
+    int i, j = 0, z;
     void * total;
     CArray * arr, * ret = NULL;
     CArrayDescriptor * descr;
@@ -45,15 +46,15 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
         CArray_Data_alloc(ret);
         if(rtype == TYPE_INTEGER_INT) {
             for(i = 0; i < CArray_DESCR(self)->numElements; i++) {
-                *((int*)total) += ((int*)CArray_DATA(self))[i];
+                *((int*)total) += IDATA(self)[i];
             }
-            ((int*)CArray_DATA(ret))[0] = *((int *)total);
+            IDATA(ret)[0] = *((int *)total);
         }
         if(rtype == TYPE_DOUBLE_INT) {
             for(i = 0; i < CArray_DESCR(self)->numElements; i++) {
-                *((double*)total) += ((double*)CArray_DATA(self))[i];
+                *((double*)total) += DDATA(self)[i];
             }
-            ((double*)CArray_DATA(ret))[0] = *((double *)total);
+            DDATA(ret)[0] = *((double *)total);
         }
     }
     if(axis != NULL) {
@@ -70,14 +71,25 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
             num_elements *= new_dimensions[i];
         }
         descr->numElements = num_elements;
-
+        
         CArray_Data_alloc(ret);
         
         if(rtype == TYPE_INTEGER_INT) {
             for(i = 0; i < num_elements; i++) {
-                ((int*)CArray_DATA(ret))[i] = 0;
+                IDATA(ret)[i] = 0;
             }
             ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, CArray_DATA(ret), 0, NULL, 1, 0);   
+
+            CArrayIterator * it = CArray_IterAllButAxis(self, axis);
+            i = 0;
+            do {
+                php_printf("%d \n", *((int*)CArrayIterator_DATA(it)));
+                for(j = 0; j < self->dimensions[*axis]; j++) {
+                    IDATA(ret)[i] += ((int*)CArrayIterator_DATA(it))[j * (self->strides[*axis]/self->descriptor->elsize)];
+                }
+                CArrayIterator_NEXT(it);
+                i++;
+            } while(CArrayIterator_NOTDONE(it));
         }
     }
     add_to_buffer(out_ptr, *ret, sizeof(*ret));

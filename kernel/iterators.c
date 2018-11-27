@@ -201,6 +201,58 @@ iterator_base_init(CArrayIterator * iterator, CArray * array)
 }
 
 /**
+ * Iterate over all axes but inaxis
+ **/ 
+CArrayIterator *
+CArray_IterAllButAxis(CArray *obj, int *inaxis)
+{
+    CArray *arr;
+    CArrayIterator *it;
+    int axis;
+
+    arr = (CArray *)obj;
+
+    it = CArray_NewIter((CArray *)arr);
+    if (it == NULL) {
+        return NULL;
+    }
+    if (CArray_NDIM(arr)==0) {
+        return it;
+    }
+    if (*inaxis < 0) {
+        int i, minaxis = 0;
+        int minstride = 0;
+        i = 0;
+        while (minstride == 0 && i < CArray_NDIM(arr)) {
+            minstride = CArray_STRIDE(arr,i);
+            i++;
+        }
+        for (i = 1; i < CArray_NDIM(arr); i++) {
+            if (CArray_STRIDE(arr,i) > 0 &&
+                CArray_STRIDE(arr, i) < minstride) {
+                minaxis = i;
+                minstride = CArray_STRIDE(arr,i);
+            }
+        }
+        *inaxis = minaxis;
+    }
+    axis = *inaxis;
+    /* adjust so that will not iterate over axis */
+    it->contiguous = 0;
+    if (it->size != 0) {
+        it->size /= CArray_DIM(arr,axis);
+    }
+    it->dims_m1[axis] = 0;
+    it->backstrides[axis] = 0;
+
+    /*
+     * (won't fix factors so don't use
+     * PyArray_ITER_GOTO1D with this iterator)
+     */
+    return it;
+}
+
+/**
  * Return array iterator from CArray
  **/ 
 CArrayIterator * 

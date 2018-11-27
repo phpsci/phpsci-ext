@@ -30,4 +30,5 @@ static char* get_ptr(CArrayIterator * iter, uintptr_t * coordinates);
 void CArrayIterator_Dump(CArrayIterator * iterator);
 void CArrayIterator_GOTO(CArrayIterator * iterator, int * destination);
 void CArrayIterator_NEXT(CArrayIterator * iterator);
+CArrayIterator * CArray_IterAllButAxis(CArray *obj, int *inaxis);
 #endif //PHPSCI_EXT_ITERATORS_H
