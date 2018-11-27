@@ -72,6 +72,7 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
         }
         descr->numElements = num_elements;
         
+        ret->descriptor = descr;
         CArray_Data_alloc(ret);
         
         if(rtype == TYPE_INTEGER_INT) {
@@ -79,11 +80,9 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
                 IDATA(ret)[i] = 0;
             }
             ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, CArray_DATA(ret), 0, NULL, 1, 0);   
-
             CArrayIterator * it = CArray_IterAllButAxis(self, axis);
             i = 0;
             do {
-                php_printf("%d \n", *((int*)CArrayIterator_DATA(it)));
                 for(j = 0; j < self->dimensions[*axis]; j++) {
                     IDATA(ret)[i] += ((int*)CArrayIterator_DATA(it))[j * (self->strides[*axis]/self->descriptor->elsize)];
                 }
