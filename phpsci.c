@@ -34,6 +34,7 @@
 #include "kernel/iterators.h"
 #include "kernel/shape.h"
 #include "kernel/calculation.h"
+#include "kernel/convert.h"
 
 void RETURN_MEMORYPOINTER(zval * return_value, MemoryPointer * ptr)
 {
@@ -152,11 +153,9 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_array_offsetGet, 0, 0, 1)
 ZEND_END_ARG_INFO()
 PHP_METHOD(CArray, offsetGet)
 {
-    CArray * _this_ca;
-    MemoryPointer ptr;
-    CArrayIterator * it;
+    CArray * _this_ca, * ret_ca;
+    MemoryPointer ptr, target_ptr;
     zval *index;
-    int * destination;
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
         return;
     }
@@ -164,11 +163,8 @@ PHP_METHOD(CArray, offsetGet)
     zval * obj = getThis();
     ZVAL_TO_MEMORYPOINTER(obj, &ptr);
     _this_ca = CArray_FromMemoryPointer(&ptr);
-    destination = (int*)emalloc(_this_ca->ndim * sizeof(int));
-    destination[1] = (int)zval_get_long(index);
-    it = CArray_NewIter(_this_ca);
-    php_printf("%d\n\n", destination[0]);
-    CArrayIterator_GOTO(it, destination);
+    ret_ca = (CArray *) CArray_Slice_Index(_this_ca, (int)zval_get_long(index), &target_ptr);
+    RETURN_MEMORYPOINTER(return_value, &target_ptr);
 }
 ZEND_BEGIN_ARG_INFO_EX(arginfo_array_offsetSet, 0, 0, 2)
     ZEND_ARG_INFO(0, index)
@@ -261,6 +257,7 @@ static PHP_MINIT_FUNCTION(carray)
     memcpy(&carray_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     INIT_CLASS_ENTRY(ce, "CArray", carray_class_methods);
     carray_sc_entry = zend_register_internal_class(&ce);
+    zend_class_implements(carray_sc_entry, 1, zend_ce_arrayaccess);
     return SUCCESS;
 }
 

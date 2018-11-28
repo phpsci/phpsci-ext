@@ -7,6 +7,7 @@
 
 #include "carray.h"
 
+CArray * CArray_Slice_Index(CArray * self, int index, MemoryPointer * out);
 CArray * CArray_View(CArray *self);
 CArray * CArray_NewCopy(CArray *obj, CARRAY_ORDER order);
 

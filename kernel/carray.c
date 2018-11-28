@@ -89,6 +89,7 @@ CArray_Generate_Strides(int * dims, int ndims, char type)
     for(i = ndims-2; i >= 0; i--) {
         target_stride[i] = dims[i+1] * target_stride[i+1];
     }
+    
     return target_stride;
 }
 
