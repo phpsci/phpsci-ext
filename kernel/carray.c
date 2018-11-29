@@ -392,16 +392,11 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
     }
     self->refcount = 0;
     nbytes = descr->elsize;
-    /* Check dimensions and multiply them to nbytes */
     is_empty = 0;
     for (i = 0; i < nd; i++) {
         uintptr_t dim = dims[i];
 
         if (dim == 0) {
-            /*
-             * Compare to PyArray_OverflowMultiplyList that
-             * returns 0 in this case.
-             */
             is_empty = 1;
             continue;
         }
@@ -448,10 +443,6 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
                                 //flags, &(fa->flags));
         }
         else {
-            /*
-             * we allow strides even when we create
-             * the memory, but be careful with this...
-             */
             memcpy(self->strides, strides, sizeof(int)*nd);
         }
     } else {
@@ -460,12 +451,6 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
     }
 
     if (data == NULL) {
-        /*
-         * Allocate something even for zero-space arrays
-         * e.g. shape=(0,) -- otherwise buffer exposure
-         * (a.data) doesn't work as it should.
-         * Could probably just allocate a few bytes here. -- Chuck
-         */
         if (is_empty) {
             nbytes = descr->elsize;
         }
@@ -481,10 +466,6 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
         self->flags |= CARRAY_ARRAY_OWNDATA;
     }
     else {
-        /*
-         * If data is passed in, this object won't own it by default.
-         * Caller must arrange for this to be reset if truly desired
-         */
         self->flags &= ~CARRAY_ARRAY_OWNDATA;
     }
     self->data = data;
