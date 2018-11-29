@@ -79,7 +79,7 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
             for(i = 0; i < num_elements; i++) {
                 IDATA(ret)[i] = 0;
             }
-            ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, CArray_DATA(ret), 0, NULL, 1, 0);   
+            ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, NULL, 0, NULL, 1, 0);   
             CArrayIterator * it = CArray_IterAllButAxis(self, axis);
             i = 0;
             do {

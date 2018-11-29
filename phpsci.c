@@ -101,7 +101,7 @@ PHP_METHOD(CArray, __construct)
     zend_update_property_long(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, (int)ptr.uuid);
     zend_update_property_long(carray_sc_entry, obj, "ndim", sizeof("ndim") - 1, (int)arr->ndim);
 }
-PHP_METHOD(CArray, reshape)
+PHP_METHOD(CArray, shape)
 {
     MemoryPointer ptr;
     CArray * carray, * newcarray;
@@ -139,7 +139,9 @@ PHP_METHOD(CArray, print)
 
 PHP_METHOD(CArray, __destruct)
 {
-
+    MemoryPointer ptr;
+    ZVAL_TO_MEMORYPOINTER(getThis(), &ptr);
+    CArray_Alloc_FreeFromMemoryPointer(&ptr);
 }
 PHP_METHOD(CArray, offsetExists)
 {
@@ -225,12 +227,13 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, __construct, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, __destruct, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, iterator, NULL, ZEND_ACC_PUBLIC)
-        PHP_ME(CArray, reshape, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, dump, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, print, NULL, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, shape, NULL, ZEND_ACC_PUBLIC)
 
         // CALCULATION
         PHP_ME(CArray, sum, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        
 
         // CARRAY ITERATOR
         PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)

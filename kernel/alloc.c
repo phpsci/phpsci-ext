@@ -4,6 +4,7 @@
 
 #include "alloc.h"
 #include "carray.h"
+#include "buffer.h"
 
 /**
  * @return
@@ -77,3 +78,46 @@ CArrayDescriptor_DECREF(CArrayDescriptor * descriptor)
     descriptor->refcount--;
 }
 
+/**
+ * Free CArrays owning data buffer
+ */  
+void
+_free_data_owner(MemoryPointer * ptr)
+{
+    CArray * array = CArray_FromMemoryPointer(ptr);
+    if(array->descriptor->refcount == 0) {
+        efree(array->descriptor);
+    }
+    if(array->refcount == 0) {
+        efree(array->data);
+    }
+}
+
+/**
+ * Free CArrays that refers others CArrays
+ */  
+void
+_free_data_ref(MemoryPointer * ptr)
+{
+    CArray * array = CArray_FromMemoryPointer(ptr);
+    if(array->refcount == 0 && array->base->refcount <= 1) {
+        efree(array->data);
+    }
+    if(array->refcount == 0 && array->base->refcount > 1) {
+        CArray_DECREF(array->base);
+    }
+}
+
+/**
+ * Free CArray using MemoryPointer
+ **/ 
+void
+CArray_Alloc_FreeFromMemoryPointer(MemoryPointer * ptr)
+{
+    CArray * array = CArray_FromMemoryPointer(ptr);
+    if(CArray_CHKFLAGS(array, CARRAY_ARRAY_OWNDATA)){
+        _free_data_owner(ptr);
+        return;
+    }
+    _free_data_ref(ptr);
+}

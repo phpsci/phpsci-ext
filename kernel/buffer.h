@@ -23,6 +23,7 @@ extern struct MemoryStack PHPSCI_MAIN_MEM_STACK;
 
 void add_to_buffer(MemoryPointer * ptr, CArray array, size_t size);
 void buffer_to_capacity(int new_capacity, size_t size);
+void remove_from_buffer(MemoryPointer * ptr);
 void buffer_init();
 
 #endif //PHPSCI_EXT_BUFFER_H

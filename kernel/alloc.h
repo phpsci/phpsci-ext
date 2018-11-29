@@ -15,4 +15,5 @@ void CArray_INCREF(CArray * target);
 void CArray_DECREF(CArray * target);
 void CArrayDescriptor_INCREF(CArrayDescriptor * descriptor);
 void CArrayDescriptor_DECREF(CArrayDescriptor * descriptor);
+void CArray_Alloc_FreeFromMemoryPointer(MemoryPointer * ptr);
 #endif //PHPSCI_EXT_ALLOC_H

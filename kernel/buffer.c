@@ -39,7 +39,6 @@ void buffer_to_capacity(int new_capacity, size_t size) {
     PHPSCI_MAIN_MEM_STACK.capacity = new_capacity;
 }
 
-
 /**
  * Add CArray to MemoryStack (Buffer) and retrieve MemoryPointer
  *
