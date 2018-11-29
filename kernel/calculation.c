@@ -5,7 +5,63 @@
 #include "common/exceptions.h"
 
 /**
- * CArray Prod
+ * CArray Cumulative Sum
+ * @todo Implement axis option
+ **/ 
+CArray *
+CArray_CumSum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
+{
+    int i, j = 0, z, tmp_index;
+    CArray * arr, * ret = NULL;
+    CArrayDescriptor * descr;
+    ret = (CArray *)emalloc(sizeof(CArray));
+    descr = (CArrayDescriptor*)emalloc(sizeof(CArrayDescriptor));
+    arr = CArray_CheckAxis(self, axis, 0);
+    int index_jumps = self->strides[*axis]/self->descriptor->elsize;
+    
+    if(axis != NULL) {
+        throw_axis_exception("Axis option not available for CArray::cumprod.");  
+        return NULL;
+    }
+
+    if (arr == NULL) {
+        return NULL;
+    }
+
+    descr->type_num = self->descriptor->type_num;
+    descr->type = self->descriptor->type;
+    descr->elsize = self->descriptor->elsize;
+
+    if(axis == NULL) {
+        descr->numElements = self->descriptor->numElements;
+        int * new_dims = (int *)emalloc(sizeof(int));
+        new_dims[0] = descr->numElements;
+        int * new_strides = CArray_Generate_Strides(new_dims, 1, CArray_DESCR(self)->type);
+
+        ret = CArray_NewFromDescr_int(ret, descr, 1, 
+                                      new_dims, new_strides, 
+                                      NULL, 0, NULL, 1, 0);
+        CArray_Data_alloc(ret);
+        if(rtype == TYPE_INTEGER_INT) {
+            IDATA(ret)[0] = IDATA(self)[0];
+            for(i = 1; i < (CArray_DESCR(self)->numElements); i++) {
+                IDATA(ret)[i] = IDATA(ret)[i-1] + IDATA(self)[i];
+            }
+        }
+        if(rtype == TYPE_DOUBLE_INT) {
+            DDATA(ret)[0] = DDATA(self)[0];
+            for(i = 1; i < (CArray_DESCR(self)->numElements); i++) {
+                DDATA(ret)[i] = DDATA(ret)[i-1] + DDATA(self)[i];
+            }
+        }
+    }
+    add_to_buffer(out_ptr, *ret, sizeof(*ret));
+    return ret;
+}
+
+/**
+ * CArray Cumulative Prod
+ * @todo Implement axis option
  **/ 
 CArray *
 CArray_CumProd(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)

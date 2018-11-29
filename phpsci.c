@@ -267,6 +267,31 @@ PHP_METHOD(CArray, cumprod)
     efree(axis_p);
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
+PHP_METHOD(CArray, cumsum)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_ZVAL(target)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    if(ZEND_NUM_ARGS() == 1) {
+        axis_p = NULL;
+    }
+    if(ZEND_NUM_ARGS() > 1) {
+        axis_p = (int*)emalloc(sizeof(int));
+        *axis_p = axis;
+    }
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_CumSum(target_ca, axis_p, target_ca->descriptor->type_num, &ptr);
+    efree(axis_p);
+    RETURN_MEMORYPOINTER(return_value, &ptr);
+}
 
 PHP_METHOD(CArrayIterator, next)
 {
@@ -289,6 +314,7 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, sum, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, prod, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, cumprod, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, cumsum, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // CARRAY ITERATOR
         PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
