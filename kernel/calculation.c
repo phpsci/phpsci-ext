@@ -10,7 +10,7 @@
 CArray *
 CArray_CumProd(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
 {
-    int i, j = 0, z;
+    int i, j = 0, z, tmp_index;
     CArray * arr, * ret = NULL;
     CArrayDescriptor * descr;
     ret = (CArray *)emalloc(sizeof(CArray));
@@ -19,10 +19,8 @@ CArray_CumProd(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
     int index_jumps = self->strides[*axis]/self->descriptor->elsize;
     
     if(axis != NULL) {
-        if(*axis >= CArray_NDIM(self)) {
-            throw_axis_exception("Invalid axis for current matrix shape.");
-            return NULL;
-        }
+        throw_axis_exception("Axis option not available for CArray::cumprod.");  
+        return NULL;
     }
 
     if (arr == NULL) {
@@ -35,72 +33,25 @@ CArray_CumProd(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
 
     if(axis == NULL) {
         descr->numElements = self->descriptor->numElements;
-        ret = CArray_NewFromDescr_int(ret, descr, CArray_NDIM(self), 
-                                      CArray_DIMS(self), CArray_STRIDES(self), 
+        int * new_dims = (int *)emalloc(sizeof(int));
+        new_dims[0] = descr->numElements;
+        int * new_strides = CArray_Generate_Strides(new_dims, 1, CArray_DESCR(self)->type);
+
+        ret = CArray_NewFromDescr_int(ret, descr, 1, 
+                                      new_dims, new_strides, 
                                       NULL, 0, NULL, 1, 0);
         CArray_Data_alloc(ret);
         if(rtype == TYPE_INTEGER_INT) {
-            for(i = 1; i < (CArray_DESCR(self)->numElements-1); i++) {
-                IDATA(ret)[i] = IDATA(self)[i] * IDATA(self)[i-1];
+            IDATA(ret)[0] = IDATA(self)[0];
+            for(i = 1; i < (CArray_DESCR(self)->numElements); i++) {
+                IDATA(ret)[i] = IDATA(ret)[i-1] * IDATA(self)[i];
             }
         }
         if(rtype == TYPE_DOUBLE_INT) {
-            for(i = 1; i < (CArray_DESCR(self)->numElements-1); i++) {
-                DDATA(ret)[i] = DDATA(self)[i] * DDATA(self)[i]-1;
+            DDATA(ret)[0] = DDATA(self)[0];
+            for(i = 1; i < (CArray_DESCR(self)->numElements); i++) {
+                DDATA(ret)[i] = DDATA(ret)[i-1] * DDATA(self)[i];
             }
-        }
-    }
-    if(axis != NULL) {
-        int * new_dimensions = (int*)emalloc((self->ndim - 1) * sizeof(int));    
-        for(i = 0; i < self->ndim; i++) {
-            if(i != *axis) {
-                new_dimensions[j] = self->dimensions[i];
-                j++;
-            }         
-        }      
-        int num_elements = new_dimensions[0];
-        int * strides = CArray_Generate_Strides(new_dimensions, self->ndim-1, self->descriptor->type);
-        for(i = 1; i < self->ndim-1; i++) {
-            num_elements *= new_dimensions[i];
-        }
-        descr->numElements = num_elements;
-        
-        ret->descriptor = descr;
-        CArray_Data_alloc(ret);
-        
-        if(rtype == TYPE_INTEGER_INT) {
-            ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, NULL, 0, NULL, 1, 0);   
-            CArrayIterator * it = CArray_IterAllButAxis(self, axis);
-            
-            for(i = 0; i < num_elements; i++) {
-                IDATA(ret)[i] = 1;
-            }
-
-            i = 0;
-            do {
-                for(j = 0; j < self->dimensions[*axis]; j++) {
-                    IDATA(ret)[i] *= ((int*)CArrayIterator_DATA(it))[j * (self->strides[*axis]/self->descriptor->elsize)];
-                }
-                CArrayIterator_NEXT(it);
-                i++;
-            } while(CArrayIterator_NOTDONE(it));
-        }
-        if(rtype == TYPE_DOUBLE_INT) {
-            ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, NULL, 0, NULL, 1, 0);   
-            CArrayIterator * it = CArray_IterAllButAxis(self, axis);
-            
-            for(i = 0; i < num_elements; i++) {
-                DDATA(ret)[i] = 1.0;
-            }
-
-            i = 0;
-            do {
-                for(j = 0; j < self->dimensions[*axis]; j++) {
-                    DDATA(ret)[i] *= ((double*)CArrayIterator_DATA(it))[j * (self->strides[*axis]/self->descriptor->elsize)];
-                }
-                CArrayIterator_NEXT(it);
-                i++;
-            } while(CArrayIterator_NOTDONE(it));
         }
     }
     add_to_buffer(out_ptr, *ret, sizeof(*ret));
