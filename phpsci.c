@@ -292,6 +292,35 @@ PHP_METHOD(CArray, cumsum)
     efree(axis_p);
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
+PHP_METHOD(CArray, transpose)
+{
+    zval * target;
+    zval * axes;
+    int size_axes;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr;
+    CArray_Dims permute;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_ZVAL(target)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_ARRAY(axes)
+    ZEND_PARSE_PARAMETERS_END();
+
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+
+    if(ZEND_NUM_ARGS() == 1) {
+        ret = CArray_Transpose(target_ca, NULL, &ptr);
+    }
+    if(ZEND_NUM_ARGS() > 1) {
+        permute.ptr = ZVAL_TO_TUPLE(axes, &size_axes);
+        permute.len = size_axes;
+        ret = CArray_Transpose(target_ca, &permute, &ptr);
+    }
+    
+    FREE_TUPLE(permute.ptr);
+    RETURN_MEMORYPOINTER(return_value, &ptr);
+}
 
 PHP_METHOD(CArrayIterator, next)
 {
@@ -308,6 +337,9 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, iterator, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, dump, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, print, NULL, ZEND_ACC_PUBLIC)
+
+        // SHAPE
+        PHP_ME(CArray, transpose, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, shape, NULL, ZEND_ACC_PUBLIC)
 
         // CALCULATION

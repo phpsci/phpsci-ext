@@ -376,6 +376,17 @@ CArray_SetBaseCArray(CArray * target, CArray * base)
 
 /**
  * @return
+ **/ 
+CArray *
+CArray_NewFromDescrAndBase(CArray * subtype, CArrayDescriptor * descr, int nd,
+                           int * dims, int * strides, void * data, int flags,
+                           CArray * base)
+{
+    return CArray_NewFromDescr_int(subtype, descr, nd, dims, strides, data, flags, base, 0, 0);
+}
+
+/**
+ * @return
  */
 CArray *
 CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,

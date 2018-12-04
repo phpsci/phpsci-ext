@@ -132,6 +132,14 @@ struct CArray {
 };
 
 /**
+ * CArray Dims
+ **/ 
+typedef struct CArray_Dims {
+    int * ptr;
+    int len;
+} CArray_Dims;
+
+/**
  * Memory Pointer
  */
 typedef struct MemoryPointer {
@@ -237,5 +245,8 @@ void CArray_Dump(CArray * ca);
 int * CArray_Generate_Strides(int * dims, int ndims, char type);
 void CArray_Print(CArray *array);
 CArray * CArray_FromMemoryPointer(MemoryPointer * ptr);
+CArray * CArray_NewFromDescrAndBase(CArray * subtype, CArrayDescriptor * descr, int nd,
+                                    int * dims, int * strides, void * data, int flags,
+                                    CArray * base);
 
 #endif //PHPSCI_EXT_CARRAY_H

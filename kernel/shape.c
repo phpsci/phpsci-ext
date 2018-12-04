@@ -124,6 +124,86 @@ _attempt_nocopy_reshape(CArray *self, int newnd, int* newdims,
 }
 
 /**
+ * CArray Transpose
+ **/ 
+CArray *
+CArray_Transpose(CArray * target, CArray_Dims * permute, MemoryPointer * ptr)
+{
+    int * axes;
+    int i, n;
+    int * permutation = NULL, * reverse_permutation = NULL;
+    CArray * ret = NULL;
+    int flags;
+
+    ret = (CArray *)emalloc(sizeof(CArray));
+
+    if(permute == NULL) {
+        n = CArray_NDIM(target);
+        permutation = (int *)emalloc(n * sizeof(int));
+        for (i = 0; i < n; i++) {
+            permutation[i] = n-1-i;
+        }
+    }
+    if(permute != NULL) {
+        n = permute->len;
+        axes = permute->ptr;
+        permutation = (int *)emalloc(n * sizeof(int));
+        reverse_permutation = (int *)emalloc(n * sizeof(int));
+        if(n != CArray_NDIM(target)) {
+            throw_axis_exception("axes don't match array");
+            return NULL;
+        }
+
+        for (i = 0; i < n; i++) {
+            reverse_permutation[i] = -1;
+        }
+
+        for (i = 0; i < n; i++) {
+            int axis = axes[i];
+            if (check_and_adjust_axis(&axis, CArray_NDIM(target)) < 0) {
+                return NULL;
+            }
+            if (reverse_permutation[axis] != -1) {
+                throw_axis_exception("repeated axis in transpose");
+                return NULL;
+            }
+            reverse_permutation[axis] = i;
+            permutation[i] = axis;
+        }
+    }
+
+    flags = CArray_FLAGS(target);
+    CArrayDescriptor_INCREF(CArray_DESCR(target));
+
+    ret = CArray_NewFromDescrAndBase(
+            ret, CArray_DESCR(target),
+            n, CArray_DIMS(target), NULL, CArray_DATA(target),
+            flags, target);
+
+    if (ret == NULL) {
+        return NULL;
+    }
+    
+    for (i = 0; i < n; i++) {
+        CArray_DIMS(ret)[i] = CArray_DIMS(target)[permutation[i]];
+        CArray_STRIDES(ret)[i] = CArray_STRIDES(target)[permutation[i]];
+    }
+
+    CArray_UpdateFlags(ret, CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_ALIGNED);
+
+    efree(permutation);
+    if(reverse_permutation != NULL) {
+        efree(reverse_permutation);
+    }
+
+    if(ptr != NULL) {
+        add_to_buffer(ptr, *(ret), sizeof(CArray));
+    }
+
+    return ret;
+}
+
+/**
  * @param self
  * @param newdims
  * @param order
