@@ -12,8 +12,10 @@ static const int CARRAY_ARRAY_WARN_ON_WRITE = (1 << 31);
 #define CARRAY_MAXDIMS   100
 #define TYPE_INTEGER     'i'
 #define TYPE_DOUBLE      'd'
+#define TYPE_FLOAT       'f'
 #define TYPE_INTEGER_INT  2
 #define TYPE_DOUBLE_INT   1
+#define TYPE_FLOAT_INT    3
 
 /* For specifying array memory layout or iteration order */
 typedef enum {
@@ -102,6 +104,12 @@ typedef enum {
                              (!CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS)))
 #define CArray_IS_F_CONTIGUOUS(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_F_CONTIGUOUS)
 #define CArray_IS_C_CONTIGUOUS(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS)
+#define CArray_Copy(obj) CArray_NewCopy(obj, CARRAY_CORDER)
+
+
+#define CArray_GETPTR2(obj, i, j) ((void *)(CArray_BYTES(obj) + \
+                                            (i)*CArray_STRIDES(obj)[0] + \
+                                            (j)*CArray_STRIDES(obj)[1]))
 
 /**
  * CArray Descriptor
@@ -115,6 +123,13 @@ typedef struct CArrayDescriptor {
     int alignment;      // Alignment Information
     int refcount;
 } CArrayDescriptor;
+
+/**
+ * Stride Sorting
+ */ 
+typedef struct {
+    int perm, stride;
+} ca_stride_sort_item;
 
 /**
  * CArray
@@ -179,11 +194,32 @@ typedef struct CArrayFlags
 #define CArray_DIMS(a) ((int *)((a)->dimensions))
 #define CArray_STRIDES(a) ((int *)((a)->strides))
 #define CArray_DESCR(a) ((a)->descriptor)
+#define CArray_SIZE(m) CArray_MultiplyList(CArray_DIMS(m), CArray_NDIM(m))
+#define CArray_NBYTES(m) (CArray_ITEMSIZE(m) * CArray_SIZE(m))
+
+
+static inline int
+CArray_TYPE(const CArray *arr)
+{
+    return arr->descriptor->type_num;
+}
 
 static inline int
 CArray_FLAGS(const CArray *arr)
 {
     return arr->flags;
+}
+
+static inline CArray * 
+CArray_BASE(const CArray *arr)
+{
+    return arr->base;
+}
+
+static inline int
+CArray_STRIDE(const CArray *arr, int index)
+{
+    return ((arr)->strides[index]);
 }
 
 static inline int
@@ -223,9 +259,10 @@ check_and_adjust_axis(int *axis, int ndim)
 }
 
 
-#define CArray_SIZE(m) CArray_MultiplyList(CArray_DIMS(m), CArray_NDIM(m))
-#define CArray_ISCONTIGUOUS(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS)
 
+#define CArray_ISCONTIGUOUS(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS)
+#define CArray_ISWRITEABLE(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_WRITEABLE)
+#define CArray_ISALIGNED(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_ALIGNED)
 
 
 
@@ -237,6 +274,7 @@ CArray * CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
                                  int *dims, int *strides, void *data,
                                  int flags, CArray *base, int zeroed,
                                  int allow_emptystring);
+
 CArray * CArray_NewLikeArray(CArray *prototype, CARRAY_ORDER order, CArrayDescriptor *dtype, int subok);
 CArray * CArray_CheckAxis(CArray * arr, int * axis, int flags);
 void CArray_Hashtable_Data_Copy(CArray * target_carray, zval * target_zval, int * first_index);
@@ -244,9 +282,21 @@ void CArray_FromZval(zval * php_obj, char type, MemoryPointer * ptr);
 void CArray_Dump(CArray * ca);
 int * CArray_Generate_Strides(int * dims, int ndims, char type);
 void CArray_Print(CArray *array);
+
 CArray * CArray_FromMemoryPointer(MemoryPointer * ptr);
 CArray * CArray_NewFromDescrAndBase(CArray * subtype, CArrayDescriptor * descr, int nd,
                                     int * dims, int * strides, void * data, int flags,
                                     CArray * base);
+CArray * CArray_New(CArray *subtype, int nd, int *dims, int type_num,
+           int *strides, void *data, int itemsize, int flags, CArray * base);
+CArray * CArray_NewFromDescr( CArray *subtype, CArrayDescriptor *descr,
+                     int nd, int *dims, int *strides, void *data,
+                     int flags, CArray * base);                                    
 
+int CArray_SetWritebackIfCopyBase(CArray *arr, CArray *base);
+int CArray_FailUnlessWriteable(CArray *obj, const char *name);
+int array_might_be_written(CArray *obj);
+CArrayDescriptor * CArray_DescrFromType(int typenum);
+int CArray_ResolveWritebackIfCopy(CArray * self);
+int CArray_CompareLists(int *l1, int *l2, int n);
 #endif //PHPSCI_EXT_CARRAY_H

@@ -91,7 +91,7 @@ CArray *
 CArray_NewCopy(CArray *obj, CARRAY_ORDER order)
 {
     CArray * ret;
-
+    ret = (CArray *)emalloc(sizeof(CArray));
     ret = (CArray *)CArray_NewLikeArray(obj, order, NULL, 1);
     if (ret == NULL) {
         return NULL;

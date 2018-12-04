@@ -64,6 +64,68 @@ CArray_FromZval_Long(zval * php_obj, char * type)
 
 }
 
+/*
+ * This is the main array creation routine.
+ *
+ * Flags argument has multiple related meanings
+ * depending on data and strides:
+ *
+ * If data is given, then flags is flags associated with data.
+ * If strides is not given, then a contiguous strides array will be created
+ * and the CARRAY_ARRAY_C_CONTIGUOUS bit will be set.  If the flags argument
+ * has the CARRAY_ARRAY_F_CONTIGUOUS bit set, then a FORTRAN-style strides array will be
+ * created (and of course the CARRAY_ARRAY_F_CONTIGUOUS flag bit will be set).
+ *
+ * If data is not given but created here, then flags will be NPY_ARRAY_DEFAULT
+ * and a non-zero flags argument can be used to indicate a FORTRAN style
+ * array is desired.
+ *
+ * Dimensions and itemsize must have been checked for validity.
+ */
+void
+_array_fill_strides(int *strides, int *dims, int nd, size_t itemsize,
+                    int inflag, int *objflags)
+{
+    int i;
+
+    /* Only make Fortran strides if not contiguous as well */
+    if ((inflag & (CARRAY_ARRAY_F_CONTIGUOUS|CARRAY_ARRAY_C_CONTIGUOUS)) ==
+                                            CARRAY_ARRAY_F_CONTIGUOUS) {
+        for (i = 0; i < nd; i++) {
+            strides[i] = itemsize;
+            if (dims[i]) {
+                itemsize *= dims[i];
+            }
+
+        }
+
+        if ((nd > 1) && ((strides[0] != strides[nd-1]) || (dims[nd-1] > 1))) {
+            *objflags = ((*objflags)|CARRAY_ARRAY_F_CONTIGUOUS) &
+                                            ~CARRAY_ARRAY_C_CONTIGUOUS;
+        }
+        else {
+            *objflags |= (CARRAY_ARRAY_F_CONTIGUOUS|CARRAY_ARRAY_C_CONTIGUOUS);
+        }
+    }
+    else {
+        for (i = nd - 1; i >= 0; i--) {
+            strides[i] = itemsize;
+            if (dims[i]) {
+                itemsize *= dims[i];
+            }
+        }
+
+        if ((nd > 1) && ((strides[0] != strides[nd-1]) || (dims[0] > 1))) {
+            *objflags = ((*objflags)|CARRAY_ARRAY_C_CONTIGUOUS) &
+                                            ~CARRAY_ARRAY_F_CONTIGUOUS;
+        }
+        else {
+            *objflags |= (CARRAY_ARRAY_C_CONTIGUOUS|CARRAY_ARRAY_F_CONTIGUOUS);
+        }
+    }
+    return;
+}
+
 /**
  * @param dims
  * @param ndims
@@ -376,6 +438,66 @@ CArray_SetBaseCArray(CArray * target, CArray * base)
 
 /**
  * @return
+ */ 
+CArrayDescriptor *
+CArray_DescrFromType(int typenum)
+{
+    CArrayDescriptor *ret = NULL;
+    ret = (CArrayDescriptor*)emalloc(sizeof(CArrayDescriptor));
+    ret->type_num = typenum;
+    ret->numElements = 0;
+    ret->refcount = 0;
+    if(typenum == TYPE_DOUBLE_INT) {
+        ret->elsize = sizeof(double);
+        ret->type   = TYPE_DOUBLE;
+    }
+    if(typenum == TYPE_INTEGER_INT) {
+        ret->elsize = sizeof(int);
+        ret->type   = TYPE_INTEGER;
+    }
+    if(typenum == TYPE_FLOAT_INT) {
+        ret->elsize = sizeof(float);
+        ret->type   = TYPE_FLOAT;
+    }
+    return ret;
+}
+
+/**
+ * @return
+ **/ 
+CArray *
+CArray_NewFromDescr( CArray *subtype, CArrayDescriptor *descr,
+                     int nd, int *dims, int *strides, void *data,
+                     int flags, CArray * base)
+{
+    return CArray_NewFromDescrAndBase(
+            subtype, descr,
+            nd, dims, strides, data,
+            flags, base);
+}
+
+/**
+ * @return
+ **/ 
+CArray *
+CArray_New(CArray *subtype, int nd, int *dims, int type_num,
+           int *strides, void *data, int itemsize, int flags, CArray * base)
+{
+    CArrayDescriptor *descr;
+    CArray *new;
+
+    descr = CArray_DescrFromType(type_num);
+    if (descr == NULL) {
+        return NULL;
+    }
+
+    new = CArray_NewFromDescr(subtype, descr, nd, dims, strides,
+                              data, flags, base);
+    return new;
+}
+
+/**
+ * @return
  **/ 
 CArray *
 CArray_NewFromDescrAndBase(CArray * subtype, CArrayDescriptor * descr, int nd,
@@ -394,7 +516,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
                         int flags, CArray *base, int zeroed,
                         int allow_emptystring)
 {
-    int i, is_empty;
+    int i, is_empty, num_elements = 0;
     uintptr_t nbytes;
 
     if ((unsigned int)nd > (unsigned int)CARRAY_MAXDIMS) {
@@ -417,7 +539,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
             return NULL;
         }
     }
-
+    
     self->ndim = nd;
     self->dimensions = NULL;
     self->data = NULL;
@@ -449,9 +571,17 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
 
         self->strides = self->dimensions + nd;
         memcpy(self->dimensions, dims, sizeof(uintptr_t)*nd);
-        if (strides == NULL) {  /* fill it in */
-            //_array_fill_strides(fa->strides, dims, nd, descr->elsize,
-                                //flags, &(fa->flags));
+
+        for(i = 0; i < nd; i++) {
+            if(i == 0) {
+                num_elements = self->dimensions[i];
+                continue;
+            }
+            num_elements = self->dimensions[i] * num_elements;
+        }
+        descr->numElements = num_elements;
+        if (strides == NULL) {  
+            _array_fill_strides(self->strides, dims, nd, descr->elsize, flags, &(self->flags));
         }
         else {
             memcpy(self->strides, strides, sizeof(int)*nd);
@@ -640,47 +770,234 @@ CArray_NewLikeArray(CArray *prototype, CARRAY_ORDER order, CArrayDescriptor *dty
     }
 
     if (order != CARRAY_KEEPORDER) {
-
-        //ret = CArray_NewFromDescr(prototype,
-        //                           dtype,
-        //                           ndim,
-        //                           CArray_DIMS(prototype),
-        //                           NULL,
-        //                           NULL,
-        //                           order,
-        //                           subok ? (PyObject *)prototype : NULL);
+        ret = CArray_NewFromDescr(prototype,
+                                   dtype,
+                                   ndim,
+                                   CArray_DIMS(prototype),
+                                   NULL,
+                                   NULL,
+                                   order,
+                                   subok ? prototype : NULL);
     } /* KEEPORDER needs some analysis of the strides */
     else {
-        //npy_intp strides[NPY_MAXDIMS], stride;
-        //npy_intp *shape = PyArray_DIMS(prototype);
-        //npy_stride_sort_item strideperm[NPY_MAXDIMS];
+        int strides[CARRAY_MAXDIMS], stride;
+        int *shape = CArray_DIMS(prototype);
+        ca_stride_sort_item strideperm[CARRAY_MAXDIMS];
         int idim;
 
-        //PyArray_CreateSortedStridePerm(PyArray_NDIM(prototype),
-        //                               PyArray_STRIDES(prototype),
+        //CArray_CreateSortedStridePerm(CArray_NDIM(prototype),
+        //                               CArray_STRIDES(prototype),
         //                               strideperm);
 
         /* Build the new strides */
-        //stride = dtype->elsize;
-        //for (idim = ndim-1; idim >= 0; --idim) {
-        //    npy_intp i_perm = strideperm[idim].perm;
-        //    strides[i_perm] = stride;
-        //    stride *= shape[i_perm];
-        //}
+        stride = dtype->elsize;
+        for (idim = ndim-1; idim >= 0; --idim) {
+            int i_perm = strideperm[idim].perm;
+            strides[i_perm] = stride;
+            stride *= shape[i_perm];
+        }
 
         /* Finally, allocate the array */
-        //ret = PyArray_NewFromDescr(subok ? Py_TYPE(prototype) : &PyArray_Type,
-        //                           dtype,
-        //                           ndim,
-        //                           shape,
-        //                           strides,
-        //                           NULL,
-        //                           0,
-        //                           subok ? (PyObject *)prototype : NULL);
+        ret = CArray_NewFromDescr(prototype,
+                                  dtype,
+                                  ndim,
+                                  shape,
+                                  strides,
+                                  NULL,
+                                  0,
+                                  subok ? prototype : NULL);
     }
 
     return ret;
 }
+
+/* 
+ * Call this from contexts where an array might be written to, but we have no
+ * way to tell. (E.g., when converting to a read-write buffer.)
+ */
+int
+array_might_be_written(CArray *obj)
+{
+    if (CArray_FLAGS(obj) & CARRAY_ARRAY_WARN_ON_WRITE) {
+        /* Only warn once per array */
+        while (1) {
+            CArray_CLEARFLAGS(obj, CARRAY_ARRAY_WARN_ON_WRITE);
+            if (!CArray_BASE(obj)) {
+                break;
+            }
+            obj = (CArray *)CArray_BASE(obj);
+        }
+    }
+    return 0;
+}
+
+/**
+ * This function does nothing if obj is writeable, and raises an exception
+ * (and returns -1) if obj is not writeable. It may also do other
+ * house-keeping, such as issuing warnings on arrays which are transitioning
+ * to become views. Always call this function at some point before writing to
+ * an array.
+ **/ 
+int
+CArray_FailUnlessWriteable(CArray *obj, const char *name)
+{
+    if (!CArray_ISWRITEABLE(obj)) {
+        char * msg = (char*)emalloc(strlen(name) + strlen(" is read-only"));
+        sprintf(msg, "%s is read-only", name);
+        throw_valueerror_exception(msg);
+        return -1;
+    }
+    if (array_might_be_written(obj) < 0) {
+        return -1;
+    }
+    return 0;
+}
+
+/**
+ * Precondition: 'arr' is a copy of 'base' (though possibly with different
+ * strides, ordering, etc.). This function sets the WRITEBACKIFCOPY flag and the
+ * ->base pointer on 'arr'.
+ * 
+ * Steals a reference to 'base'.
+ * 
+ * Returns 0 on success, -1 on failure.
+ **/ 
+int
+CArray_SetWritebackIfCopyBase(CArray *arr, CArray *base)
+{
+    if (base == NULL) {
+        throw_valueerror_exception(
+                  "Cannot WRITEBACKIFCOPY to NULL array");
+        return -1;
+    }
+    if (CArray_BASE(arr) != NULL) {
+        throw_valueerror_exception(
+                  "Cannot set array with existing base to WRITEBACKIFCOPY");
+        goto fail;
+    }
+    if (CArray_FailUnlessWriteable(base, "WRITEBACKIFCOPY base") < 0) {
+        goto fail;
+    }
+
+    /*
+     * Any writes to 'arr' will magically turn into writes to 'base', so we
+     * should warn if necessary.
+     */
+    if (CArray_FLAGS(base) & CARRAY_ARRAY_WARN_ON_WRITE) {
+        CArray_ENABLEFLAGS(arr, CARRAY_ARRAY_WARN_ON_WRITE);
+    }
+
+    /*
+     * Unlike CArray_SetBaseObject, we do not compress the chain of base
+     * references.
+     */
+    ((CArray *)arr)->base = (CArray *)base;
+    CArray_ENABLEFLAGS(arr, CARRAY_ARRAY_WRITEBACKIFCOPY);
+    CArray_CLEARFLAGS(base, CARRAY_ARRAY_WRITEABLE);
+
+    return 0;
+
+  fail:
+    Py_DECREF(base);
+    return -1;
+}
+
+int
+CArray_CompareLists(int *l1, int *l2, int n)
+{
+    int i;
+
+    for (i = 0; i < n; i++) {
+        if (l1[i] != l2[i]) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+/**
+ * @return
+ */ 
+int
+CArray_CopyAsFlat(CArray *dst, CArray *src, CARRAY_ORDER order)
+{
+    //PyArray_StridedUnaryOp *stransfer = NULL;
+    //NpyAuxData *transferdata = NULL;
+    //NpyIter *dst_iter, *src_iter;
+
+    //NpyIter_IterNextFunc *dst_iternext, *src_iternext;
+    char **dst_dataptr, **src_dataptr;
+    int dst_stride, src_stride;
+    int *dst_countptr, *src_countptr;
+    int baseflags;
+
+    char *dst_data, *src_data;
+    int dst_count, src_count, count;
+    int src_itemsize;
+    int dst_size, src_size;
+    int needs_api;
+
+    /*
+     * If the shapes match and a particular order is forced
+     * for both, use the more efficient CopyInto
+     */
+    if (order != CARRAY_ANYORDER && order != CARRAY_KEEPORDER &&
+        CArray_NDIM(dst) == CArray_NDIM(src) &&
+        CArray_CompareLists(CArray_DIMS(dst), CArray_DIMS(src),
+        CArray_NDIM(dst))) {
+            
+            //return CArray_CopyInto(dst, src);
+    }
+}
+
+/**
+ * Copy an Array into another array -- memory must not overlap
+ * Does not require src and dest to have "broadcastable" shapes
+ * (only the same number of elements).
+ */ 
+int
+CArray_CopyAnyInto(CArray *dst, CArray *src)
+{
+    return CArray_CopyAsFlat(dst, src, CARRAY_CORDER);
+}
+
+/**
+ * If WRITEBACKIFCOPY and self has data, reset the base WRITEABLE flag,
+ * copy the local data to base, release the local data, and set flags
+ * appropriately. Return 0 if not relevant, 1 if success, < 0 on failure
+ */ 
+int
+CArray_ResolveWritebackIfCopy(CArray * self)
+{
+    CArray *fa = (CArray *)self;
+    if (fa && fa->base) {
+        if ((fa->flags & CARRAY_ARRAY_UPDATEIFCOPY) || (fa->flags & CARRAY_ARRAY_WRITEBACKIFCOPY)) {
+            /*
+             * UPDATEIFCOPY or WRITEBACKIFCOPY means that fa->base's data
+             * should be updated with the contents
+             * of self.
+             * fa->base->flags is not WRITEABLE to protect the relationship
+             * unlock it.
+             */
+            int retval = 0;
+            CArray_ENABLEFLAGS((fa->base),CARRAY_ARRAY_WRITEABLE);
+            CArray_CLEARFLAGS(self, CARRAY_ARRAY_UPDATEIFCOPY);
+            CArray_CLEARFLAGS(self, CARRAY_ARRAY_WRITEBACKIFCOPY);
+            retval = CArray_CopyAnyInto(fa->base, self);
+            CArray_DECREF(fa->base);
+            fa->base = NULL;
+            if (retval < 0) {
+                /* this should never happen, how did the two copies of data
+                 * get out of sync?
+                 */
+                return retval;
+            }
+            return 1;
+        }
+    }
+    return 0;
+}
+
 
 /**
  * Convert MemoryPointer to CArray

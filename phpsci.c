@@ -36,6 +36,7 @@
 #include "kernel/calculation.h"
 #include "kernel/convert.h"
 #include "kernel/common/exceptions.h"
+#include "kernel/linalg.h"
 
 void RETURN_MEMORYPOINTER(zval * return_value, MemoryPointer * ptr)
 {
@@ -321,6 +322,22 @@ PHP_METHOD(CArray, transpose)
     FREE_TUPLE(permute.ptr);
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
+PHP_METHOD(CArray, matmul)
+{
+    MemoryPointer target1_ptr, target2_ptr, result_ptr;
+    zval * target1, * target2;
+    CArray * target_ca1, * target_ca2, * output_ca, * out;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_ZVAL(target1)
+        Z_PARAM_ZVAL(target2)
+    ZEND_PARSE_PARAMETERS_END();    
+    ZVAL_TO_MEMORYPOINTER(target1, &target1_ptr);
+    ZVAL_TO_MEMORYPOINTER(target2, &target2_ptr);
+    target_ca1 = CArray_FromMemoryPointer(&target1_ptr);
+    target_ca2 = CArray_FromMemoryPointer(&target2_ptr);
+    output_ca = CArray_Matmul(target_ca1, target_ca2, out, &result_ptr);
+    RETURN_MEMORYPOINTER(return_value, &result_ptr);
+}
 
 PHP_METHOD(CArrayIterator, next)
 {
@@ -341,6 +358,9 @@ static zend_function_entry carray_class_methods[] =
         // SHAPE
         PHP_ME(CArray, transpose, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, shape, NULL, ZEND_ACC_PUBLIC)
+        
+        // LINEAR ALGEBRA
+        PHP_ME(CArray, matmul, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // CALCULATION
         PHP_ME(CArray, sum, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
