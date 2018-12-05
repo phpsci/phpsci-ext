@@ -316,14 +316,14 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
         
         if(rtype == TYPE_INTEGER_INT) {
             for(i = 0; i < num_elements; i++) {
-                DDATA(ret)[i] = 0;
+                IDATA(ret)[i] = 0;
             }
             ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, NULL, 0, NULL, 1, 0);   
             CArrayIterator * it = CArray_IterAllButAxis(self, axis);
             i = 0;
             do {
                 for(j = 0; j < self->dimensions[*axis]; j++) {
-                    DDATA(ret)[i] += ((int*)CArrayIterator_DATA(it))[j * (self->strides[*axis]/self->descriptor->elsize)];
+                    IDATA(ret)[i] += ((int*)CArrayIterator_DATA(it))[j * (self->strides[*axis]/self->descriptor->elsize)];
                 }
                 CArrayIterator_NEXT(it);
                 i++;

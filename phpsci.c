@@ -144,7 +144,7 @@ PHP_METHOD(CArray, __destruct)
 {
     MemoryPointer ptr;
     ZVAL_TO_MEMORYPOINTER(getThis(), &ptr);
-    CArray_Alloc_FreeFromMemoryPointer(&ptr);
+    //CArray_Alloc_FreeFromMemoryPointer(&ptr);
 }
 PHP_METHOD(CArray, offsetExists)
 {
