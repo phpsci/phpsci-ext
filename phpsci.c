@@ -52,7 +52,8 @@ void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
 
 void * FREE_TUPLE(int * tuple)
 {
-    efree(tuple);
+    if(tuple != NULL)
+        efree(tuple);
 }
 
 int * ZVAL_TO_TUPLE(zval * obj, int * size)
@@ -317,9 +318,8 @@ PHP_METHOD(CArray, transpose)
         permute.ptr = ZVAL_TO_TUPLE(axes, &size_axes);
         permute.len = size_axes;
         ret = CArray_Transpose(target_ca, &permute, &ptr);
+        FREE_TUPLE(permute.ptr);
     }
-    
-    FREE_TUPLE(permute.ptr);
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
 PHP_METHOD(CArray, matmul)
