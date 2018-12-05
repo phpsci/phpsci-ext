@@ -384,7 +384,6 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
         else {
             gemm(typenum, Order, Trans1, Trans2, L, N, M, ap1, lda, ap2, ldb,
                  out_buffer);
-            CArray_Print(out_buffer);
         }
     }
     
