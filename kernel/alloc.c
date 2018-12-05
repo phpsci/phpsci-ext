@@ -39,13 +39,21 @@ CArray_Data_alloc(CArray * ca)
  * @return
  */
 void *
-carray_data_alloc_zeros(int size)
+carray_data_alloc_zeros(int num_elements, int size_element, char type)
 {
     int i;
-    int * data;
-    data = (int *)emalloc(size);
-    for(i = 0; i < size; i++) {
-        data[i] = 0;
+    void * data;
+    data = ecalloc(num_elements, size_element);
+
+    if(type == TYPE_INTEGER) {
+        for(i = 0; i < num_elements; i++) {
+            ((int*)data)[i] = 0;
+        }
+    }
+    if(type == TYPE_DOUBLE) {
+        for(i = 0; i < num_elements; i++) {
+            ((double*)data)[i] = 0.00;
+        }
     }
     return (void *)data;
 }
@@ -55,9 +63,9 @@ carray_data_alloc_zeros(int size)
  * @return
  */
 void *
-carray_data_alloc(uintptr_t size)
+carray_data_alloc(int num_elements, int size_element)
 {
-    return (void*)emalloc(size);
+    return (void*)emalloc(num_elements * size_element);
 }
 
 /**
@@ -100,6 +108,7 @@ void
 _free_data_ref(MemoryPointer * ptr)
 {
     CArray * array = CArray_FromMemoryPointer(ptr);
+    
     if(array->refcount == 0 && array->base->refcount <= 1) {
         efree(array->data);
     }

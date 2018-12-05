@@ -26,9 +26,11 @@ gemm(int typenum, enum CBLAS_ORDER order,
      int m, int n, int k,
      CArray *A, int lda, CArray *B, int ldb, CArray *R)
 {
+    int i ;
     const void *Adata = CArray_DATA(A), *Bdata = CArray_DATA(B);
     void *Rdata = CArray_DATA(R);
     int ldc = CArray_DIM(R, 1) > 1 ? CArray_DIM(R, 1) : 1;
+   
     
     switch (typenum) {
         case TYPE_DOUBLE_INT:
@@ -39,7 +41,7 @@ gemm(int typenum, enum CBLAS_ORDER order,
             cblas_sgemm(order, transA, transB, m, n, k, 1.f,
                         Adata, lda, Bdata, ldb, 0.f, Rdata, ldc);
             break;
-    }
+    }    
 
 }
 
@@ -273,13 +275,12 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
     }
     
     out_buffer = new_array_for_sum(ap1, ap2, out, nd, dimensions, typenum, &result);
-    
+
     if (out_buffer == NULL) {
         goto fail;
     }
     
     numbytes = CArray_NBYTES(out_buffer);
-    memset(CArray_DATA(out_buffer), 0, numbytes);
     
     if (numbytes == 0 || l == 0) {
             CArray_DECREF(ap1);
@@ -383,6 +384,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
         else {
             gemm(typenum, Order, Trans1, Trans2, L, N, M, ap1, lda, ap2, ldb,
                  out_buffer);
+            CArray_Print(out_buffer);
         }
     }
     

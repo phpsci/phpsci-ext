@@ -32,6 +32,7 @@ CArray_Slice_Index(CArray * self, int index, MemoryPointer * out)
     subarray_descr->elsize = CArray_DESCR(self)->elsize;
     subarray_descr->type = CArray_DESCR(self)->type;
     subarray_descr->type_num = CArray_DESCR(self)->type_num;
+    subarray_descr->alignment = 0;
 
     new_strides = CArray_Generate_Strides(new_dimensions, nd, self->descriptor->type);
     

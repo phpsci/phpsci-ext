@@ -34,7 +34,7 @@ void buffer_init(size_t size) {
  */
 void buffer_to_capacity(int new_capacity, size_t size) {
     PHPSCI_MAIN_MEM_STACK.bsize += size;
-    PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)erealloc(PHPSCI_MAIN_MEM_STACK.buffer, (new_capacity * sizeof(CArray)));
+    PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)erealloc(PHPSCI_MAIN_MEM_STACK.buffer, (new_capacity * sizeof(struct CArray)));
     // Set new capacity to MemoryStack
     PHPSCI_MAIN_MEM_STACK.capacity = new_capacity;
 }

@@ -164,14 +164,16 @@ iterator_base_init(CArrayIterator * iterator, CArray * array)
     iterator->size = array->descriptor->numElements;
     iterator->ndims_m1 = nd - 1;
 
-    iterator->bounds = (int**)emalloc(nd * 2 * sizeof(int));
-    for(i=0; i < nd; i++)
+    iterator->bounds = (int**)emalloc(nd * sizeof(int*));
+    for(i=0; i < nd; i++) {
         iterator->bounds[i] = (int*)emalloc(2 * sizeof(int));
+    }
 
-    iterator->limits = (int**)emalloc(nd * 2 * sizeof(int));
+    iterator->limits = (int**)emalloc(nd * sizeof(int*));
 
-    for(i=0; i < nd; i++)
+    for(i=0; i < nd; i++) {
         iterator->limits[i] = (int*)emalloc(2 * sizeof(int));
+    }
 
     iterator->factors = (int*)emalloc(nd * sizeof(int));
     iterator->limits_sizes = (int*)emalloc(nd * sizeof(int));

@@ -287,6 +287,7 @@ CArray_Dump(CArray * ca)
     php_printf("CArray.ndim\t\t\t%d\n", ca->ndim);
     php_printf("CArray.refcount\t\t\t%d\n", ca->refcount);
     php_printf("CArray.descriptor.elsize\t%d\n", ca->descriptor->elsize);
+    php_printf("CArray.descriptor.alignment\t%d\n", ca->descriptor->alignment);
     php_printf("CArray.descriptor.numElements\t%d\n", ca->descriptor->numElements);
     php_printf("CArray.descriptor.type\t\t%c\n", ca->descriptor->type);
     php_printf("CArray.descriptor.type_num\t%d\n", ca->descriptor->type_num);
@@ -374,9 +375,11 @@ CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char 
         num_elements = 1;
     }
 
-    output_ca_dscr = (CArrayDescriptor*)emalloc(sizeof(CArrayDescriptor));
+    output_ca_dscr = (CArrayDescriptor*)emalloc(sizeof(struct CArrayDescriptor));
+    output_ca_dscr->refcount = 0;
     // Build CArray Data Descriptor
     output_ca_dscr->type = type;
+    output_ca_dscr->alignment = 0;
 
     if(ndim != 0) {
         target_stride = CArray_Generate_Strides(dims, ndim, type);
@@ -443,10 +446,11 @@ CArrayDescriptor *
 CArray_DescrFromType(int typenum)
 {
     CArrayDescriptor *ret = NULL;
-    ret = (CArrayDescriptor*)emalloc(sizeof(CArrayDescriptor));
+    ret = (CArrayDescriptor*)ecalloc(1, sizeof(struct CArrayDescriptor));
     ret->type_num = typenum;
     ret->numElements = 0;
     ret->refcount = 0;
+    ret->alignment = 0;
     if(typenum == TYPE_DOUBLE_INT) {
         ret->elsize = sizeof(double);
         ret->type   = TYPE_DOUBLE;
@@ -490,7 +494,7 @@ CArray_New(CArray *subtype, int nd, int *dims, int type_num,
     if (descr == NULL) {
         return NULL;
     }
-
+    
     new = CArray_NewFromDescr(subtype, descr, nd, dims, strides,
                               data, flags, base);
     return new;
@@ -518,7 +522,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
 {
     int i, is_empty, num_elements = 0;
     uintptr_t nbytes;
-
+    
     if ((unsigned int)nd > (unsigned int)CARRAY_MAXDIMS) {
         php_printf("number of dimensions must be within [0, %d]", CARRAY_MAXDIMS);
         return NULL;
@@ -526,6 +530,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
     self->refcount = 0;
     nbytes = descr->elsize;
     is_empty = 0;
+    
     for (i = 0; i < nd; i++) {
         uintptr_t dim = dims[i];
 
@@ -570,7 +575,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
         }
 
         self->strides = self->dimensions + nd;
-        memcpy(self->dimensions, dims, sizeof(uintptr_t)*nd);
+        memcpy(self->dimensions, dims, sizeof(int)*nd);
 
         for(i = 0; i < nd; i++) {
             if(i == 0) {
@@ -596,9 +601,9 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
             nbytes = descr->elsize;
         }
         if (zeroed || CArrayDataType_FLAGCHK(descr, CARRAY_NEEDS_INIT)) {
-            data = carray_data_alloc_zeros(nbytes);
+            data = carray_data_alloc_zeros(num_elements, descr->elsize, CArray_TYPE(self));
         } else {
-            data = carray_data_alloc(nbytes);
+            data = carray_data_alloc(num_elements, descr->elsize);
         }
         if (data == NULL) {
             php_printf("MemoryError");

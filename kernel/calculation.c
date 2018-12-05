@@ -246,7 +246,7 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
     CArray * arr, * ret = NULL;
     CArrayDescriptor * descr;
     ret = (CArray *)emalloc(sizeof(CArray));
-    descr = (CArrayDescriptor*)emalloc(sizeof(CArrayDescriptor));
+    descr = (CArrayDescriptor*)ecalloc(1, sizeof(CArrayDescriptor));
     arr = CArray_CheckAxis(self, axis, 0);
     int index_jumps = self->strides[*axis]/self->descriptor->elsize;
     
@@ -310,7 +310,7 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
             num_elements *= new_dimensions[i];
         }
         descr->numElements = num_elements;
-        
+        //descr->alignment = 0;
         ret->descriptor = descr;
         CArray_Data_alloc(ret);
         
@@ -331,14 +331,14 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
         }
         if(rtype == TYPE_DOUBLE_INT) {
             for(i = 0; i < num_elements; i++) {
-                IDATA(ret)[i] = 0.00;
+                DDATA(ret)[i] = 0.00;
             }
             ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, NULL, 0, NULL, 1, 0);   
             CArrayIterator * it = CArray_IterAllButAxis(self, axis);
             i = 0;
             do {
                 for(j = 0; j < self->dimensions[*axis]; j++) {
-                    IDATA(ret)[i] += ((double*)CArrayIterator_DATA(it))[j * (self->strides[*axis]/self->descriptor->elsize)];
+                    DDATA(ret)[i] += ((double*)CArrayIterator_DATA(it))[j * (self->strides[*axis]/self->descriptor->elsize)];
                 }
                 CArrayIterator_NEXT(it);
                 i++;

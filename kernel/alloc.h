@@ -8,8 +8,8 @@
 #include "carray.h"
 
 void CArray_Data_alloc(CArray * ca);
-void * carray_data_alloc_zeros(int size);
-void * carray_data_alloc(uintptr_t size);
+void * carray_data_alloc_zeros(int num_elements, int size_element, char type);
+void * carray_data_alloc(int num_elements, int size_element);
 
 void CArray_INCREF(CArray * target);
 void CArray_DECREF(CArray * target);
