@@ -286,6 +286,7 @@ CArray_Dump(CArray * ca)
     php_printf(" ]\n");
     php_printf("CArray.ndim\t\t\t%d\n", ca->ndim);
     php_printf("CArray.refcount\t\t\t%d\n", ca->refcount);
+    php_printf("CArray.descriptor.refcount\t%d\n", ca->descriptor->refcount);
     php_printf("CArray.descriptor.elsize\t%d\n", ca->descriptor->elsize);
     php_printf("CArray.descriptor.alignment\t%d\n", ca->descriptor->alignment);
     php_printf("CArray.descriptor.numElements\t%d\n", ca->descriptor->numElements);
@@ -435,7 +436,8 @@ int
 CArray_SetBaseCArray(CArray * target, CArray * base)
 {
     CArray_INCREF(base);
-    target->base = base;
+    target->base = emalloc(sizeof(CArray));
+    *(target->base) = *base;
     return 0;
 }
 
@@ -1011,5 +1013,5 @@ CArray_ResolveWritebackIfCopy(CArray * self)
 CArray *
 CArray_FromMemoryPointer(MemoryPointer * ptr)
 {
-    return &(PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid]);
+    return &PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid];
 }

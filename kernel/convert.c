@@ -20,9 +20,9 @@ CArray_Slice_Index(CArray * self, int index, MemoryPointer * out)
     int * new_dimensions, * new_strides;
     int new_num_elements = 0;
     int nd, i, flags;
-    ret = (CArray *)emalloc(sizeof(CArray));
+    ret = (CArray *)ecalloc(1, sizeof(CArray));
 
-    subarray_descr = (CArrayDescriptor *)emalloc(sizeof(CArrayDescriptor));
+    subarray_descr = (CArrayDescriptor *)ecalloc(1, sizeof(CArrayDescriptor));
     nd = CArray_NDIM(self) - 1;
     new_dimensions = (int*)emalloc(nd * sizeof(int));
     
@@ -50,8 +50,7 @@ CArray_Slice_Index(CArray * self, int index, MemoryPointer * out)
             (CArray_DATA(self) + (index * self->strides[0])),
             flags, self,
             0, 1);
-
-    add_to_buffer(out, *ret, sizeof(*ret));        
+    add_to_buffer(out, *ret, sizeof(*ret));   
     return ret;        
 }
 
