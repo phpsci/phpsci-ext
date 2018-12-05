@@ -44,17 +44,6 @@ carray_data_alloc_zeros(int num_elements, int size_element, char type)
     int i;
     void * data;
     data = ecalloc(num_elements, size_element);
-
-    if(type == TYPE_INTEGER) {
-        for(i = 0; i < num_elements; i++) {
-            ((int*)data)[i] = 0;
-        }
-    }
-    if(type == TYPE_DOUBLE) {
-        for(i = 0; i < num_elements; i++) {
-            ((double*)data)[i] = 0.00;
-        }
-    }
     return (void *)data;
 }
 
