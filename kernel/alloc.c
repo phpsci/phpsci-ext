@@ -41,10 +41,7 @@ CArray_Data_alloc(CArray * ca)
 void *
 carray_data_alloc_zeros(int num_elements, int size_element, char type)
 {
-    int i;
-    void * data;
-    data = ecalloc(num_elements, size_element);
-    return (void *)data;
+    return (void*)ecalloc(num_elements, size_element);
 }
 
 /**
@@ -88,6 +85,8 @@ _free_data_owner(MemoryPointer * ptr)
     if(array->refcount == 0) {
         efree(array->data);
     }
+    efree(array->dimensions);
+    efree(array->strides);
 }
 
 /**
@@ -104,6 +103,8 @@ _free_data_ref(MemoryPointer * ptr)
     if(array->refcount == 0 && array->base->refcount > 1) {
         CArray_DECREF(array->base);
     }
+    efree(array->dimensions);
+    efree(array->strides);
 }
 
 /**

@@ -265,6 +265,7 @@ CArray_FromZval_Hashtable(zval * php_array, char type, MemoryPointer * ptr)
 
     CArray_INIT(ptr, &new_carray, dims, ndims, type);
     CArray_Hashtable_Data_Copy(&new_carray, php_array, &last_index);
+    efree(dims);
 }
 
 /**
@@ -406,8 +407,8 @@ CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char 
     }
 
     CArray_NewFromDescr_int(output_ca, output_ca_dscr, ndim, dims, target_stride, NULL, CARRAY_NEEDS_INIT, NULL, 1, 0);
-    CArray_Data_alloc(output_ca);
     add_to_buffer(ptr, *output_ca, sizeof(output_ca));
+    efree(target_stride);
 }
 
 /**
@@ -570,13 +571,12 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
     self->refcount = 0;
 
     if (nd > 0) {
-        self->dimensions = (int*)emalloc((2 * nd) * sizeof(int));
+        self->dimensions = (int*)emalloc(nd * sizeof(int));
+        self->strides = (int*)emalloc(nd * sizeof(int));
         if (self->dimensions == NULL) {
             php_printf("MemoryError");
             goto fail;
-        }
-
-        self->strides = self->dimensions + nd;
+        }        
         memcpy(self->dimensions, dims, sizeof(int)*nd);
 
         for(i = 0; i < nd; i++) {
@@ -603,11 +603,11 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
             nbytes = descr->elsize;
         }
         if (zeroed || CArrayDataType_FLAGCHK(descr, CARRAY_NEEDS_INIT)) {
-            data = carray_data_alloc_zeros(num_elements, descr->elsize, CArray_TYPE(self));
+            self->data = carray_data_alloc_zeros(num_elements, descr->elsize, CArray_TYPE(self));
         } else {
-            data = carray_data_alloc(num_elements, descr->elsize);
+            self->data = carray_data_alloc(num_elements, descr->elsize);
         }
-        if (data == NULL) {
+        if (self->data == NULL) {
             php_printf("MemoryError");
             goto fail;
         }
@@ -615,9 +615,9 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
     }
     else {
         self->flags &= ~CARRAY_ARRAY_OWNDATA;
+        self->data = data;
     }
-    self->data = data;
-
+    
     CArray_UpdateFlags(self, CARRAY_ARRAY_UPDATE_ALL);
 
     if (base != NULL) {

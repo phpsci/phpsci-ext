@@ -34,7 +34,10 @@ CArray_Slice_Index(CArray * self, int index, MemoryPointer * out)
     subarray_descr->type_num = CArray_DESCR(self)->type_num;
     subarray_descr->alignment = 0;
 
-    new_strides = CArray_Generate_Strides(new_dimensions, nd, self->descriptor->type);
+    new_strides  = (int*)emalloc(nd * sizeof(int));
+    for(i = 1; i < CArray_NDIM(self); i++) {
+        new_strides[i-1] = self->strides[i];
+    }
     
     new_num_elements = self->dimensions[nd];
     
