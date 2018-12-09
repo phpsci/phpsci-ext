@@ -80,7 +80,9 @@ _free_data_owner(MemoryPointer * ptr)
 {
     CArray * array = CArray_FromMemoryPointer(ptr);
     if(array->descriptor->refcount == 0) {
-        efree(array->descriptor);
+        if(array->descriptor != NULL) {
+            efree(array->descriptor);
+        }
     }
     if(array->refcount == 0) {
         efree(array->data);
@@ -103,7 +105,9 @@ _free_data_ref(MemoryPointer * ptr)
     if(array->refcount == 0 && array->base->refcount > 1) {
         CArray_DECREF(array->base);
     }
-    CArrayDescriptor_DECREF(array->descriptor);
+    if(array->descriptor->refcount == 0) {
+        efree(array->descriptor);
+    }
     efree(array->dimensions);
     efree(array->strides);
 }

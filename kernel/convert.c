@@ -46,6 +46,7 @@ CArray_Slice_Index(CArray * self, int index, MemoryPointer * out)
     }
     subarray_descr->numElements = new_num_elements;
     ret->descriptor = subarray_descr;
+
     flags = CArray_FLAGS(self);
     ret = (CArray *)CArray_NewFromDescr_int(
             ret, subarray_descr,
@@ -54,6 +55,8 @@ CArray_Slice_Index(CArray * self, int index, MemoryPointer * out)
             flags, self,
             0, 1);
     add_to_buffer(out, ret, sizeof(*ret));
+    efree(new_dimensions);
+    efree(new_strides);
     return ret;        
 }
 

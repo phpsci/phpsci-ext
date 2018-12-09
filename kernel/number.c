@@ -24,26 +24,28 @@ CArray_Add(CArray *m1, CArray *m2, MemoryPointer * ptr)
     CArray * prior1, * prior2, * result;
     void * (*data_op)(CArrayIterator *, CArrayIterator *, CArray *, int);
     result = emalloc(sizeof(CArray));
-    int * dimensions, i = 0, prior2_dimension = 0;
+    int * dimensions, i = 0, prior2_dimension = 0, dim_diff;
 
-    if(CArray_NDIM(m1) < CArray_NDIM(m2)) {
+    if(CArray_NDIM(m1) > CArray_NDIM(m2)) {
         prior1 = m1;
         prior2 = m2;
     } else {
         prior1 = m2;
         prior2 = m1;
     }
-
+    dim_diff = CArray_NDIM(prior1) - CArray_NDIM(prior2);
     dimensions = ecalloc(CArray_NDIM(prior1), sizeof(int));
+
     for(i = 0; i < CArray_NDIM(prior1); i++) {
-        if(i < CArray_NDIM(prior2)) {
-            prior2_dimension = CArray_DIM(prior2, i);
-        }
-        if(CArray_DIM(prior1, i) > prior2_dimension) {
+        if(i < dim_diff) {
             dimensions[i] = CArray_DIM(prior1, i);
-        } else {
-            dimensions[i] = prior2_dimension;
+            continue;
         }
+        if(CArray_DIM(prior1, i) < CArray_DIM(prior2, (i-dim_diff))) {
+            dimensions[i] = CArray_DIM(prior2, i);
+            continue;
+        }
+        dimensions[i] = CArray_DIM(prior1, i);
     }
 
     switch(CArray_TYPE(prior1)) {
@@ -55,7 +57,7 @@ CArray_Add(CArray *m1, CArray *m2, MemoryPointer * ptr)
             break;
     }
 
-    result = CArray_NewFromDescr_int(result, CArray_DESCR(prior1), CArray_NDIM(prior1), dimensions,
+    result = CArray_NewFromDescr_int(result, CArray_DESCR(prior1), CArray_NDIM(prior1),  dimensions,
                                      NULL, NULL, CARRAY_NEEDS_INIT, NULL, 1, 0);
 
     CArrayIterator * it1 = CArray_BroadcastToShape(prior1, dimensions, CArray_NDIM(prior1));
@@ -71,6 +73,7 @@ CArray_Add(CArray *m1, CArray *m2, MemoryPointer * ptr)
 
     CArrayIterator_FREE(it1);
     CArrayIterator_FREE(it2);
+    efree(dimensions);
     result->flags = (CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_OWNDATA | CARRAY_ARRAY_WRITEABLE | CARRAY_ARRAY_ALIGNED);
     if(ptr != NULL) {
         add_to_buffer(ptr, result, sizeof(*result));
