@@ -1,6 +1,7 @@
 #include "flagsobject.h"
 #include "carray.h"
 #include "assign.h"
+#include "common/common.h"
 
 /**
  * Check whether the given array is stored contiguously
@@ -54,5 +55,15 @@ CArray_UpdateFlags(CArray * array, int flagmask)
             CArray_CLEARFLAGS(array, CARRAY_ARRAY_ALIGNED);
         }
     }
+
+    if (flagmask & CARRAY_ARRAY_WRITEABLE) {
+        if (_IsWriteable(array)) {
+            CArray_ENABLEFLAGS(array, CARRAY_ARRAY_WRITEABLE);
+        }
+        else {
+            CArray_CLEARFLAGS(array, CARRAY_ARRAY_WRITEABLE);
+        }
+    }
+    return;
 }
 

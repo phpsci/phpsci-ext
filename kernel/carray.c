@@ -7,6 +7,7 @@
 #include "buffer.h"
 #include "flagsobject.h"
 #include "php.h"
+#include "common/exceptions.h"
 #include "php_ini.h"
 #include "zend_smart_str.h"
 #include "zend_bitset.h"
@@ -287,6 +288,32 @@ CArray_Dump(CArray * ca)
     php_printf(" ]\n");
     php_printf("CArray.ndim\t\t\t%d\n", ca->ndim);
     php_printf("CArray.refcount\t\t\t%d\n", ca->refcount);
+    php_printf("CArray.flags\t\t\t");
+    if(CArray_CHKFLAGS(ca, CARRAY_ARRAY_C_CONTIGUOUS)) {
+        php_printf("\n\t\t\t\tCARRAY_ARRAY_C_CONTIGUOUS ");
+    }
+    if(CArray_CHKFLAGS(ca, CARRAY_ARRAY_F_CONTIGUOUS)) {
+        php_printf("\n\t\t\t\tCARRAY_ARRAY_F_CONTIGUOUS ");
+    }
+    if(CArray_CHKFLAGS(ca, CARRAY_ARRAY_ALIGNED)) {
+        php_printf("\n\t\t\t\tCARRAY_ARRAY_ALIGNED ");
+    }
+    if(CArray_CHKFLAGS(ca, CARRAY_ARRAY_WRITEABLE)) {
+        php_printf("\n\t\t\t\tCARRAY_ARRAY_WRITEABLE ");
+    }
+    if(CArray_CHKFLAGS(ca, CARRAY_ARRAY_WRITEBACKIFCOPY)) {
+        php_printf("\n\t\t\t\tCARRAY_ARRAY_WRITEBACKIFCOPY ");
+    }
+    if(CArray_CHKFLAGS(ca, CARRAY_ARRAY_OWNDATA)) {
+        php_printf("\n\t\t\t\tCARRAY_ARRAY_OWNDATA ");
+    }
+    if(CArray_CHKFLAGS(ca, CARRAY_ARRAY_UPDATE_ALL)) {
+        php_printf("\n\t\t\t\tCARRAY_ARRAY_UPDATE_ALL ");
+    }
+    if(CArray_CHKFLAGS(ca, CARRAY_ARRAY_UPDATEIFCOPY)) {
+        php_printf("\n\t\t\t\tCARRAY_ARRAY_UPDATEIFCOPY ");
+    }
+    php_printf("\n");
     php_printf("CArray.descriptor.refcount\t%d\n", ca->descriptor->refcount);
     php_printf("CArray.descriptor.elsize\t%d\n", ca->descriptor->elsize);
     php_printf("CArray.descriptor.alignment\t%d\n", ca->descriptor->alignment);
@@ -405,8 +432,8 @@ CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char 
     if(output_ca == NULL) {
         output_ca = (CArray *)emalloc(sizeof(CArray));
     }
-
     CArray_NewFromDescr_int(output_ca, output_ca_dscr, ndim, dims, target_stride, NULL, CARRAY_NEEDS_INIT, NULL, 1, 0);
+    output_ca->flags &= ~CARRAY_ARRAY_F_CONTIGUOUS;
     add_to_buffer(ptr, *output_ca, sizeof(output_ca));
     efree(target_stride);
 }
@@ -905,7 +932,7 @@ CArray_SetWritebackIfCopyBase(CArray *arr, CArray *base)
     return 0;
 
   fail:
-    Py_DECREF(base);
+    CArray_DECREF(base);
     return -1;
 }
 

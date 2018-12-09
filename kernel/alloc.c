@@ -96,7 +96,7 @@ void
 _free_data_ref(MemoryPointer * ptr)
 {
     CArray * array = CArray_FromMemoryPointer(ptr);
-    
+    //CArray_Print(array->base);
     if(array->refcount == 0 && array->base->refcount <= 1) {
         efree(array->data);
     }
@@ -113,6 +113,7 @@ _free_data_ref(MemoryPointer * ptr)
 void
 CArray_Alloc_FreeFromMemoryPointer(MemoryPointer * ptr)
 {
+    php_printf("FREED %d\n", ptr->uuid);
     CArray * array = CArray_FromMemoryPointer(ptr);
     if(CArray_CHKFLAGS(array, CARRAY_ARRAY_OWNDATA)){
         _free_data_owner(ptr);

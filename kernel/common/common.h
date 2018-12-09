@@ -35,5 +35,5 @@
 
 CArray * new_array_for_sum(CArray *ap1, CArray *ap2, CArray* out,
                            int nd, int dimensions[], int typenum, CArray **result);
-
+int _IsWriteable(CArray *ap);
 #endif //PHPSCI_EXT_COMMON_H

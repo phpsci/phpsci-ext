@@ -4,8 +4,10 @@
 
 #include "shape.h"
 #include "carray.h"
+#include "common/exceptions.h"
 #include "convert.h"
 #include "alloc.h"
+#include "flagsobject.h"
 #include "buffer.h"
 
 /*
@@ -188,7 +190,7 @@ CArray_Transpose(CArray * target, CArray_Dims * permute, MemoryPointer * ptr)
         CArray_DIMS(ret)[i] = CArray_DIMS(target)[permutation[i]];
         CArray_STRIDES(ret)[i] = CArray_STRIDES(target)[permutation[i]];
     }
-
+    ret->flags |= CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_WRITEABLE;
     CArray_UpdateFlags(ret, CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_ALIGNED);
 
     efree(permutation);

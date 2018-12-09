@@ -3,6 +3,7 @@
 #include "iterators.h"
 #include "buffer.h"
 #include "common/exceptions.h"
+#include "alloc.h"
 
 /**
  * CArray Cumulative Sum

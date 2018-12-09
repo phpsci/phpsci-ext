@@ -1,6 +1,31 @@
 #include "../carray.h"
 #include "common.h"
 #include "exceptions.h"
+#include "../alloc.h"
+#include "mem_overlap.h"
+
+/**
+ * @param ap
+ * @return
+ */
+int
+_IsWriteable(CArray *ap)
+{
+    CArray * base = CArray_BASE(ap);
+
+    /* If we own our own data, then no-problem */
+    if ((base == NULL) || (CArray_FLAGS(ap) & CARRAY_ARRAY_OWNDATA)) {
+        return 1;
+    }
+
+    /*
+     * Get to the final base object
+     * If it is a writeable array, then return TRUE
+     * If we can find an array object
+     * or a writeable buffer object as the final base object
+     */
+    return 0;
+}
 
 /*
  * Make a new empty array, of the passed size, of a type that takes the

@@ -14,6 +14,8 @@
 #include "../carray.h"
 #include "../convert.h"
 #include "cblas_funcs.h"
+#include "../buffer.h"
+#include "../alloc.h"
 #include "common.h"
 #include "cblas.h"
 
@@ -165,7 +167,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
             goto fail;
         }
     }
-    
+
     ap1shape = _select_matrix_shape(ap1);
     ap2shape = _select_matrix_shape(ap2);
 
@@ -259,7 +261,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
         l = CArray_DIM(ap1, CArray_NDIM(ap1) - 1);
 
         if (CArray_DIM(ap2, 0) != l) {
-            dot_alignment_error(ap1, CArray_NDIM(ap1) - 1, ap2, 0);
+            //dot_alignment_error(ap1, CArray_NDIM(ap1) - 1, ap2, 0);
             goto fail;
         }
         nd = CArray_NDIM(ap1) + CArray_NDIM(ap2) - 2;
@@ -273,13 +275,13 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
             dimensions[1] = CArray_DIM(ap2, 1);
         }
     }
-    
+
     out_buffer = new_array_for_sum(ap1, ap2, out, nd, dimensions, typenum, &result);
 
     if (out_buffer == NULL) {
         goto fail;
     }
-    
+
     numbytes = CArray_NBYTES(out_buffer);
     
     if (numbytes == 0 || l == 0) {
@@ -374,6 +376,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
             ((Trans1 == CblasTrans) ^ (Trans2 == CblasTrans)) &&
             ((Trans1 == CblasNoTrans) ^ (Trans2 == CblasNoTrans))
         ) {
+
             if (Trans1 == CblasNoTrans) {
                 syrk(typenum, Order, Trans1, N, M, ap1, lda, out_buffer);
             }
@@ -398,7 +401,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
         efree(dimensions);
     }
 
-    if(ptr != NULL ){
+    if(ptr != NULL ) {
         add_to_buffer(ptr, *(out_buffer), sizeof(CArray));
     }
 

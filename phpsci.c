@@ -37,12 +37,7 @@
 #include "kernel/convert.h"
 #include "kernel/common/exceptions.h"
 #include "kernel/linalg.h"
-
-void RETURN_MEMORYPOINTER(zval * return_value, MemoryPointer * ptr)
-{
-    object_init_ex(return_value, carray_sc_entry);
-    zend_update_property_long(carray_sc_entry, return_value, "uuid", sizeof("uuid") - 1, ptr->uuid);
-}
+#include "kernel/alloc.h"
 
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
 {
@@ -71,7 +66,7 @@ int * ZVAL_TO_TUPLE(zval * obj, int * size)
     return data_int;
 }
 
-void RETURN_MEMORY_POINTER(zval * return_value, MemoryPointer * ptr)
+void RETURN_MEMORYPOINTER(zval * return_value, MemoryPointer * ptr)
 {
     object_init_ex(return_value, carray_sc_entry);
     CArray * arr = CArray_FromMemoryPointer(ptr);
@@ -118,7 +113,7 @@ PHP_METHOD(CArray, shape)
     carray = CArray_FromMemoryPointer(&ptr);
     new_shape = ZVAL_TO_TUPLE(new_shape_zval, &ndim);
     newcarray = CArray_Newshape(carray, new_shape, zend_hash_num_elements(Z_ARRVAL_P(new_shape_zval)), CARRAY_CORDER, &ptr);
-    RETURN_MEMORY_POINTER(return_value, &ptr);
+    RETURN_MEMORYPOINTER(return_value, &ptr);
 }
 PHP_METHOD(CArray, dump)
 {
@@ -144,7 +139,7 @@ PHP_METHOD(CArray, __destruct)
 {
     MemoryPointer ptr;
     ZVAL_TO_MEMORYPOINTER(getThis(), &ptr);
-    CArray_Alloc_FreeFromMemoryPointer(&ptr);
+    //CArray_Alloc_FreeFromMemoryPointer(&ptr);
 }
 PHP_METHOD(CArray, offsetExists)
 {
@@ -325,6 +320,7 @@ PHP_METHOD(CArray, transpose)
 PHP_METHOD(CArray, matmul)
 {
     MemoryPointer target1_ptr, target2_ptr, result_ptr;
+
     zval * target1, * target2;
     CArray * target_ca1, * target_ca2, * output_ca, * out;
     ZEND_PARSE_PARAMETERS_START(2, 2)
@@ -335,7 +331,8 @@ PHP_METHOD(CArray, matmul)
     ZVAL_TO_MEMORYPOINTER(target2, &target2_ptr);
     target_ca1 = CArray_FromMemoryPointer(&target1_ptr);
     target_ca2 = CArray_FromMemoryPointer(&target2_ptr);
-    output_ca = CArray_Matmul(target_ca1, target_ca2, out, &result_ptr);
+    output_ca = CArray_Matmul(target_ca1, target_ca2, NULL, &result_ptr);
+
     RETURN_MEMORYPOINTER(return_value, &result_ptr);
 }
 
