@@ -190,7 +190,7 @@ CArray_Transpose(CArray * target, CArray_Dims * permute, MemoryPointer * ptr)
         CArray_DIMS(ret)[i] = CArray_DIMS(target)[permutation[i]];
         CArray_STRIDES(ret)[i] = CArray_STRIDES(target)[permutation[i]];
     }
-    ret->flags |= CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_WRITEABLE;
+    ret->flags |= CARRAY_ARRAY_F_CONTIGUOUS;
     CArray_UpdateFlags(ret, CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_ALIGNED);
 
     efree(permutation);
@@ -198,10 +198,7 @@ CArray_Transpose(CArray * target, CArray_Dims * permute, MemoryPointer * ptr)
         efree(reverse_permutation);
     }
 
-    if(ptr != NULL) {
-        add_to_buffer(ptr, *(ret), sizeof(CArray));
-    }
-
+    add_to_buffer(ptr, ret, sizeof(CArray));
     return ret;
 }
 
@@ -242,7 +239,7 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
         }
         if (same) {
             ret = CArray_View(self);
-            add_to_buffer(ptr, *ret, sizeof(CArray));
+            add_to_buffer(ptr, ret, sizeof(CArray));
             return ret;
         }
     }
@@ -297,7 +294,7 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
             flags, self, 0, 1);
               
     CArray_DECREF(self);
-    add_to_buffer(ptr, *ret, sizeof(CArray));
+    add_to_buffer(ptr, ret, sizeof(CArray));
 
     return ret;
 }

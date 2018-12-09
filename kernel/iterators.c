@@ -4,7 +4,9 @@
 #include "php.h"
 #include "iterators.h"
 #include "carray.h"
+#include "common/exceptions.h"
 #include "flagsobject.h"
+#include "alloc.h"
 
 void 
 CArray_ITER_RESET(CArrayIterator * iterator)
@@ -14,6 +16,12 @@ CArray_ITER_RESET(CArrayIterator * iterator)
         iterator->data_pointer = CArray_BYTES(iterator->array);
         memset(iterator->coordinates, 0, (iterator->ndims_m1+1)*sizeof(int));
     } while(0);
+}
+
+void
+CArrayIterator_RESET(CArrayIterator * iterator)
+{
+    CArray_ITER_RESET(iterator);
 }
 
 void 
@@ -264,4 +272,115 @@ CArray_NewIter(CArray * array)
     iterator = (CArrayIterator *)emalloc(sizeof(CArrayIterator));
     iterator_base_init(iterator, array);
     return iterator;
+}
+
+/**
+ * Get Iterator broadcast to a particular shape
+ *
+ * @param target
+ * @param dims
+ * @param nd
+ * @return
+ */
+CArrayIterator *
+CArray_BroadcastToShape(CArray * target, int * dims, int nd)
+{
+    CArrayIterator *it;
+    int i, diff, j, compat, k;
+    CArray *ao = (CArray *)target;
+
+    if (CArray_NDIM(ao) > nd) {
+        goto err;
+    }
+    compat = 1;
+    diff = j = nd - CArray_NDIM(ao);
+    for (i = 0; i < CArray_NDIM(ao); i++, j++) {
+        if (CArray_DIMS(ao)[i] == 1) {
+            continue;
+        }
+        if (CArray_DIMS(ao)[i] != dims[j]) {
+            compat = 0;
+            break;
+        }
+    }
+    if (!compat) {
+        goto err;
+    }
+    it = (CArrayIterator *)emalloc(sizeof(CArrayIterator));
+    if (it == NULL) {
+        return NULL;
+    }
+
+
+    CArray_UpdateFlags(ao, CARRAY_ARRAY_C_CONTIGUOUS);
+    if (CArray_ISCONTIGUOUS(ao)) {
+        it->contiguous = 1;
+    }
+    else {
+        it->contiguous = 0;
+    }
+
+    it->array = ao;
+    it->size = CArray_MultiplyList(dims, nd);
+    it->ndims_m1 = nd - 1;
+    it->factors = ecalloc(nd, sizeof(int));
+    it->strides = ecalloc(nd, sizeof(int));
+    it->backstrides = ecalloc(nd, sizeof(int));
+    it->dims_m1 = ecalloc(nd, sizeof(int));
+    it->coordinates = ecalloc(nd, sizeof(int));
+    if (nd != 0) {
+        it->factors[nd-1] = 1;
+    }
+    for (i = 0; i < nd; i++) {
+        it->dims_m1[i] = dims[i] - 1;
+        k = i - diff;
+        if ((k < 0) || CArray_DIMS(ao)[k] != dims[i]) {
+            it->contiguous = 0;
+            it->strides[i] = 0;
+        }
+        else {
+            it->strides[i] = CArray_STRIDES(ao)[k];
+        }
+        it->backstrides[i] = it->strides[i] * it->dims_m1[i];
+        if (i > 0) {
+            it->factors[nd-i-1] = it->factors[nd-i] * dims[nd-i];
+        }
+    }
+    CArrayIterator_RESET(it);
+    return it;
+
+err:
+    throw_valueerror_exception("array is not broadcastable to correct shape");
+    return NULL;
+}
+
+void
+CArrayIterator_FREE(CArrayIterator * it)
+{
+    int i;
+    if(it->factors != NULL)
+        efree(it->factors);
+    if(it->strides != NULL)
+        efree(it->strides);
+    if(it->backstrides != NULL)
+        efree(it->backstrides);
+    if(it->dims_m1 != NULL)
+        efree(it->dims_m1);
+    if(it->coordinates != NULL)
+        efree(it->coordinates);
+    if(it->limits_sizes != NULL)
+        efree(it->limits_sizes);
+    if(it->bounds != NULL) {
+        for(i = 0; i < (it->ndims_m1+1); i++) {
+            efree(it->bounds[i]);
+        }
+        efree(it->bounds);
+    }
+    if(it->limits != NULL) {
+        for(i = 0; i < (it->ndims_m1+1); i++) {
+            efree(it->limits[i]);
+        }
+        efree(it->limits);
+    }
+    efree(it);
 }

@@ -56,7 +56,7 @@ CArray_CumSum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
             }
         }
     }
-    add_to_buffer(out_ptr, *ret, sizeof(*ret));
+    add_to_buffer(out_ptr, ret, sizeof(*ret));
     return ret;
 }
 
@@ -111,7 +111,7 @@ CArray_CumProd(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
             }
         }
     }
-    add_to_buffer(out_ptr, *ret, sizeof(*ret));
+    add_to_buffer(out_ptr, ret, sizeof(*ret));
     return ret;
 }
 
@@ -231,7 +231,7 @@ CArray_Prod(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
             } while(CArrayIterator_NOTDONE(it));
         }
     }
-    add_to_buffer(out_ptr, *ret, sizeof(*ret));
+    add_to_buffer(out_ptr, ret, sizeof(*ret));
     efree(total);
     return ret;
 }
@@ -346,7 +346,7 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
             } while(CArrayIterator_NOTDONE(it));
         }
     }
-    add_to_buffer(out_ptr, *ret, sizeof(*ret));
+    add_to_buffer(out_ptr, ret, sizeof(*ret));
     efree(total);
     return ret;
 }

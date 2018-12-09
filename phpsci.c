@@ -38,6 +38,7 @@
 #include "kernel/common/exceptions.h"
 #include "kernel/linalg.h"
 #include "kernel/alloc.h"
+#include "kernel/number.h"
 
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
 {
@@ -139,7 +140,7 @@ PHP_METHOD(CArray, __destruct)
 {
     MemoryPointer ptr;
     ZVAL_TO_MEMORYPOINTER(getThis(), &ptr);
-    //CArray_Alloc_FreeFromMemoryPointer(&ptr);
+    CArray_Alloc_FreeFromMemoryPointer(&ptr);
 }
 PHP_METHOD(CArray, offsetExists)
 {
@@ -305,7 +306,6 @@ PHP_METHOD(CArray, transpose)
 
     ZVAL_TO_MEMORYPOINTER(target, &ptr);
     target_ca = CArray_FromMemoryPointer(&ptr);
-
     if(ZEND_NUM_ARGS() == 1) {
         ret = CArray_Transpose(target_ca, NULL, &ptr);
     }
@@ -335,6 +335,24 @@ PHP_METHOD(CArray, matmul)
 
     RETURN_MEMORYPOINTER(return_value, &result_ptr);
 }
+PHP_METHOD(CArray, add)
+{
+    MemoryPointer target1_ptr, target2_ptr, result_ptr;
+
+    zval * target1, * target2;
+    CArray * target_ca1, * target_ca2, * output_ca, * out;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_ZVAL(target1)
+        Z_PARAM_ZVAL(target2)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target1, &target1_ptr);
+    ZVAL_TO_MEMORYPOINTER(target2, &target2_ptr);
+    target_ca1 = CArray_FromMemoryPointer(&target1_ptr);
+    target_ca2 = CArray_FromMemoryPointer(&target2_ptr);
+    output_ca = CArray_Add(target_ca1, target_ca2, &result_ptr);
+
+    RETURN_MEMORYPOINTER(return_value, &result_ptr);
+}
 
 PHP_METHOD(CArrayIterator, next)
 {
@@ -358,6 +376,9 @@ static zend_function_entry carray_class_methods[] =
         
         // LINEAR ALGEBRA
         PHP_ME(CArray, matmul, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
+        // NUMBERS
+        PHP_ME(CArray, add, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // CALCULATION
         PHP_ME(CArray, sum, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

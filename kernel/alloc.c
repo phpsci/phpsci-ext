@@ -103,6 +103,10 @@ _free_data_ref(MemoryPointer * ptr)
     if(array->refcount == 0 && array->base->refcount > 1) {
         CArray_DECREF(array->base);
     }
+    CArrayDescriptor_DECREF(array->descriptor);
+    if(array->descriptor->refcount == 0) {
+        efree(array->descriptor);
+    }
     efree(array->dimensions);
     efree(array->strides);
 }
@@ -113,11 +117,12 @@ _free_data_ref(MemoryPointer * ptr)
 void
 CArray_Alloc_FreeFromMemoryPointer(MemoryPointer * ptr)
 {
-    php_printf("FREED %d\n", ptr->uuid);
     CArray * array = CArray_FromMemoryPointer(ptr);
     if(CArray_CHKFLAGS(array, CARRAY_ARRAY_OWNDATA)){
         _free_data_owner(ptr);
-        return;
+    } else {
+        _free_data_ref(ptr);
     }
-    _free_data_ref(ptr);
+    buffer_remove(ptr);
+    return;
 }

@@ -251,7 +251,8 @@ Hashtable_type(zval * target_zval, char * type)
 void
 CArray_FromZval_Hashtable(zval * php_array, char type, MemoryPointer * ptr)
 {
-    CArray new_carray;
+    CArray * new_carray;
+    new_carray = emalloc(sizeof(CArray));
     char auto_flag = 'a';
     int * dims, ndims = 1;
     int last_index = 0;
@@ -264,8 +265,8 @@ CArray_FromZval_Hashtable(zval * php_array, char type, MemoryPointer * ptr)
         Hashtable_type(php_array, &type);
     }
 
-    CArray_INIT(ptr, &new_carray, dims, ndims, type);
-    CArray_Hashtable_Data_Copy(&new_carray, php_array, &last_index);
+    CArray_INIT(ptr, new_carray, dims, ndims, type);
+    CArray_Hashtable_Data_Copy(new_carray, php_array, &last_index);
     efree(dims);
 }
 
@@ -334,9 +335,12 @@ CArray_MultiplyList(const int * list, unsigned int size)
 {
     int i;
     int total = 0;
-    for(i = size; i >= 0; i--) {
-        if(i != size)
-            total += list[i] * list[i+1];
+    if(size == 1) {
+        return list[0];
+    }
+    for(i = 0; i < size; i++) {
+        if(i > 0)
+            total += list[i] * list[i-1];
     }
     return total;
 }
@@ -434,7 +438,7 @@ CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char 
     }
     CArray_NewFromDescr_int(output_ca, output_ca_dscr, ndim, dims, target_stride, NULL, CARRAY_NEEDS_INIT, NULL, 1, 0);
     output_ca->flags &= ~CARRAY_ARRAY_F_CONTIGUOUS;
-    add_to_buffer(ptr, *output_ca, sizeof(output_ca));
+    add_to_buffer(ptr, output_ca, sizeof(output_ca));
     efree(target_stride);
 }
 
@@ -464,8 +468,7 @@ int
 CArray_SetBaseCArray(CArray * target, CArray * base)
 {
     CArray_INCREF(base);
-    target->base = emalloc(sizeof(CArray));
-    *(target->base) = *base;
+    target->base = base;
     return 0;
 }
 
@@ -762,6 +765,7 @@ CArray_Print(CArray *array)
         return;
     }
     _print_recursive(array, it, &start_index, 0);
+    CArrayIterator_FREE(it);
 }
 
 /**
@@ -1040,5 +1044,5 @@ CArray_ResolveWritebackIfCopy(CArray * self)
 CArray *
 CArray_FromMemoryPointer(MemoryPointer * ptr)
 {
-    return &PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid];
+    return PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid];
 }

@@ -395,16 +395,14 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
 
     /* Trigger possible copyback into `result` */
     CArray_ResolveWritebackIfCopy(out_buffer);
-    CArray_DECREF(out_buffer);
     
     if(dimensions != NULL) {
         efree(dimensions);
     }
-
+    out_buffer->flags |= CARRAY_ARRAY_WRITEABLE;
     if(ptr != NULL ) {
-        add_to_buffer(ptr, *(out_buffer), sizeof(CArray));
+        add_to_buffer(ptr, out_buffer, sizeof(CArray));
     }
-
     return out_buffer;
 fail:
     efree(dimensions);

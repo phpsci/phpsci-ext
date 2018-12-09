@@ -82,6 +82,7 @@ PHP_NEW_EXTENSION(carray,
       kernel/common/common.c \
       kernel/common/cblas_funcs.c \
       kernel/common/mem_overlap.c \
+      kernel/number.c \
       kernel/common/exceptions.c \
 	  kernel/buffer.c ,
 	  $ext_shared,, )

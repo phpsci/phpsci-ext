@@ -22,7 +22,17 @@ void buffer_init(size_t size) {
     PHPSCI_MAIN_MEM_STACK.capacity = 1;
     PHPSCI_MAIN_MEM_STACK.bsize = size;
     // Allocate first CArray struct to buffer
-    PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)emalloc(sizeof(struct CArray));
+    PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray**)emalloc(sizeof(CArray *));
+}
+
+void buffer_remove(MemoryPointer * ptr)
+{
+    PHPSCI_MAIN_MEM_STACK.size = PHPSCI_MAIN_MEM_STACK.size - 1;
+    efree(PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid]);
+    if(PHPSCI_MAIN_MEM_STACK.size == 0) {
+        efree(PHPSCI_MAIN_MEM_STACK.buffer);
+        PHPSCI_MAIN_MEM_STACK.buffer = NULL;
+    }
 }
 
 /**
@@ -34,7 +44,7 @@ void buffer_init(size_t size) {
  */
 void buffer_to_capacity(int new_capacity, size_t size) {
     PHPSCI_MAIN_MEM_STACK.bsize += size;
-    PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray*)erealloc(PHPSCI_MAIN_MEM_STACK.buffer, (new_capacity * sizeof(struct CArray)));
+    PHPSCI_MAIN_MEM_STACK.buffer = (struct CArray**)erealloc(PHPSCI_MAIN_MEM_STACK.buffer, (new_capacity * sizeof(CArray *)));
     // Set new capacity to MemoryStack
     PHPSCI_MAIN_MEM_STACK.capacity = new_capacity;
 }
@@ -45,7 +55,7 @@ void buffer_to_capacity(int new_capacity, size_t size) {
  * @param array CArray CArray to add into the stack
  * @param size  size_t Size of CArray in bytes
  */
-void add_to_buffer(MemoryPointer * ptr, struct CArray array, size_t size) {
+void add_to_buffer(MemoryPointer * ptr, struct CArray * array, size_t size) {
     // If current MemoryStack buffer is empty, initialize it
     if(PHPSCI_MAIN_MEM_STACK.buffer == NULL) {
         buffer_init(size);
