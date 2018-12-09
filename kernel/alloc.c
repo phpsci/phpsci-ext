@@ -104,9 +104,6 @@ _free_data_ref(MemoryPointer * ptr)
         CArray_DECREF(array->base);
     }
     CArrayDescriptor_DECREF(array->descriptor);
-    if(array->descriptor->refcount == 0) {
-        efree(array->descriptor);
-    }
     efree(array->dimensions);
     efree(array->strides);
 }
