@@ -484,6 +484,11 @@ CArray_DescrFromType(int typenum)
     ret->numElements = 0;
     ret->refcount = 0;
     ret->alignment = 0;
+
+    if(typenum == 0) {
+        typenum = TYPE_DEFAULT_INT;
+        ret->type_num = TYPE_DEFAULT_INT;
+    }
     if(typenum == TYPE_DOUBLE_INT) {
         ret->elsize = sizeof(double);
         ret->type   = TYPE_DOUBLE;

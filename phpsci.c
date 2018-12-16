@@ -39,6 +39,7 @@
 #include "kernel/linalg.h"
 #include "kernel/alloc.h"
 #include "kernel/number.h"
+#include "kernel/trigonometric.h"
 
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
 {
@@ -215,6 +216,25 @@ PHP_METHOD(CArray, sum)
     efree(axis_p);
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
+
+
+PHP_METHOD(CArray, sin)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Sin(target_ca, &ptr);
+    RETURN_MEMORYPOINTER(return_value, &ptr);
+}
+
+
 PHP_METHOD(CArray, prod)
 {
     zval * target;
@@ -385,6 +405,9 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, prod, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, cumprod, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, cumsum, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
+        // TRIGONOMETRIC
+        PHP_ME(CArray, sin, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // CARRAY ITERATOR
         PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)

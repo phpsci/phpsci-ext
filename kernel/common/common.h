@@ -2,6 +2,7 @@
 #define PHPSCI_EXT_COMMON_H
 
 #include "../carray.h"
+#include "../assign.h"
 
 #  define CARRAY_LONGLONG_SUFFIX(x)  (x##L)
 #  define CARRAY_ULONGLONG_SUFFIX(x) (x##UL)
@@ -31,6 +32,36 @@
 #define CARRAY_MAX_DATETIME CARRAY_MAX_INT64
 #define CARRAY_MIN_TIMEDELTA CARRAY_MIN_INT64
 #define CARRAY_MAX_TIMEDELTA CARRAY_MAX_INT64
+#define CARRAY_MAX_INT   INT_MAX
+#define CARRAY_MAX_INTP  CARRAY_MAX_INT
+
+
+#if CARRAY_MAX_INTP > INT_MAX
+# define CARRAY_CBLAS_CHUNK  (INT_MAX / 2 + 1)
+#else
+# define CARRAY_CBLAS_CHUNK  CARRAY_MAX_INTP
+#endif
+
+
+/*
+ * Convert CArray stride to BLAS stride. Returns 0 if conversion cannot be done
+ * (BLAS won't handle negative or zero strides the way we want).
+ */
+static inline int
+blas_stride(int stride, unsigned itemsize)
+{
+    /*
+     * Should probably check pointer alignment also, but this may cause
+     * problems if we require complex to be 16 byte aligned.
+     */
+    if (stride > 0 && carray_is_aligned((void *)stride, itemsize)) {
+        stride /= itemsize;
+        if (stride <= INT_MAX) {
+            return stride;
+        }
+    }
+    return 0;
+}
 
 
 CArray * new_array_for_sum(CArray *ap1, CArray *ap2, CArray* out,

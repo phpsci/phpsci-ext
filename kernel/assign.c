@@ -1,20 +1,6 @@
 #include "assign.h"
 #include "carray.h"
 
-/*
- * return true if pointer is aligned to 'alignment'
- */
-static int
-carray_is_aligned(const void * p, const int alignment)
-{
-    /*
-     * Assumes alignment is a power of two, as required by the C standard.
-     * Assumes cast from pointer to unsigned integer gives a sensible representation we
-     * can use bitwise & on (not required by C standard, but used by glibc).
-     */
-    return ((uintptr_t)(p) & ((alignment) - 1)) == 0;
-}
-
 int
 raw_array_is_aligned(int ndim, int *shape, char *data, int *strides, int alignment)
 {

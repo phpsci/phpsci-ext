@@ -16,6 +16,9 @@ static const int CARRAY_ARRAY_WARN_ON_WRITE = (1 << 31);
 #define TYPE_INTEGER_INT  2
 #define TYPE_DOUBLE_INT   1
 #define TYPE_FLOAT_INT    3
+#define TYPE_NOTYPE_INT   -1
+#define TYPE_DEFAULT_INT  1
+#define TYPE_DEFAULT      'd'
 
 /* For specifying array memory layout or iteration order */
 typedef enum {
@@ -202,6 +205,12 @@ static inline int
 CArray_TYPE(const CArray *arr)
 {
     return arr->descriptor->type_num;
+}
+
+static inline char
+CArray_TYPE_CHAR(const CArray *arr)
+{
+    return arr->descriptor->type;
 }
 
 static inline int
