@@ -20,6 +20,7 @@
 #include "php_content_types.h"
 #include "zend_multibyte.h"
 #include "zend_smart_str.h"
+#include "casting.h"
 
 /**
  * @param CHAR_TYPE
@@ -28,10 +29,10 @@ int
 CHAR_TYPE_INT(char CHAR_TYPE)
 {
     if(CHAR_TYPE == TYPE_DOUBLE) {
-        return 1;
+        return TYPE_DOUBLE_INT;
     }
     if(CHAR_TYPE == TYPE_INTEGER) {
-        return 2;
+        return TYPE_INTEGER_INT;
     }
 }
 
@@ -154,15 +155,6 @@ CArray_Generate_Strides(int * dims, int ndims, char type)
     }
     
     return target_stride;
-}
-
-/**
- * Walk trought all PHP values
- * @return
- */
-zval * php_array_values_walk(zval * php_array)
-{
-    zval * zv;
 }
 
 /**
@@ -549,6 +541,44 @@ CArray_NewFromDescrAndBase(CArray * subtype, CArrayDescriptor * descr, int nd,
     return CArray_NewFromDescr_int(subtype, descr, nd, dims, strides, data, flags, base, 0, 0);
 }
 
+static void
+_select_carray_funcs(CArrayDescriptor *descr)
+{
+    int i;
+    CArray_VectorUnaryFunc * castfunc;
+    CArray_ArrFuncs * functions = emalloc(sizeof(CArray_ArrFuncs));
+    
+    if(descr->f == NULL) {
+        descr->f = functions;
+    }
+
+    if(descr->type_num == TYPE_INTEGER_INT) {
+        descr->f->copyswap = &INT_copyswap;
+    }
+
+    if(descr->type_num == TYPE_DOUBLE_INT) {
+        descr->f->copyswap = &DOUBLE_copyswap;
+    }
+
+    /**
+     * SELECT CASTING FUNCTIONS
+     **/ 
+    for(i = 0; i < CARRAY_NTYPES; i++) {
+        switch(i) {
+            case TYPE_DOUBLE_INT:
+                if(descr->type_num == TYPE_INTEGER_INT) {
+                    descr->f->cast[i] = (void (*)(CArray_VectorUnaryFunc))INT_TO_DOUBLE;
+                }
+                break;
+            case TYPE_INTEGER_INT:
+                if(descr->type_num == TYPE_DOUBLE_INT) {
+                    descr->f->cast[i] = (void (*)(CArray_VectorUnaryFunc))DOUBLE_TO_INT;
+                }
+                break;    
+        }
+    }
+}
+
 /**
  * @return
  */
@@ -568,7 +598,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
     self->refcount = 0;
     nbytes = descr->elsize;
     is_empty = 0;
-    
+
     for (i = 0; i < nd; i++) {
         uintptr_t dim = dims[i];
 
@@ -608,12 +638,13 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
     if (nd > 0) {
         self->dimensions = (int*)emalloc(nd * sizeof(int));
         self->strides = (int*)emalloc(nd * sizeof(int));
+        
         if (self->dimensions == NULL) {
             php_printf("MemoryError");
             goto fail;
         }        
         memcpy(self->dimensions, dims, sizeof(int)*nd);
-
+    
         for(i = 0; i < nd; i++) {
             if(i == 0) {
                 num_elements = self->dimensions[i];
@@ -659,6 +690,10 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
         if(CArray_SetBaseCArray(self, base) < 0) {
             goto fail;
         }
+    }
+
+    if(self->descriptor->f == NULL) {
+        _select_carray_funcs(self->descriptor);
     }
     return self;
 fail:
@@ -1050,4 +1085,184 @@ CArray *
 CArray_FromMemoryPointer(MemoryPointer * ptr)
 {
     return PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid];
+}
+
+CArrayDescriptor *
+CArray_DescrNew(CArrayDescriptor * base)
+{
+    CArrayDescriptor * new;
+    assert(base != NULL);
+
+    new = (CArrayDescriptor *)emalloc(sizeof(CArrayDescriptor));
+    if (new == NULL) {
+        return NULL;
+    }
+
+    memcpy((char *)new, (char *)base, sizeof(CArrayDescriptor));
+
+    return new;
+}
+
+int
+CArray_EquivTypes(CArrayDescriptor * a, CArrayDescriptor * b)
+{
+    if(a->elsize == b->elsize) {
+        return 1;
+    }
+    return 0;
+}
+
+CArray *
+CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
+{
+    CArray *ret = NULL;
+    int itemsize;
+    int copy = 0;
+    int arrflags;
+    CArrayDescriptor *oldtype;
+    char *msg = "cannot copy back to a read-only array";
+    int ensureArray = 0;
+    
+    assert(NULL != arr);
+
+    oldtype = CArray_DESCR(arr);
+    if (newtype == NULL) {
+        newtype = oldtype;
+        CArrayDescriptor_INCREF(oldtype);
+    }
+
+    itemsize = newtype->elsize;
+    if (itemsize == 0) {
+        CArray_DESCR_REPLACE(newtype);
+        if (newtype == NULL) {
+            return NULL;
+        }
+        newtype->elsize = oldtype->elsize;
+        itemsize = newtype->elsize;
+    }
+
+    /*
+     * Can't cast unless ndim-0 array, FORCECAST is specified
+     * or the cast is safe.
+     */
+    if (!(flags) && CArray_NDIM(arr) != 0 &&
+        !CArray_CanCastTo(oldtype, newtype)) {
+        CArrayDescriptor_DECREF(newtype);
+        throw_typeerror_exception("array cannot be safely cast to required type");
+        return NULL;
+    }
+
+    /* Don't copy if sizes are compatible */
+    if ((flags & CARRAY_ARRAY_ENSURECOPY) || CArray_EquivTypes(oldtype, newtype)) {
+        arrflags = arr->flags;
+        copy = (flags & CARRAY_ARRAY_ENSURECOPY) ||
+        ((flags & CARRAY_ARRAY_C_CONTIGUOUS) && (!(arrflags & CARRAY_ARRAY_C_CONTIGUOUS)))
+        || ((flags & CARRAY_ARRAY_ALIGNED) && (!(arrflags & CARRAY_ARRAY_ALIGNED)))
+        || (arr->ndim > 1 &&
+            ((flags & CARRAY_ARRAY_F_CONTIGUOUS) && (!(arrflags & CARRAY_ARRAY_F_CONTIGUOUS))))
+        || ((flags & CARRAY_ARRAY_WRITEABLE) && (!(arrflags & CARRAY_ARRAY_WRITEABLE)));
+
+        if (copy) {
+            if ((flags & CARRAY_ARRAY_UPDATEIFCOPY) &&
+                (!CArray_ISWRITEABLE(arr))) {
+                CArrayDescriptor_DECREF(newtype);
+                throw_valueerror_exception(msg);
+                return NULL;
+            }
+        
+        if ((flags & CARRAY_ARRAY_ENSUREARRAY)) {
+            ensureArray = 1;
+        }
+
+        ret = CArray_Alloc(newtype, arr->ndim, arr->dimensions,
+                                 flags & CARRAY_ARRAY_F_CONTIGUOUS,
+                                 ensureArray ? NULL : arr);
+
+        if (ret == NULL) {
+            return NULL;
+        }
+
+        /**if (NpyArray_CopyInto(ret, arr) == -1) {
+                Npy_DECREF(ret);
+                return NULL;
+            }
+            if (flags & NPY_UPDATEIFCOPY)  {
+                ret->flags |= NPY_UPDATEIFCOPY;
+                ret->base_arr = arr;
+                assert(NULL == ret->base_arr || NULL == ret->base_obj);
+                NpyArray_FLAGS(ret->base_arr) &= ~NPY_WRITEABLE;
+                Npy_INCREF(arr);
+            }**/      
+        } else {
+            CArrayDescriptor_DECREF(newtype);
+            if (flags & CARRAY_ARRAY_ENSUREARRAY)  {
+                CArrayDescriptor_INCREF(CArray_DESCR(arr));
+                ret = CArray_NewView(CArray_DESCR(arr), arr->ndim, arr->dimensions, arr->strides,
+                                    arr, 0, 1);
+                if (ret == NULL) {
+                    return NULL;
+                } else {
+                    ret = arr;
+                    CArray_INCREF(arr);
+                }
+            }
+        }            
+    } else {
+        if ((flags & CARRAY_ARRAY_UPDATEIFCOPY) &&
+            (!CArray_ISWRITEABLE(arr))) {
+            CArrayDescriptor_DECREF(newtype);
+            throw_valueerror_exception(msg);
+            return NULL;
+        }
+        if ((flags & CARRAY_ARRAY_ENSUREARRAY)) {
+            ensureArray = 1;
+        }
+        
+        ret = CArray_Alloc(newtype, arr->ndim, arr->dimensions,
+                           flags, ensureArray ? NULL : arr);
+                           
+        if (ret == NULL) {
+            return NULL;
+        }
+
+        if (CArray_CastTo(ret, arr) < 0) {
+            CArray_DECREF(ret);
+            return NULL;
+        }
+
+        if (flags & CARRAY_ARRAY_UPDATEIFCOPY)  {
+            ret->flags |= CARRAY_ARRAY_UPDATEIFCOPY;
+            ret->base = arr;
+            ret->base->flags &= ~CARRAY_ARRAY_WRITEABLE;
+            CArray_INCREF(arr);
+        }
+    }
+    return ret;
+}
+
+CArray *
+CArray_FromAnyUnwrap(CArray *op, CArrayDescriptor *newtype, int min_depth,
+                     int max_depth, int flags, CArray *context)
+{
+    CArray *r = NULL;
+    int seq = 0;
+
+    r = CArray_FromCArray(op, newtype, flags);
+
+    /* If we didn't succeed return NULL */
+    if (r == NULL) {
+        return NULL;
+    }
+
+    if (min_depth != 0 && (PyArray_NDIM(r) < min_depth)) {
+        throw_valueerror_exception("object of too small depth for desired array");
+        CArray_DECREF(r);
+        return NULL;
+    }
+    if (max_depth != 0 && (PyArray_NDIM(r) > max_depth)) {
+        throw_valueerror_exception("object too deep for desired array");
+        CArray_DECREF(r);
+        return NULL;
+    }
+    return r;
 }

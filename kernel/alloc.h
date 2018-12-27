@@ -16,4 +16,5 @@ void CArray_DECREF(CArray * target);
 void CArrayDescriptor_INCREF(CArrayDescriptor * descriptor);
 void CArrayDescriptor_DECREF(CArrayDescriptor * descriptor);
 void CArray_Alloc_FreeFromMemoryPointer(MemoryPointer * ptr);
+CArray * CArray_Alloc(CArrayDescriptor *descr, int nd, int* dims, int is_fortran, void *interfaceData);
 #endif //PHPSCI_EXT_ALLOC_H

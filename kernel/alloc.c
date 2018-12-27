@@ -80,6 +80,9 @@ _free_data_owner(MemoryPointer * ptr)
 {
     CArray * array = CArray_FromMemoryPointer(ptr);
     if(array->descriptor->refcount == 0) {
+        if(array->descriptor->f != NULL) {
+            efree(array->descriptor->f);
+        }
         if(array->descriptor != NULL) {
             efree(array->descriptor);
         }
@@ -107,6 +110,9 @@ _free_data_ref(MemoryPointer * ptr)
     }
     CArrayDescriptor_DECREF(array->descriptor);
     if(array->descriptor->refcount < 0) {
+        if(array->descriptor->f != NULL) {
+            efree(array->descriptor->f);
+        }
         efree(array->descriptor);
     }
     efree(array->dimensions);
@@ -127,4 +133,14 @@ CArray_Alloc_FreeFromMemoryPointer(MemoryPointer * ptr)
     }
     buffer_remove(ptr);
     return;
+}
+
+CArray *
+CArray_Alloc(CArrayDescriptor *descr, int nd, int* dims,
+             int is_fortran, void *interfaceData)
+{
+    CArray * target = emalloc(sizeof(CArray));
+    return CArray_NewFromDescr(target, descr, nd, dims, NULL, NULL,
+                              ( is_fortran ? CARRAY_ARRAY_F_CONTIGUOUS : 0),
+                              interfaceData);
 }

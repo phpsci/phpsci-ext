@@ -173,7 +173,6 @@ CArray_Matmul(CArray * ap1, CArray * ap2, CArray * out, MemoryPointer * ptr)
         add_to_buffer(ptr, result, sizeof(CArray*));
     }
     efree(dimensions);
-    CArray_Dump(result);
     // Remove appended dimension
     result->ndim = ap1->ndim;
 
@@ -183,4 +182,12 @@ fail:
         efree(dimensions);
     }
     return NULL;
+}
+
+/**
+ * Compute matrix inverse
+ **/ 
+CArray *
+CArray_Inv(CArray * a, MemoryPointer * out) {
+    
 }

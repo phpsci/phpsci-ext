@@ -7,15 +7,22 @@
 
 #include "php.h"
 
+typedef struct CArray CArray;
+
 static const int CARRAY_ARRAY_WARN_ON_WRITE = (1 << 31);
 
+#define CARRAY_NTYPES     5
 #define CARRAY_MAXDIMS   100
 #define TYPE_INTEGER     'i'
 #define TYPE_DOUBLE      'd'
 #define TYPE_FLOAT       'f'
-#define TYPE_INTEGER_INT  2
-#define TYPE_DOUBLE_INT   1
-#define TYPE_FLOAT_INT    3
+#define TYPE_BOOL        'b'
+#define TYPE_STRING      's'
+#define TYPE_INTEGER_INT  0
+#define TYPE_DOUBLE_INT   2
+#define TYPE_FLOAT_INT    1
+#define TYPE_BOOL_INT     3
+#define TYPE_STRING_INT   4
 #define TYPE_NOTYPE_INT   -1
 #define TYPE_DEFAULT_INT  1
 #define TYPE_DEFAULT      'd'
@@ -79,13 +86,15 @@ typedef enum {
  */
 #define CARRAY_ARRAY_WRITEABLE       0x0400
 #define CARRAY_ARRAY_WRITEBACKIFCOPY 0x2000
-
-
-#define CARRAY_ARRAY_BEHAVED         (CARRAY_ARRAY_ALIGNED | CARRAY_ARRAY_WRITEABLE)
-#define CARRAY_ARRAY_DEFAULT      (CARRAY_ARRAY_CARRAY)
-#define CARRAY_ARRAY_CARRAY       (CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_BEHAVED)
-#define CARRAY_ARRAY_UPDATE_ALL   (CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_ALIGNED)
+#define CARRAY_ARRAY_BEHAVED        (CARRAY_ARRAY_ALIGNED | CARRAY_ARRAY_WRITEABLE)
+#define CARRAY_ARRAY_DEFAULT        (CARRAY_ARRAY_CARRAY)
+#define CARRAY_ARRAY_CARRAY         (CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_BEHAVED)
+#define CARRAY_ARRAY_CARRAY_RO      (CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_ALIGNED)
+#define CARRAY_ARRAY_UPDATE_ALL     (CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_ALIGNED)
 #define CARRAY_ARRAY_UPDATEIFCOPY    0x1000
+#define CARRAY_ARRAY_FORCECAST       0x0010
+#define CARRAY_ARRAY_ENSURECOPY      0x0020
+#define CARRAY_ARRAY_ENSUREARRAY     0x0040
 
 /* The item must be reference counted when it is inserted or extracted. */
 #define CARRAY_ITEM_REFCOUNT   0x01
@@ -115,6 +124,49 @@ typedef enum {
                                             (j)*CArray_STRIDES(obj)[1]))
 
 /**
+ * Array Functions
+ */ 
+typedef struct CArray_ArrFuncs CArray_ArrFuncs;
+typedef void * (CArray_GetItemFunc) (void *, struct CArray *);
+typedef int (CArray_SetItemFunc)(void *, void *, struct CArray *);
+typedef void (CArray_CopySwapNFunc)(void *, int, void *, int,
+                                    int, int, struct CArray *);
+typedef void (CArray_CopySwapFunc)(void *, void *, int, struct CArray *);
+typedef void (CArray_VectorUnaryFunc)(void *, void *, int, void *,
+                                        void *);
+
+struct CArray_ArrFuncs {
+    /* The next four functions *cannot* be NULL */
+
+    /*
+     * Functions to get and set items with standard Python types
+     * -- not array scalars
+     */
+    CArray_GetItemFunc *getitem;
+    CArray_SetItemFunc *setitem;
+
+    /*
+     * Copy and/or swap data.  Memory areas may not overlap
+     * Use memmove first if they might
+     */
+    CArray_CopySwapNFunc *copyswapn;
+    CArray_CopySwapFunc *copyswap;
+
+    /*
+     * Array of CArray_CastFuncsItem given cast functions to
+     * user defined types. The array it terminated with CArray_NOTYPE.
+     * Can be NULL.
+     */
+    struct CArray_CastFuncsItem* castfuncs;
+
+    /*
+     * Functions to cast to all other standard types
+     * Can have some NULL entries
+     */
+    CArray_VectorUnaryFunc *cast[CARRAY_NTYPES];
+};
+
+/**
  * CArray Descriptor
  */
 typedef struct CArrayDescriptor {
@@ -123,8 +175,10 @@ typedef struct CArrayDescriptor {
     int type_num;       // 0 = boolean, 1 = double, 2 = signed integer, 3 = unsigned integer, 4 = floating point, 5 = char
     int elsize;         // Datatype size
     int numElements;    // Number of elements
+    char byteorder;
     int alignment;      // Alignment Information
     int refcount;
+    CArray_ArrFuncs *f;
 } CArrayDescriptor;
 
 /**
@@ -137,7 +191,6 @@ typedef struct {
 /**
  * CArray
  */
-typedef struct CArray CArray;
 struct CArray {
     int * strides;      // Strides vector
     int * dimensions;   // Dimensions size vector (Shape)
@@ -148,6 +201,7 @@ struct CArray {
     CArrayDescriptor * descriptor;    // CArray data descriptor
     int refcount;
 };
+
 
 /**
  * CArray Dims
@@ -182,11 +236,11 @@ typedef struct CArrayFlags
  **/ 
 #define CHDATA(p) ((char *) CArray_DATA((CArray *)p))
 #define SHDATA(p) ((short int *) CArray_DATA((CArray *)p))
-#define DDATA(p) ((double *) CArray_DATA((CArray *)p))
-#define FDATA(p) ((float *) CArray_DATA((CArray *)p))
-#define CDATA(p) ((f2c_complex *) CArray_DATA((CArray *)p))
-#define ZDATA(p) ((f2c_doublecomplex *) CArray_DATA((CArray *)p))
-#define IDATA(p) ((int *) CArray_DATA((CArray *)p))
+#define DDATA(p)  ((double *) CArray_DATA((CArray *)p))
+#define FDATA(p)  ((float *) CArray_DATA((CArray *)p))
+#define CDATA(p)  ((f2c_complex *) CArray_DATA((CArray *)p))
+#define ZDATA(p)  ((f2c_doublecomplex *) CArray_DATA((CArray *)p))
+#define IDATA(p)  ((int *) CArray_DATA((CArray *)p))
 
 /**
  * CArrays Func Macros
@@ -200,6 +254,36 @@ typedef struct CArrayFlags
 #define CArray_SIZE(m) CArray_MultiplyList(CArray_DIMS(m), CArray_NDIM(m))
 #define CArray_NBYTES(m) (CArray_ITEMSIZE(m) * CArray_SIZE(m))
 
+#define CArray_DESCR_REPLACE(descr)                             \
+    do {                                                          \
+        CArrayDescriptor *_new_;                                    \
+        _new_ = CArray_DescrNew(descr);                         \
+        CArrayDescriptor_DECREF(descr);                                      \
+        descr = _new_;                                            \
+    } while(0)
+#define CArray_ISCARRAY(m) CArray_FLAGSWAP(m, CARRAY_ARRAY_CARRAY)
+#define CArray_ISCARRAY_RO(m) CArray_FLAGSWAP(m, CARRAY_ARRAY_CARRAY_RO)    
+#define CArray_ISNOTSWAPPED(m) CArray_ISNBO(CArray_DESCR(m)->byteorder)
+#define CArray_FLAGSWAP(m, flags) (CArray_CHKFLAGS(m, flags) && CArray_ISNOTSWAPPED(m))
+
+#define CARRAY_BYTE_ORDER __BYTE_ORDER
+#define CARRAY_LITTLE_ENDIAN __LITTLE_ENDIAN
+#define CARRAY_BIG_ENDIAN __BIG_ENDIAN
+
+#define CARRAY_LITTLE '<'
+#define CARRAY_BIG '>'
+#define CARRAY_NATIVE '='
+#define CARRAY_SWAP 's'
+#define CARRAY_IGNORE '|'
+
+#if CARRAY_BYTE_ORDER == CARRAY_BIG_ENDIAN
+#define CARRAY_NATBYTE CARRAY_BIG
+#define CARRAY_OPPBYTE CARRAY_LITTLE
+#else
+#define CARRAY_NATBYTE CARRAY_LITTLE
+#define CARRAY_OPPBYTE CARRAY_BIG
+#endif
+#define CArray_ISNBO(arg) ((arg) != CARRAY_OPPBYTE)
 
 static inline int
 CArray_TYPE(const CArray *arr)
@@ -262,6 +346,13 @@ check_and_adjust_axis_msg(int *axis, int ndim)
 }
 
 static inline int
+CArray_SAMESHAPE(const CArray * a, const CArray * b)
+{
+    return CArray_CompareLists(CArray_DIMS(a), CArray_DIMS(b), CArray_NDIM(a));
+}
+
+
+static inline int
 check_and_adjust_axis(int *axis, int ndim)
 {
     return check_and_adjust_axis_msg(axis, ndim);
@@ -293,19 +384,28 @@ int * CArray_Generate_Strides(int * dims, int ndims, char type);
 void CArray_Print(CArray *array);
 
 CArray * CArray_FromMemoryPointer(MemoryPointer * ptr);
+CArray * CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags);
+
+CArray * CArray_FromAnyUnwrap(CArray *op, CArrayDescriptor *newtype, int min_depth, 
+                              int max_depth, int flags, CArray *context);
+
 CArray * CArray_NewFromDescrAndBase(CArray * subtype, CArrayDescriptor * descr, int nd,
                                     int * dims, int * strides, void * data, int flags,
                                     CArray * base);
+
 CArray * CArray_New(CArray *subtype, int nd, int *dims, int type_num,
            int *strides, void *data, int itemsize, int flags, CArray * base);
+
 CArray * CArray_NewFromDescr( CArray *subtype, CArrayDescriptor *descr,
                      int nd, int *dims, int *strides, void *data,
-                     int flags, CArray * base);                                    
+                     int flags, CArray * base);             
 
+CArrayDescriptor * CArray_DescrNew(CArrayDescriptor * base);
 int CArray_SetWritebackIfCopyBase(CArray *arr, CArray *base);
 int CArray_FailUnlessWriteable(CArray *obj, const char *name);
 int array_might_be_written(CArray *obj);
 CArrayDescriptor * CArray_DescrFromType(int typenum);
 int CArray_ResolveWritebackIfCopy(CArray * self);
 int CArray_CompareLists(int *l1, int *l2, int n);
+int CArray_EquivTypes(CArrayDescriptor * a, CArrayDescriptor * b);
 #endif //PHPSCI_EXT_CARRAY_H

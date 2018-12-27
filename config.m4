@@ -76,6 +76,7 @@ PHP_NEW_EXTENSION(carray,
       kernel/flagsobject.c \
       kernel/assign.c \
       kernel/convert.c \
+      kernel/casting.c \
       kernel/linalg.c \
       kernel/calculation.c \
       kernel/shape.c \
@@ -85,6 +86,7 @@ PHP_NEW_EXTENSION(carray,
       kernel/number.c \
       kernel/convert_type.c \
       kernel/trigonometric.c \
+      kernel/getset.c \
       kernel/common/exceptions.c \
 	  kernel/buffer.c ,
 	  $ext_shared,, )

@@ -102,3 +102,117 @@ CArray_NewCopy(CArray *obj, CARRAY_ORDER order)
 
     return ret;
 }
+
+int
+CArray_CanCastSafely(int fromtype, int totype)
+{
+    CArrayDescriptor *from, *to;
+    int felsize, telsize;
+
+    if (fromtype == totype) {
+        return 1;
+    }
+    if (fromtype == TYPE_BOOL_INT) {
+        return 1;
+    }
+    if (totype == TYPE_BOOL_INT) {
+        return 0;
+    }
+
+    from = CArray_DescrFromType(fromtype);
+    /*
+     * cancastto is a NPY_NOTYPE terminated C-int-array of types that
+     * the data-type can be cast to safely.
+     */
+    /**if (from->f->cancastto) {
+        int *curtype;
+        curtype = from->f->cancastto;
+        while (*curtype != NPY_NOTYPE) {
+            if (*curtype++ == totype) {
+                return 1;
+            }
+        }
+    }**/
+    
+    to = CArray_DescrFromType(totype);
+    telsize = to->elsize;
+    felsize = from->elsize;
+    CArrayDescriptor_DECREF(from);
+    CArrayDescriptor_DECREF(to);
+
+    switch(fromtype) {
+        default:
+            return 0;
+    }
+}
+
+int
+CArray_CanCastTo(CArrayDescriptor *from, CArrayDescriptor *to)
+{
+    int fromtype = from->type_num;
+    int totype = to->type_num;
+    int ret;
+
+    ret = CArray_CanCastSafely(fromtype, totype);
+
+    if (ret) {
+        /* Check String and Unicode more closely */
+        if (fromtype == TYPE_STRING_INT) {
+            if (totype == TYPE_STRING_INT) {
+                ret = (from->elsize <= to->elsize);
+            }
+        }
+        /*
+         * TODO: If totype is STRING or unicode
+         * see if the length is long enough to hold the
+         * stringified value of the object.
+         */
+    }
+    return ret;
+}
+
+CArray_VectorUnaryFunc *
+CArray_GetCastFunc(CArrayDescriptor *descr, int type_num)
+{
+    CArray_VectorUnaryFunc *castfunc = NULL;
+
+    castfunc = descr->f->cast[type_num];
+    
+    if (NULL == castfunc) {
+        throw_valueerror_exception("No cast function available.");
+        return NULL;
+    }
+    return castfunc;
+}
+
+int
+CArray_CastTo(CArray *out, CArray *mp)
+{
+    int simple;
+    int same;
+    CArray_VectorUnaryFunc *castfunc = NULL;
+    int mpsize = CArray_SIZE(mp);
+    int iswap, oswap;
+
+    if (mpsize == 0) {
+        return 0;
+    }
+    if (!CArray_ISWRITEABLE(out)) {
+        throw_valueerror_exception("output array is not writeable");
+        return -1;
+    }
+
+    castfunc = CArray_GetCastFunc(CArray_DESCR(mp), CArray_DESCR(out)->type_num);
+    if (castfunc == NULL) {
+        return -1;
+    }
+
+    same = CArray_SAMESHAPE(out, mp);
+    simple = same && ((CArray_ISCARRAY_RO(mp) && CArray_ISCARRAY(out)) ||
+                      (CArray_ISFARRAY_RO(mp) && CArray_ISFARRAY(out)));
+
+    if (simple) {
+        castfunc(mp->data, out->data, mpsize, mp, out);
+        return 0;
+    }         
+}
