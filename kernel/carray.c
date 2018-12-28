@@ -613,7 +613,7 @@ CArray_INIT(MemoryPointer * ptr, CArray * output_ca, int * dims, int ndim, char 
         num_elements = 1;
     }
 
-    output_ca_dscr = (CArrayDescriptor*)emalloc(sizeof(struct CArrayDescriptor));
+    output_ca_dscr = (CArrayDescriptor*)ecalloc(1, sizeof(struct CArrayDescriptor));
     output_ca_dscr->refcount = 0;
     // Build CArray Data Descriptor
     output_ca_dscr->type = type;
@@ -904,7 +904,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
             goto fail;
         }
     }
-
+    
     if(self->descriptor->f == NULL) {
         _select_carray_funcs(self->descriptor);
     }
