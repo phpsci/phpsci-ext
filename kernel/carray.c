@@ -21,6 +21,7 @@
 #include "zend_multibyte.h"
 #include "zend_smart_str.h"
 #include "casting.h"
+#include "getset.h"
 
 /**
  * @param CHAR_TYPE
@@ -66,6 +67,218 @@ CArray_FromZval_Long(zval * php_obj, char * type)
 
 }
 
+void
+_strided_byte_swap(void *p, int stride, int n, int size)
+{
+    char *a, *b, c = 0;
+    int j, m;
+
+    switch(size) {
+        case 1: /* no byteswap necessary */
+            break;
+        case 4:
+            for (a = (char*)p; n > 0; n--, a += stride - 1) {
+                b = a + 3;
+                c = *a; *a++ = *b; *b-- = c;
+                c = *a; *a = *b; *b   = c;
+            }
+            break;
+        case 8:
+            for (a = (char*)p; n > 0; n--, a += stride - 3) {
+                b = a + 7;
+                c = *a; *a++ = *b; *b-- = c;
+                c = *a; *a++ = *b; *b-- = c;
+                c = *a; *a++ = *b; *b-- = c;
+                c = *a; *a = *b; *b   = c;
+            }
+            break;
+        case 2:
+            for (a = (char*)p; n > 0; n--, a += stride) {
+                b = a + 1;
+                c = *a; *a = *b; *b = c;
+            }
+            break;
+        default:
+            m = size/2;
+            for (a = (char *)p; n > 0; n--, a += stride - m) {
+                b = a + (size - 1);
+                for (j = 0; j < m; j++) {
+                    c=*a; *a++ = *b; *b-- = c;
+                }
+            }
+            break;
+    }
+}
+
+static int
+_copy_from_same_shape(CArray *dest, CArray *src,
+                      strided_copy_func_t myfunc, int swap)
+{
+    int maxaxis = -1, elsize;
+    int maxdim;
+    CArrayIterator *dit, *sit;
+    CArrayDescriptor* descr;
+
+    dit = CArray_IterAllButAxis(dest, &maxaxis);
+    sit = CArray_IterAllButAxis(src, &maxaxis);
+
+    maxdim = dest->dimensions[maxaxis];
+
+    if ((dit == NULL) || (sit == NULL)) {
+        return -1;
+    }
+
+    elsize = CArray_ITEMSIZE(dest);
+    descr = CArray_DESCR(dest);
+
+    while(dit->index < dit->size) {
+        /* strided copy of elsize bytes */
+        myfunc(dit->data_pointer, dest->strides[maxaxis],
+               sit->data_pointer, src->strides[maxaxis],
+               maxdim, elsize, descr);
+        if (swap) {
+            _strided_byte_swap(dit->data_pointer,
+                               dest->strides[maxaxis],
+                               dest->dimensions[maxaxis],
+                               elsize);
+        }
+        CArrayIterator_NEXT(dit);
+        CArrayIterator_NEXT(sit);
+    }
+
+    CArrayIterator_FREE(sit);
+    CArrayIterator_FREE(dit);
+    return 0;
+}
+
+static int
+_broadcast_copy(CArray *dest, CArray *src,
+                strided_copy_func_t myfunc, int swap)
+{
+    
+}
+
+static void
+_strided_byte_copy(char *dst, int outstrides, char *src, int instrides,
+                   int N, int elsize, CArrayDescriptor* ignore)
+{
+    int i, j;
+    char *tout = dst;
+    char *tin = src;
+
+#define _FAST_MOVE(_type_)                              \
+    for(i=0; i<N; i++) {                                \
+        ((_type_ *)tout)[0] = ((_type_ *)tin)[0];       \
+        tin += instrides;                               \
+        tout += outstrides;                             \
+    }                                                   \
+    return
+
+    switch(elsize) {
+        case 8:
+            _FAST_MOVE(long);
+        case 4:
+            _FAST_MOVE(int);
+        case 1:
+            _FAST_MOVE(int8_t);
+        case 2:
+            _FAST_MOVE(int16_t);
+        case 16:
+            for (i = 0; i < N; i++) {
+                ((long *)tout)[0] = ((long *)tin)[0];
+                ((long *)tout)[1] = ((long *)tin)[1];
+                tin += instrides;
+                tout += outstrides;
+            }
+            return;
+        default:
+            for(i = 0; i < N; i++) {
+                for(j=0; j<elsize; j++) {
+                    *tout++ = *tin++;
+                }
+                tin = tin + instrides - elsize;
+                tout = tout + outstrides - elsize;
+            }
+    }
+#undef _FAST_MOVE
+
+}
+
+static void
+_unaligned_strided_byte_copy(char *dst, int outstrides, char *src,
+                             int instrides, int N, int elsize,
+                             CArrayDescriptor* ignore)
+{
+    int i;
+    char *tout = dst;
+    char *tin = src;
+
+#define _COPY_N_SIZE(size)              \
+        for(i=0; i<N; i++) {                    \
+        memcpy(tout, tin, size);                \
+        tin += instrides;                       \
+        tout += outstrides;                     \
+        }                                       \
+        return _COPY_N_SIZE(elsize);
+#undef _COPY_N_SIZE
+}
+
+static void
+_strided_void_copy(char* dst, int outstrides, char* src, int instrides,
+                   int N, int elsize, CArrayDescriptor* descr)
+{
+    int i;
+    char* tmp = (char*)emalloc(elsize);
+
+    for (i=0; i<N; i++) {
+        memcpy(tmp, src, elsize);
+        memcpy(dst, tmp, elsize);
+        src += instrides;
+        dst += outstrides;
+    }
+    efree(tmp);
+}
+
+static void
+_unaligned_strided_byte_move(char *dst, int outstrides, char *src,
+                             int instrides, int N, int elsize, 
+                             CArrayDescriptor* ignore)
+{
+    int i;
+    char *tout = dst;
+    char *tin = src;
+
+#define _MOVE_N_SIZE(size)             \
+    for(i=0; i<N; i++) {               \
+        memmove(tout, tin, size);      \
+        tin += instrides;              \
+        tout += outstrides;            \
+    }                                  \
+    return _MOVE_N_SIZE(elsize);
+#undef _MOVE_N_SIZE
+}
+
+/*
+ * Returns the copy func for the arrays.  The arrays must be the same type.
+ * If src is NULL then it is assumed to be the same type and aligned.
+ */
+static strided_copy_func_t
+strided_copy_func(CArray* dest, CArray* src, int usecopy)
+{
+    if (CArray_DESCR(dest)->refcount) {
+        return _strided_void_copy;
+    }
+    else if (CArray_SAFEALIGNEDCOPY(dest) && (src == NULL || CArray_SAFEALIGNEDCOPY(src))) {
+        return _strided_byte_copy;
+    }
+    else if (usecopy) {
+        return _unaligned_strided_byte_copy;
+    }
+    else {
+        return _unaligned_strided_byte_move;
+    }
+}
+
 /*
  * This is the main array creation routine.
  *
@@ -84,7 +297,7 @@ CArray_FromZval_Long(zval * php_obj, char * type)
  *
  * Dimensions and itemsize must have been checked for validity.
  */
-void
+static void
 _array_fill_strides(int *strides, int *dims, int nd, size_t itemsize,
                     int inflag, int *objflags)
 {
@@ -590,7 +803,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
 {
     int i, is_empty, num_elements = 0;
     uintptr_t nbytes;
-    
+
     if ((unsigned int)nd > (unsigned int)CARRAY_MAXDIMS) {
         php_printf("number of dimensions must be within [0, %d]", CARRAY_MAXDIMS);
         return NULL;
@@ -1112,6 +1325,77 @@ CArray_EquivTypes(CArrayDescriptor * a, CArrayDescriptor * b)
     return 0;
 }
 
+int
+CArray_EquivArrTypes(CArray * a, CArray * b)
+{
+    return CArray_EquivTypes(CArray_DESCR(a), CArray_DESCR(b));
+}
+
+/* If destination is not the right type, then src
+   will be cast to destination -- this requires
+   src and dest to have the same shape
+*/
+/* Requires arrays to have broadcastable shapes
+   The arrays are assumed to have the same number of elements
+   They can be different sizes and have different types however.
+*/
+static int
+_array_copy_into(CArray *dest, CArray *src, int usecopy)
+{
+    strided_copy_func_t myfunc;
+    int swap;
+    int simple;
+    int same;
+
+    if (!CArray_EquivArrTypes(dest, src)) {
+        return CArray_CastTo(dest, src);
+    }
+
+    if (!CArray_ISWRITEABLE(dest)) {
+        throw_valueerror_exception("cannot write to array");
+        return -1;
+    }
+
+    same = CArray_SAMESHAPE(dest, src);
+    simple = same && ((CArray_ISCARRAY_RO(src) && CArray_ISCARRAY(dest)) ||
+             (CArray_ISFARRAY_RO(src) && CArray_ISFARRAY(dest)));
+
+    if (simple) {
+        if (usecopy) {
+            memcpy(dest->data, src->data, CArray_NBYTES(dest));
+        }
+        else {
+            memmove(dest->data, src->data, CArray_NBYTES(dest));
+        }
+        return 0;
+    }
+
+    swap = CArray_ISNOTSWAPPED(dest) != CArray_ISNOTSWAPPED(src);
+
+    /**if (src->nd == 0) {
+        return _copy_from0d(dest, src, usecopy, swap);
+    }**/
+
+    myfunc = strided_copy_func(dest, src, usecopy);
+
+    /*
+     * Could combine these because _broadcasted_copy would work as well.
+     * But, same-shape copying is so common we want to speed it up.
+     */
+    if (same) {
+        return _copy_from_same_shape(dest, src, myfunc, swap);
+    }
+    else {
+        return _broadcast_copy(dest, src, myfunc, swap);
+    }
+}
+
+int
+CArray_CopyInto(CArray * dest, CArray * src)
+{
+    return _array_copy_into(dest, src, 1);
+}
+
 CArray *
 CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
 {
@@ -1161,7 +1445,7 @@ CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
         || (arr->ndim > 1 &&
             ((flags & CARRAY_ARRAY_F_CONTIGUOUS) && (!(arrflags & CARRAY_ARRAY_F_CONTIGUOUS))))
         || ((flags & CARRAY_ARRAY_WRITEABLE) && (!(arrflags & CARRAY_ARRAY_WRITEABLE)));
-
+        
         if (copy) {
             if ((flags & CARRAY_ARRAY_UPDATEIFCOPY) &&
                 (!CArray_ISWRITEABLE(arr))) {
@@ -1170,29 +1454,28 @@ CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
                 return NULL;
             }
         
-        if ((flags & CARRAY_ARRAY_ENSUREARRAY)) {
-            ensureArray = 1;
-        }
+            if ((flags & CARRAY_ARRAY_ENSUREARRAY)) {
+                ensureArray = 1;
+            }
 
-        ret = CArray_Alloc(newtype, arr->ndim, arr->dimensions,
-                                 flags & CARRAY_ARRAY_F_CONTIGUOUS,
-                                 ensureArray ? NULL : arr);
+            ret = CArray_Alloc(newtype, arr->ndim, arr->dimensions,
+                                    flags & CARRAY_ARRAY_F_CONTIGUOUS,
+                                    ensureArray ? NULL : arr);
 
-        if (ret == NULL) {
-            return NULL;
-        }
-
-        /**if (NpyArray_CopyInto(ret, arr) == -1) {
-                Npy_DECREF(ret);
+            if (ret == NULL) {
                 return NULL;
             }
-            if (flags & NPY_UPDATEIFCOPY)  {
+        
+            if (CArray_CopyInto(ret, arr) == -1) {
+                return NULL;
+            }
+            /**if (flags & NPY_UPDATEIFCOPY)  {
                 ret->flags |= NPY_UPDATEIFCOPY;
                 ret->base_arr = arr;
                 assert(NULL == ret->base_arr || NULL == ret->base_obj);
                 NpyArray_FLAGS(ret->base_arr) &= ~NPY_WRITEABLE;
                 Npy_INCREF(arr);
-            }**/      
+            }  **/   
         } else {
             CArrayDescriptor_DECREF(newtype);
             if (flags & CARRAY_ARRAY_ENSUREARRAY)  {
@@ -1201,10 +1484,10 @@ CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
                                     arr, 0, 1);
                 if (ret == NULL) {
                     return NULL;
-                } else {
-                    ret = arr;
-                    CArray_INCREF(arr);
-                }
+                } 
+            } else {
+                ret = arr;
+                CArray_INCREF(arr);
             }
         }            
     } else {
@@ -1265,4 +1548,60 @@ CArray_FromAnyUnwrap(CArray *op, CArrayDescriptor *newtype, int min_depth,
         return NULL;
     }
     return r;
+}
+
+/**
+ * ca::empty
+ **/ 
+CArray *
+CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPointer * ptr)
+{
+    CArray *ret;
+    ret = emalloc(sizeof(CArray));
+    if (!type || type == NULL) type = CArray_DescrFromType(TYPE_DEFAULT_INT);
+
+    ret = (CArray *)CArray_NewFromDescr( ret, type, nd, dims,
+                                         NULL, NULL, CARRAY_ARRAY_WRITEABLE, NULL );
+    if (ret == NULL) {
+        return NULL;
+    }
+
+    if(ptr != NULL) {
+        add_to_buffer(ptr, ret, sizeof(CArray));
+    }
+    return ret;
+}
+
+/**
+ * ca::identity
+ **/ 
+CArray *
+CArray_Identity(int n, MemoryPointer * out) 
+{
+    CArray * ret, * mask;
+    int * dimensions, * mask_dimensions;
+    int i;
+
+    dimensions = emalloc(2 * sizeof(int));
+    mask_dimensions = emalloc(sizeof(int));
+
+    dimensions[0] = n;
+    dimensions[1] = n;
+    mask_dimensions[0] = n + 1;
+
+    ret = CArray_Empty(2, dimensions, NULL, 0, out);
+    mask = CArray_Empty(1, mask_dimensions, NULL, 0, NULL);
+
+    IDATA(mask)[0] = 1;
+    for(i = 0; i < n; i++) {
+        IDATA(mask)[i+1] = 0;
+    }
+
+    array_flat_set(ret, mask);
+
+    if(out != NULL) {
+        add_to_buffer(out, ret, sizeof(ret));
+    }
+    CArray_Free(mask);
+    return ret;
 }

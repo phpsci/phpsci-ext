@@ -18,13 +18,15 @@ static const int CARRAY_ARRAY_WARN_ON_WRITE = (1 << 31);
 #define TYPE_FLOAT       'f'
 #define TYPE_BOOL        'b'
 #define TYPE_STRING      's'
+#define TYPE_VOID        'v'
 #define TYPE_INTEGER_INT  0
 #define TYPE_DOUBLE_INT   2
 #define TYPE_FLOAT_INT    1
 #define TYPE_BOOL_INT     3
 #define TYPE_STRING_INT   4
+#define TYPE_VOID_INT     5
 #define TYPE_NOTYPE_INT   -1
-#define TYPE_DEFAULT_INT  1
+#define TYPE_DEFAULT_INT  0
 #define TYPE_DEFAULT      'd'
 
 /* For specifying array memory layout or iteration order */
@@ -95,6 +97,8 @@ typedef enum {
 #define CARRAY_ARRAY_FORCECAST       0x0010
 #define CARRAY_ARRAY_ENSURECOPY      0x0020
 #define CARRAY_ARRAY_ENSUREARRAY     0x0040
+#define CARRAY_ARRAY_FARRAY          (CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_BEHAVED)
+#define CARRAY_ARRAY_FARRAY_RO       (CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_ALIGNED)
 
 /* The item must be reference counted when it is inserted or extracted. */
 #define CARRAY_ITEM_REFCOUNT   0x01
@@ -134,6 +138,7 @@ typedef void (CArray_CopySwapNFunc)(void *, int, void *, int,
 typedef void (CArray_CopySwapFunc)(void *, void *, int, struct CArray *);
 typedef void (CArray_VectorUnaryFunc)(void *, void *, int, void *,
                                         void *);
+                                      
 
 struct CArray_ArrFuncs {
     /* The next four functions *cannot* be NULL */
@@ -202,6 +207,7 @@ struct CArray {
     int refcount;
 };
 
+typedef void (*strided_copy_func_t)(char *, int, char *, int, int, int, CArrayDescriptor*);  
 
 /**
  * CArray Dims
@@ -262,7 +268,9 @@ typedef struct CArrayFlags
         descr = _new_;                                            \
     } while(0)
 #define CArray_ISCARRAY(m) CArray_FLAGSWAP(m, CARRAY_ARRAY_CARRAY)
-#define CArray_ISCARRAY_RO(m) CArray_FLAGSWAP(m, CARRAY_ARRAY_CARRAY_RO)    
+#define CArray_ISCARRAY_RO(m) CArray_FLAGSWAP(m, CARRAY_ARRAY_CARRAY_RO)   
+#define CArray_ISFARRAY(m) CArray_FLAGSWAP(m, CARRAY_ARRAY_FARRAY)
+#define CArray_ISFARRAY_RO(m) CArray_FLAGSWAP(m, CARRAY_ARRAY_FARRAY_RO) 
 #define CArray_ISNOTSWAPPED(m) CArray_ISNBO(CArray_DESCR(m)->byteorder)
 #define CArray_FLAGSWAP(m, flags) (CArray_CHKFLAGS(m, flags) && CArray_ISNOTSWAPPED(m))
 
@@ -359,11 +367,14 @@ check_and_adjust_axis(int *axis, int ndim)
 }
 
 
-
+#define CArrayTypeNum_ISFLEXIBLE(type) (((type) >=TYPE_STRING) &&        \
+                                     ((type) <=TYPE_VOID))
 #define CArray_ISCONTIGUOUS(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS)
 #define CArray_ISWRITEABLE(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_WRITEABLE)
 #define CArray_ISALIGNED(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_ALIGNED)
-
+#define CArray_ISVARIABLE(obj) CArrayTypeNum_ISFLEXIBLE(CArray_TYPE(obj))
+#define CArray_SAFEALIGNEDCOPY(obj) (CArray_ISALIGNED(obj) &&      \
+                                       !CArray_ISVARIABLE(obj))
 
 
 int CHAR_TYPE_INT(char CHAR_TYPE);
@@ -408,4 +419,14 @@ CArrayDescriptor * CArray_DescrFromType(int typenum);
 int CArray_ResolveWritebackIfCopy(CArray * self);
 int CArray_CompareLists(int *l1, int *l2, int n);
 int CArray_EquivTypes(CArrayDescriptor * a, CArrayDescriptor * b);
+int CArray_EquivArrTypes(CArray * a, CArray * b);
+int CArray_CopyInto(CArray * dest, CArray * src);
+
+/**
+ * Methods
+ **/ 
+CArray * CArray_Identity(int n, MemoryPointer * out);
+CArray * CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPointer * ptr);
+
+
 #endif //PHPSCI_EXT_CARRAY_H

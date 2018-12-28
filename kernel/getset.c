@@ -18,7 +18,7 @@ array_flat_set(CArray * self, CArray * val)
     CArrayDescriptor_INCREF(typecode);
 
     arr = CArray_FromAnyUnwrap(val, typecode, 0, 0, CARRAY_ARRAY_FORCECAST, NULL);
-
+    
     if(arr == NULL) {
         return -1;
     }
@@ -71,6 +71,7 @@ array_flat_set(CArray * self, CArray * val)
     CArrayIterator_FREE(arr_it);
     CArrayIterator_FREE(self_it);
     efree(typecode);
+    return retval;
 exit:
     CArray_DECREF(arr);
     return retval;

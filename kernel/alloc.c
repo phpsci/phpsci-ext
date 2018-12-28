@@ -72,6 +72,19 @@ CArrayDescriptor_DECREF(CArrayDescriptor * descriptor)
     descriptor->refcount--;
 }
 
+void
+CArray_Free(CArray * self)
+{
+    if(!self->refcount) {
+        efree(self->dimensions);
+        efree(self->strides);
+        efree(self->descriptor->f);
+        efree(self->descriptor);
+        efree(self->data);
+        efree(self);
+    }
+}
+
 /**
  * Free CArrays owning data buffer
  */  
@@ -110,9 +123,6 @@ _free_data_ref(MemoryPointer * ptr)
     }
     CArrayDescriptor_DECREF(array->descriptor);
     if(array->descriptor->refcount < 0) {
-        if(array->descriptor->f != NULL) {
-            efree(array->descriptor->f);
-        }
         efree(array->descriptor);
     }
     efree(array->dimensions);
