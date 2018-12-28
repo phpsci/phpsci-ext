@@ -838,10 +838,10 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
                 self->flags &= ~CARRAY_ARRAY_C_CONTIGUOUS;
             }
             flags = CARRAY_ARRAY_F_CONTIGUOUS;
-        } else {
-            self->flags = (flags & ~CARRAY_ARRAY_WRITEBACKIFCOPY);
-            self->flags &= ~CARRAY_ARRAY_UPDATEIFCOPY;
-        }
+        } 
+    } else {
+        self->flags = (flags & ~CARRAY_ARRAY_WRITEBACKIFCOPY);
+        self->flags &= ~CARRAY_ARRAY_UPDATEIFCOPY;
     }
 
     self->descriptor = descr;
@@ -908,6 +908,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
     if(self->descriptor->f == NULL) {
         _select_carray_funcs(self->descriptor);
     }
+    
     return self;
 fail:
     return NULL;
@@ -1559,9 +1560,10 @@ CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPoint
     CArray *ret;
     ret = emalloc(sizeof(CArray));
     if (!type || type == NULL) type = CArray_DescrFromType(TYPE_DEFAULT_INT);
-
+    
     ret = (CArray *)CArray_NewFromDescr( ret, type, nd, dims,
-                                         NULL, NULL, CARRAY_ARRAY_WRITEABLE, NULL );
+                                         NULL, NULL, NULL, NULL );
+                                  
     if (ret == NULL) {
         return NULL;
     }
@@ -1598,7 +1600,7 @@ CArray_Identity(int n, MemoryPointer * out)
     }
 
     array_flat_set(ret, mask);
-    
+
     CArray_Free(mask);
     efree(dimensions);
     efree(mask_dimensions);
