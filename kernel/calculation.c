@@ -244,12 +244,18 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
 {
     int i, j = 0, z;
     void * total;
+    int index_jumps;
     CArray * arr, * ret = NULL;
     CArrayDescriptor * descr;
     ret = (CArray *)emalloc(sizeof(CArray));
     descr = (CArrayDescriptor*)ecalloc(1, sizeof(CArrayDescriptor));
     arr = CArray_CheckAxis(self, axis, 0);
-    int index_jumps = self->strides[*axis]/self->descriptor->elsize;
+    
+    if(axis != NULL) {
+        index_jumps = self->strides[*axis]/self->descriptor->elsize;
+    } else {
+        index_jumps = 1;
+    }
     
     if(axis != NULL) {
         if(*axis >= CArray_NDIM(self)) {
@@ -298,6 +304,7 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
         }
     }
     if(axis != NULL) {
+        CArrayIterator * it;
         int * new_dimensions = (int*)emalloc((self->ndim - 1) * sizeof(int));    
         for(i = 0; i < self->ndim; i++) {
             if(i != *axis) {
@@ -320,7 +327,7 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
                 IDATA(ret)[i] = 0;
             }
             ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, NULL, 0, NULL, 1, 0);   
-            CArrayIterator * it = CArray_IterAllButAxis(self, axis);
+            it = CArray_IterAllButAxis(self, axis);
             i = 0;
             do {
                 for(j = 0; j < self->dimensions[*axis]; j++) {
@@ -335,7 +342,7 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
                 DDATA(ret)[i] = 0.00;
             }
             ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, NULL, 0, NULL, 1, 0);   
-            CArrayIterator * it = CArray_IterAllButAxis(self, axis);
+            it = CArray_IterAllButAxis(self, axis);
             i = 0;
             do {
                 for(j = 0; j < self->dimensions[*axis]; j++) {
@@ -345,6 +352,7 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
                 i++;
             } while(CArrayIterator_NOTDONE(it));
         }
+        CArrayIterator_FREE(it);
     }
     add_to_buffer(out_ptr, ret, sizeof(*ret));
     efree(total);

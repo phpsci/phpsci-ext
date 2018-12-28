@@ -1013,11 +1013,11 @@ void
 CArray_Print(CArray *array)
 {
     int start_index = 0;
-    CArrayIterator * it = CArray_NewIter(array);
     if(array->ndim == 0) {
         php_printf("%d", ((int*)CArray_DATA(array))[0]);
         return;
     }
+    CArrayIterator * it = CArray_NewIter(array);
     _print_recursive(array, it, &start_index, 0);
     CArrayIterator_FREE(it);
 }
