@@ -1598,10 +1598,9 @@ CArray_Identity(int n, MemoryPointer * out)
     }
 
     array_flat_set(ret, mask);
-
-    if(out != NULL) {
-        add_to_buffer(out, ret, sizeof(ret));
-    }
+    
     CArray_Free(mask);
+    efree(dimensions);
+    efree(mask_dimensions);
     return ret;
 }
