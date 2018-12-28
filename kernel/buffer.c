@@ -70,6 +70,7 @@ void add_to_buffer(MemoryPointer * ptr, struct CArray * array, size_t size) {
 
     // Associate CArray unique id
     ptr->uuid = (int)PHPSCI_MAIN_MEM_STACK.size;
+    array->uuid = ptr->uuid;
     // Set new size for MemoryStack
     PHPSCI_MAIN_MEM_STACK.size++;
 }

@@ -92,19 +92,21 @@ void
 _free_data_owner(MemoryPointer * ptr)
 {
     CArray * array = CArray_FromMemoryPointer(ptr);
-    if(array->descriptor->refcount == 0) {
-        if(array->descriptor->f != NULL) {
-            efree(array->descriptor->f);
-        }
+    CArrayDescriptor_DECREF(array->descriptor);
+    if(array->descriptor->refcount <= 0) {
+        efree(array->descriptor->f);
         if(array->descriptor != NULL) {
             efree(array->descriptor);
         }
     }
-    if(array->refcount == 0) {
-        efree(array->data);
-    }
+    
+    CArray_DECREF(array);
     efree(array->dimensions);
     efree(array->strides);
+    if(array->refcount < 0) {
+        efree(array->data);
+        buffer_remove(ptr);
+    }    
 }
 
 /**
@@ -113,23 +115,31 @@ _free_data_owner(MemoryPointer * ptr)
 void
 _free_data_ref(MemoryPointer * ptr)
 {
+    MemoryPointer tmp;
+    
     CArray * array = CArray_FromMemoryPointer(ptr);
-    //CArray_Print(array->base);
-    if(array->refcount == 0 && array->base->refcount <= 1) {
-        efree(array->data);
-    }
-    if(array->refcount == 0 && array->base->refcount > 1) {
-        CArray_DECREF(array->base);
-    }
+    
+    CArray_DECREF(array);
+    CArray_DECREF(array->base);
     CArrayDescriptor_DECREF(array->descriptor);
-    if(array->descriptor->refcount < 0) {
-        if(array->descriptor->f != NULL) {
-            efree(array->descriptor->f);
-        }
+    
+    if(array->descriptor->refcount <= 0) {
+        efree(array->descriptor->f);
         efree(array->descriptor);
     }
     efree(array->dimensions);
     efree(array->strides);
+    
+    if(array->refcount < 0 && array->base->refcount < 0) {
+        if(CArray_CHKFLAGS(array->base, CARRAY_ARRAY_OWNDATA)) {
+            efree(array->data);
+        } 
+        tmp.uuid = array->base->uuid;
+        buffer_remove(&tmp);
+    }   
+    if(array->refcount < 0){
+        buffer_remove(ptr);
+    }    
 }
 
 /**
@@ -144,7 +154,6 @@ CArray_Alloc_FreeFromMemoryPointer(MemoryPointer * ptr)
     } else {
         _free_data_ref(ptr);
     }
-    buffer_remove(ptr);
     return;
 }
 

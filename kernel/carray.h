@@ -197,6 +197,7 @@ typedef struct {
  * CArray
  */
 struct CArray {
+    int uuid;           // Buffer UUID
     int * strides;      // Strides vector
     int * dimensions;   // Dimensions size vector (Shape)
     int ndim;           // Number of Dimensions
