@@ -298,3 +298,62 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
 
     return ret;
 }
+
+/**
+ * @return
+ */
+CArray *
+CArray_SwapAxes(CArray * ap, int a1, int a2, MemoryPointer * out)
+{
+    CArray_Dims new_axes;
+    int * dims;
+    int n, i, val;
+    CArray * ret;
+
+    if (a1 == a2) {
+        CArray_INCREF(ap);
+        return ap;
+    }
+
+    n = CArray_NDIM(ap);
+    if (n <= 1) {
+        CArray_INCREF(ap);
+        return ap;
+    }
+
+    if (a1 < 0) {
+        a1 += n;
+    }
+    if (a2 < 0) {
+        a2 += n;
+    }
+    if ((a1 < 0) || (a1 >= n)) {
+        throw_valueerror_exception("bad axis1 argument to swapaxes");
+        return NULL;
+    }
+
+    if ((a2 < 0) || (a2 >= n)) {
+        throw_valueerror_exception("bad axis2 argument to swapaxes");
+        return NULL;
+    }
+
+    dims = emalloc(n * sizeof(int));
+    new_axes.ptr = dims;
+    new_axes.len = n;
+
+    for (i = 0; i < n; i++) {
+        if (i == a1) {
+            val = a2;
+        }
+        else if (i == a2) {
+            val = a1;
+        }
+        else {
+            val = i;
+        }
+        new_axes.ptr[i] = val;
+    }
+    ret = CArray_Transpose(ap, &new_axes, out);
+    efree(dims);
+    return ret;
+}

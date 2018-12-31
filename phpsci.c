@@ -41,6 +41,7 @@
 #include "kernel/number.h"
 #include "kernel/trigonometric.h"
 #include "kernel/common/exceptions.h"
+#include "kernel/shape.h"
 
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
 {
@@ -424,7 +425,6 @@ PHP_METHOD(CArray, matmul)
 PHP_METHOD(CArray, add)
 {
     MemoryPointer target1_ptr, target2_ptr, result_ptr;
-
     zval * target1, * target2;
     CArray * target_ca1, * target_ca2, * output_ca, * out;
     ZEND_PARSE_PARAMETERS_START(2, 2)
@@ -440,6 +440,26 @@ PHP_METHOD(CArray, add)
     RETURN_MEMORYPOINTER(return_value, &result_ptr);
 }
 
+/**
+ * MANIPULATION ROUTINES
+ */
+PHP_METHOD(CArray, swapaxes)
+{
+    MemoryPointer a_ptr;
+    CArray * target_array;
+    zval * a;
+    long axis1, axis2;
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+        Z_PARAM_ZVAL(a)
+        Z_PARAM_LONG(axis1)
+        Z_PARAM_LONG(axis2)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(a, &a_ptr);
+    target_array = CArray_FromMemoryPointer(&a_ptr);
+    CArray_SwapAxes(target_array, (int)axis1, (int)axis2, &a_ptr);
+    RETURN_MEMORYPOINTER(return_value, &a_ptr);
+}
+
 
 /**
  * CLASS METHODS
@@ -451,6 +471,9 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, dump, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, print, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, __set, arginfo_array_set, ZEND_ACC_PUBLIC)
+
+        //ARRAY MANIPULATION
+        PHP_ME(CArray, swapaxes, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // METHODS
         PHP_ME(CArray, identity, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

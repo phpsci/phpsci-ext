@@ -9,4 +9,5 @@
 
 CArray * CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, MemoryPointer * ptr);
 CArray * CArray_Transpose(CArray * target, CArray_Dims * permute, MemoryPointer * ptr);
+CArray * CArray_SwapAxes(CArray * ap, int a1, int a2, MemoryPointer * out);
 #endif //PHPSCI_EXT_SHAPE_H
