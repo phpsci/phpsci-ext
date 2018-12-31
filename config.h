@@ -8,7 +8,7 @@
 #define HAVE_CARRAY 1 
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
-/* #undef HAVE_DLFCN_H */
+#define HAVE_DLFCN_H 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -48,7 +48,7 @@
 #define HAVE__USR_INCLUDE_LAPACKE_H 1
 
 /* Define to 1 if you have the </usr/include/openblas/cblas.h> header file. */
-/* #undef HAVE__USR_INCLUDE_OPENBLAS_CBLAS_H */
+#define HAVE__USR_INCLUDE_OPENBLAS_CBLAS_H 1
 
 /* Define to 1 if you have the </usr/include/openblas/lapacke.h> header file.
    */

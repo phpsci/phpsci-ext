@@ -425,8 +425,8 @@ int CArray_CopyInto(CArray * dest, CArray * src);
 
 /**
  * Methods
- **/ 
-CArray * CArray_Identity(int n, MemoryPointer * out);
+ **/
+CArray * CArray_Identity(int n, char * dtype, MemoryPointer * out);
 CArray * CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPointer * ptr);
 
 

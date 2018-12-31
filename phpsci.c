@@ -387,11 +387,19 @@ PHP_METHOD(CArray, identity)
     MemoryPointer ptr;
     CArray * output;
     zend_long size;
-    ZEND_PARSE_PARAMETERS_START(1, 1)
+    char * dtype;
+    size_t type_len;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
         Z_PARAM_LONG(size)
-    ZEND_PARSE_PARAMETERS_END();    
+        Z_PARAM_OPTIONAL
+        Z_PARAM_STRING(dtype, type_len)
+    ZEND_PARSE_PARAMETERS_END();
 
-    output = CArray_Identity((int)size, &ptr);
+    if(ZEND_NUM_ARGS() == 1) {
+        dtype = NULL;
+    }
+
+    output = CArray_Identity((int)size, dtype, &ptr);
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
 

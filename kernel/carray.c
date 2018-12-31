@@ -4,6 +4,7 @@
 #include "carray.h"
 #include "alloc.h"
 #include "iterators.h"
+#include "convert.h"
 #include "buffer.h"
 #include "flagsobject.h"
 #include "php.h"
@@ -35,6 +36,7 @@ CHAR_TYPE_INT(char CHAR_TYPE)
     if(CHAR_TYPE == TYPE_INTEGER) {
         return TYPE_INTEGER_INT;
     }
+    throw_valueerror_exception("Unknown type");
 }
 
 /**
@@ -737,7 +739,7 @@ CArray_New(CArray *subtype, int nd, int *dims, int type_num,
     if (descr == NULL) {
         return NULL;
     }
-    
+
     new = CArray_NewFromDescr(subtype, descr, nd, dims, strides,
                               data, flags, base);
     return new;
@@ -1014,8 +1016,14 @@ CArray_Print(CArray *array)
 {
     int start_index = 0;
     if(array->ndim == 0) {
-        php_printf("%d", ((int*)CArray_DATA(array))[0]);
-        return;
+        if(CArray_TYPE(array) == TYPE_DOUBLE_INT) {
+            php_printf("%f", DDATA(array)[0]);
+            return;
+        }
+        if(CArray_TYPE(array) == TYPE_INTEGER_INT) {
+            php_printf("%d", IDATA(array)[0]);
+            return;
+        }
     }
     CArrayIterator * it = CArray_NewIter(array);
     _print_recursive(array, it, &start_index, 0);
@@ -1446,7 +1454,7 @@ CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
         || (arr->ndim > 1 &&
             ((flags & CARRAY_ARRAY_F_CONTIGUOUS) && (!(arrflags & CARRAY_ARRAY_F_CONTIGUOUS))))
         || ((flags & CARRAY_ARRAY_WRITEABLE) && (!(arrflags & CARRAY_ARRAY_WRITEABLE)));
-        
+
         if (copy) {
             if ((flags & CARRAY_ARRAY_UPDATEIFCOPY) &&
                 (!CArray_ISWRITEABLE(arr))) {
@@ -1466,7 +1474,7 @@ CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
             if (ret == NULL) {
                 return NULL;
             }
-        
+
             if (CArray_CopyInto(ret, arr) == -1) {
                 return NULL;
             }
@@ -1478,11 +1486,12 @@ CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
                 Npy_INCREF(arr);
             }  **/   
         } else {
+
             CArrayDescriptor_DECREF(newtype);
             if (flags & CARRAY_ARRAY_ENSUREARRAY)  {
                 CArrayDescriptor_INCREF(CArray_DESCR(arr));
-                ret = CArray_NewView(CArray_DESCR(arr), arr->ndim, arr->dimensions, arr->strides,
-                                    arr, 0, 1);
+                /**ret = CArray_NewView(CArray_DESCR(arr), arr->ndim, arr->dimensions, arr->strides,
+                                    arr, 0, 1);**/
                 if (ret == NULL) {
                     return NULL;
                 } 
@@ -1501,10 +1510,10 @@ CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
         if ((flags & CARRAY_ARRAY_ENSUREARRAY)) {
             ensureArray = 1;
         }
-        
+
         ret = CArray_Alloc(newtype, arr->ndim, arr->dimensions,
                            flags, ensureArray ? NULL : arr);
-                           
+
         if (ret == NULL) {
             return NULL;
         }
@@ -1519,7 +1528,11 @@ CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
             ret->base = arr;
             ret->base->flags &= ~CARRAY_ARRAY_WRITEABLE;
             CArray_INCREF(arr);
+        } else {
+            CArray_DECREF(arr);
+            CArray_Free(arr);
         }
+
     }
     return ret;
 }
@@ -1538,12 +1551,12 @@ CArray_FromAnyUnwrap(CArray *op, CArrayDescriptor *newtype, int min_depth,
         return NULL;
     }
 
-    if (min_depth != 0 && (PyArray_NDIM(r) < min_depth)) {
+    if (min_depth != 0 && (CArray_NDIM(r) < min_depth)) {
         throw_valueerror_exception("object of too small depth for desired array");
         CArray_DECREF(r);
         return NULL;
     }
-    if (max_depth != 0 && (PyArray_NDIM(r) > max_depth)) {
+    if (max_depth != 0 && (CArray_NDIM(r) > max_depth)) {
         throw_valueerror_exception("object too deep for desired array");
         CArray_DECREF(r);
         return NULL;
@@ -1559,10 +1572,12 @@ CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPoint
 {
     CArray *ret;
     ret = emalloc(sizeof(CArray));
-    if (!type || type == NULL) type = CArray_DescrFromType(TYPE_DEFAULT_INT);
-    
+    if (!type || type == NULL) {
+        type = CArray_DescrFromType(TYPE_DEFAULT_INT);
+    }
+
     ret = (CArray *)CArray_NewFromDescr( ret, type, nd, dims,
-                                         NULL, NULL, NULL, NULL );
+                                         NULL, NULL, CARRAY_CORDER, NULL );
                                   
     if (ret == NULL) {
         return NULL;
@@ -1578,11 +1593,16 @@ CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPoint
  * ca::identity
  **/ 
 CArray *
-CArray_Identity(int n, MemoryPointer * out) 
+CArray_Identity(int n, char * dtype, MemoryPointer * out)
 {
     CArray * ret, * mask;
     int * dimensions, * mask_dimensions;
     int i;
+    CArrayDescriptor *descr;
+
+    if(dtype != NULL) {
+        descr = CArray_DescrFromType(CHAR_TYPE_INT(*dtype));
+    }
 
     dimensions = emalloc(2 * sizeof(int));
     mask_dimensions = emalloc(sizeof(int));
@@ -1591,7 +1611,7 @@ CArray_Identity(int n, MemoryPointer * out)
     dimensions[1] = n;
     mask_dimensions[0] = n + 1;
 
-    ret = CArray_Empty(2, dimensions, NULL, 0, out);
+    ret = CArray_Empty(2, dimensions, descr, 0, out);
     mask = CArray_Empty(1, mask_dimensions, NULL, 0, NULL);
 
     IDATA(mask)[0] = 1;
