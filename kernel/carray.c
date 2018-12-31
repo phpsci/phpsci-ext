@@ -769,6 +769,8 @@ _select_carray_funcs(CArrayDescriptor *descr)
 
     if(descr->type_num == TYPE_INTEGER_INT) {
         descr->f->copyswap = &INT_copyswap;
+        descr->f->setitem  = &INT_setitem;
+        descr->f->fill = &INT_fill;
     }
 
     if(descr->type_num == TYPE_DOUBLE_INT) {
@@ -1629,13 +1631,22 @@ CArray_Identity(int n, char * dtype, MemoryPointer * out)
     return ret;
 }
 
+/**
+ * @param start
+ * @param stop
+ * @param step
+ * @param type_num
+ * @param ptr
+ * @return
+ */
 CArray *
 CArray_Arange(double start, double stop, double step, int type_num, MemoryPointer * ptr)
 {
     int length;
     CArray * range;
     CArray_ArrFuncs *funcs;
-    double start_plus_step;
+    int    start_plus_step_i, start_i;
+    double start_plus_step_d, start_d;
     int ret;
 
     range = ecalloc(1, sizeof(CArray));
@@ -1646,6 +1657,9 @@ CArray_Arange(double start, double stop, double step, int type_num, MemoryPointe
 
     if (length <= 0) {
         length = 0;
+        if(ptr != NULL) {
+            add_to_buffer(ptr, range, sizeof(CArray));
+        }
         return CArray_New(range, 1, &length, type_num,
                            NULL, NULL, 0, 0, NULL);
     }
@@ -1663,7 +1677,15 @@ CArray_Arange(double start, double stop, double step, int type_num, MemoryPointe
 
     funcs = CArray_DESCR(range)->f;
 
-    ret = funcs->setitem(((void*)&start), CArray_BYTES(range), range);
+    if(type_num == TYPE_DOUBLE_INT) {
+        start_d = (double)(start);
+        ret = funcs->setitem(((double *) &start_d), CArray_BYTES(range), range);
+    }
+    if(type_num == TYPE_INTEGER_INT) {
+        start_i = (int)(start);
+        ret = funcs->setitem(((int *) &start_i), CArray_BYTES(range), range);
+    }
+
     if (ret < 0) {
         goto fail;
     }
@@ -1671,8 +1693,14 @@ CArray_Arange(double start, double stop, double step, int type_num, MemoryPointe
         return range;
     }
 
-    start_plus_step = start + step;
-    ret = funcs->setitem(((void*)&start_plus_step), (CArray_BYTES(range) + CArray_ITEMSIZE(range)), range);
+    if(type_num == TYPE_DOUBLE_INT) {
+        start_plus_step_d = (double)(start + step);
+        ret = funcs->setitem(&start_plus_step_d, (CArray_BYTES(range) + CArray_ITEMSIZE(range)), range);
+    }
+    if(type_num == TYPE_INTEGER_INT) {
+        start_plus_step_i = (int)(start + step);
+        ret = funcs->setitem(&start_plus_step_i, (CArray_BYTES(range) + CArray_ITEMSIZE(range)), range);
+    }
 
     if (ret < 0) {
         goto fail;

@@ -468,10 +468,11 @@ PHP_METHOD(CArray, arange)
     MemoryPointer a_ptr;
     CArray * target_array;
     double start, stop, step_d;
+    int typenum;
     zval * start_stop, * stop_start, * step;
     char * dtype;
     size_t type_len;
-    ZEND_PARSE_PARAMETERS_START(1, 3)
+    ZEND_PARSE_PARAMETERS_START(1, 4)
         Z_PARAM_ZVAL(start_stop)
         Z_PARAM_OPTIONAL
         Z_PARAM_ZVAL(stop_start)
@@ -483,7 +484,7 @@ PHP_METHOD(CArray, arange)
         convert_to_double(start_stop);
         start = (double)0.00;
         stop  = (double)zval_get_double(start_stop);
-        dtype = TYPE_DEFAULT;
+        typenum = TYPE_DEFAULT_INT;
         step_d = 1.00;
     }
     if(ZEND_NUM_ARGS() == 2) {
@@ -491,7 +492,7 @@ PHP_METHOD(CArray, arange)
         convert_to_double(stop_start);
         start = (double)zval_get_double(start_stop);
         stop  = (double)zval_get_double(stop_start);
-        dtype = TYPE_DEFAULT;
+        typenum = TYPE_DEFAULT_INT;
         step_d = 1.00;
     }
     if(ZEND_NUM_ARGS() == 3) {
@@ -501,7 +502,7 @@ PHP_METHOD(CArray, arange)
         start = (double)zval_get_double(start_stop);
         stop  = (double)zval_get_double(stop_start);
         step_d  = (double)zval_get_double(step);
-        dtype = TYPE_DEFAULT;
+        typenum = TYPE_DEFAULT_INT;
     }
     if(ZEND_NUM_ARGS() == 4) {
         convert_to_double(start_stop);
@@ -510,8 +511,9 @@ PHP_METHOD(CArray, arange)
         start = (double)zval_get_double(start_stop);
         stop  = (double)zval_get_double(stop_start);
         step_d  = (double)zval_get_double(step);
+        typenum = CHAR_TYPE_INT(dtype[0]);
     }
-    target_array = CArray_Arange(start, stop, step_d, CHAR_TYPE_INT(dtype), &a_ptr);
+    target_array = CArray_Arange(start, stop, step_d, typenum , &a_ptr);
     RETURN_MEMORYPOINTER(return_value, &a_ptr);
 }
 

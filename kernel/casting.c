@@ -1,6 +1,22 @@
 #include "carray.h"
 
 /**
+ * FILL INT
+ */
+int
+INT_fill(void * buffer, int length, struct CArray * ap)
+{
+    int i;
+    int start = ((int*)buffer)[0];
+    int delta = ((int*)buffer)[1];
+
+    delta -= start;
+    for (i = 2; i < length; ++i) {
+        ((int*)buffer)[i] = start + i*delta;
+    }
+}
+
+/**
  * FILL DOUBLE
  */
 int
@@ -19,6 +35,19 @@ DOUBLE_fill(void * buffer, int length, struct CArray * ap)
 /**
  * SETITEM INT
  */
+int
+INT_setitem (int * op, void * ov, struct CArray * ap)
+{
+    int temp;  /* ensures alignment */
+
+    temp = *op;
+    if (ap == NULL || CArray_ISBEHAVED(ap))
+        *((int *)ov)=temp;
+    else {
+        CArray_DESCR(ap)->f->copyswap(ov, &temp, !CArray_ISNOTSWAPPED(ap), ap);
+    }
+    return 0;
+}
 
 /**
  * GETITEM INT
@@ -28,7 +57,7 @@ DOUBLE_fill(void * buffer, int length, struct CArray * ap)
  * SETITEM DOUBLE
  */
 int
-DOUBLE_setitem (void * op, void * ov, struct CArray * ap)
+DOUBLE_setitem (double * op, void * ov, struct CArray * ap)
 {
     double temp;  /* ensures alignment */
 
