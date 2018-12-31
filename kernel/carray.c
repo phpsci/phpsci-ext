@@ -773,6 +773,8 @@ _select_carray_funcs(CArrayDescriptor *descr)
 
     if(descr->type_num == TYPE_DOUBLE_INT) {
         descr->f->copyswap = &DOUBLE_copyswap;
+        descr->f->setitem  = &DOUBLE_setitem;
+        descr->f->fill = &DOUBLE_fill;
     }
 
     /**
@@ -1625,4 +1627,68 @@ CArray_Identity(int n, char * dtype, MemoryPointer * out)
     efree(dimensions);
     efree(mask_dimensions);
     return ret;
+}
+
+CArray *
+CArray_Arange(double start, double stop, double step, int type_num, MemoryPointer * ptr)
+{
+    int length;
+    CArray * range;
+    CArray_ArrFuncs *funcs;
+    double start_plus_step;
+    int ret;
+
+    range = ecalloc(1, sizeof(CArray));
+
+    if (_safe_ceil_to_int((stop - start) / step, &length)) {
+        throw_overflow_exception("arange: overflow while computing length");
+    }
+
+    if (length <= 0) {
+        length = 0;
+        return CArray_New(range, 1, &length, type_num,
+                           NULL, NULL, 0, 0, NULL);
+    }
+
+    range = CArray_New(range, 1, &length, type_num,
+                       NULL, NULL, 0, 0, NULL);
+
+    if(ptr != NULL) {
+        add_to_buffer(ptr, range, sizeof(CArray));
+    }
+
+    if (range == NULL) {
+        return NULL;
+    }
+
+    funcs = CArray_DESCR(range)->f;
+
+    ret = funcs->setitem(((void*)&start), CArray_BYTES(range), range);
+    if (ret < 0) {
+        goto fail;
+    }
+    if (length == 1) {
+        return range;
+    }
+
+    start_plus_step = start + step;
+    ret = funcs->setitem(((void*)&start_plus_step), (CArray_BYTES(range) + CArray_ITEMSIZE(range)), range);
+
+    if (ret < 0) {
+        goto fail;
+    }
+
+    if (length == 2) {
+        return range;
+    }
+
+    if (funcs->fill == NULL) {
+        throw_valueerror_exception("no fill-function for data-type.");
+        return NULL;
+    }
+
+    funcs->fill(CArray_BYTES(range), length, range);
+    return range;
+fail:
+    return NULL;
 }

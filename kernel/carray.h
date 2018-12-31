@@ -129,7 +129,8 @@ typedef enum {
 
 /**
  * Array Functions
- */ 
+ */
+typedef int (CArray_FillFunc)(void *, int, struct CArray *);
 typedef struct CArray_ArrFuncs CArray_ArrFuncs;
 typedef void * (CArray_GetItemFunc) (void *, struct CArray *);
 typedef int (CArray_SetItemFunc)(void *, void *, struct CArray *);
@@ -169,6 +170,12 @@ struct CArray_ArrFuncs {
      * Can have some NULL entries
      */
     CArray_VectorUnaryFunc *cast[CARRAY_NTYPES];
+
+    /*
+     * Used for arange.
+     * Can be NULL.
+     */
+    CArray_FillFunc *fill;
 };
 
 /**
@@ -360,14 +367,32 @@ CArray_SAMESHAPE(const CArray * a, const CArray * b)
     return CArray_CompareLists(CArray_DIMS(a), CArray_DIMS(b), CArray_NDIM(a));
 }
 
-
 static inline int
 check_and_adjust_axis(int *axis, int ndim)
 {
     return check_and_adjust_axis_msg(axis, ndim);
 }
 
+/*
+ * Like ceil(value), but check for overflow.
+ *
+ * Return 0 on success, -1 on failure
+ */
+static int _safe_ceil_to_int(double value, int* ret)
+{
+    double ivalue;
 
+    ivalue = ceil(value);
+    if (ivalue < INT_MIN || ivalue > INT_MAX) {
+        return -1;
+    }
+
+    *ret = (int)ivalue;
+    return 0;
+}
+
+
+#define CArray_ISBEHAVED(m) CArray_FLAGSWAP(m, CARRAY_ARRAY_BEHAVED)
 #define CArrayTypeNum_ISFLEXIBLE(type) (((type) >=TYPE_STRING) &&        \
                                      ((type) <=TYPE_VOID))
 #define CArray_ISCONTIGUOUS(m) CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS)
@@ -428,6 +453,6 @@ int CArray_CopyInto(CArray * dest, CArray * src);
  **/
 CArray * CArray_Identity(int n, char * dtype, MemoryPointer * out);
 CArray * CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPointer * ptr);
-
+CArray * CArray_Arange(double start, double stop, double step, int type_num, MemoryPointer * ptr);
 
 #endif //PHPSCI_EXT_CARRAY_H

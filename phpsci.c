@@ -460,6 +460,61 @@ PHP_METHOD(CArray, swapaxes)
     RETURN_MEMORYPOINTER(return_value, &a_ptr);
 }
 
+/**
+ * NUMERICAL RANGES
+ */
+PHP_METHOD(CArray, arange)
+{
+    MemoryPointer a_ptr;
+    CArray * target_array;
+    double start, stop, step_d;
+    zval * start_stop, * stop_start, * step;
+    char * dtype;
+    size_t type_len;
+    ZEND_PARSE_PARAMETERS_START(1, 3)
+        Z_PARAM_ZVAL(start_stop)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_ZVAL(stop_start)
+        Z_PARAM_ZVAL(step)
+        Z_PARAM_STRING(dtype, type_len)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if(ZEND_NUM_ARGS() == 1) {
+        convert_to_double(start_stop);
+        start = (double)0.00;
+        stop  = (double)zval_get_double(start_stop);
+        dtype = TYPE_DEFAULT;
+        step_d = 1.00;
+    }
+    if(ZEND_NUM_ARGS() == 2) {
+        convert_to_double(start_stop);
+        convert_to_double(stop_start);
+        start = (double)zval_get_double(start_stop);
+        stop  = (double)zval_get_double(stop_start);
+        dtype = TYPE_DEFAULT;
+        step_d = 1.00;
+    }
+    if(ZEND_NUM_ARGS() == 3) {
+        convert_to_double(start_stop);
+        convert_to_double(stop_start);
+        convert_to_double(step);
+        start = (double)zval_get_double(start_stop);
+        stop  = (double)zval_get_double(stop_start);
+        step_d  = (double)zval_get_double(step);
+        dtype = TYPE_DEFAULT;
+    }
+    if(ZEND_NUM_ARGS() == 4) {
+        convert_to_double(start_stop);
+        convert_to_double(stop_start);
+        convert_to_double(step);
+        start = (double)zval_get_double(start_stop);
+        stop  = (double)zval_get_double(stop_start);
+        step_d  = (double)zval_get_double(step);
+    }
+    target_array = CArray_Arange(start, stop, step_d, CHAR_TYPE_INT(dtype), &a_ptr);
+    RETURN_MEMORYPOINTER(return_value, &a_ptr);
+}
+
 
 /**
  * CLASS METHODS
@@ -471,6 +526,9 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, dump, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, print, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, __set, arginfo_array_set, ZEND_ACC_PUBLIC)
+
+        // NUMERICAL RANGES
+        PHP_ME(CArray, arange, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         //ARRAY MANIPULATION
         PHP_ME(CArray, swapaxes, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
