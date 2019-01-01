@@ -230,6 +230,7 @@ CArray_Prod(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
                 i++;
             } while(CArrayIterator_NOTDONE(it));
         }
+        efree(strides);
     }
     add_to_buffer(out_ptr, ret, sizeof(*ret));
     efree(total);
@@ -354,6 +355,7 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
             } while(CArrayIterator_NOTDONE(it));
         }
         CArrayIterator_FREE(it);
+        efree(strides);
     }
     add_to_buffer(out_ptr, ret, sizeof(*ret));
     efree(total);

@@ -198,6 +198,7 @@ PHP_METHOD(CArray, shape)
     carray = CArray_FromMemoryPointer(&ptr);
     new_shape = ZVAL_TO_TUPLE(new_shape_zval, &ndim);
     newcarray = CArray_Newshape(carray, new_shape, zend_hash_num_elements(Z_ARRVAL_P(new_shape_zval)), CARRAY_CORDER, &ptr);
+    FREE_TUPLE(new_shape);
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
 PHP_METHOD(CArray, dump)

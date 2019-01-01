@@ -53,4 +53,5 @@ CArray_Sin(CArray * target, MemoryPointer * out)
     if(out != NULL) {
         add_to_buffer(out, result, sizeof(CArray *));
     }
+    efree(new_strides);
 }

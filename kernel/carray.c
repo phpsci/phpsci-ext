@@ -1615,7 +1615,7 @@ CArray_Identity(int n, char * dtype, MemoryPointer * out)
     mask = CArray_Empty(1, mask_dimensions, NULL, 0, NULL);
 
     IDATA(mask)[0] = 1;
-    CARRAY_FOR_THREADING
+
     for(i = 0; i < n; i++) {
         IDATA(mask)[i+1] = 0;
     }
