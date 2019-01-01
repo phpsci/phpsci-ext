@@ -1,6 +1,3 @@
-//
-// Created by Henrique Borba on 19/11/2018.
-//
 #include "carray.h"
 #include "alloc.h"
 #include "iterators.h"
@@ -23,6 +20,7 @@
 #include "zend_smart_str.h"
 #include "casting.h"
 #include "getset.h"
+
 
 /**
  * @param CHAR_TYPE
@@ -685,12 +683,10 @@ CArray_SetBaseCArray(CArray * target, CArray * base)
 CArrayDescriptor *
 CArray_DescrFromType(int typenum)
 {
-    CArrayDescriptor *ret = NULL;
-    ret = (CArrayDescriptor*)ecalloc(1, sizeof(struct CArrayDescriptor));
+    CArrayDescriptor *ret;
+    ret = (CArrayDescriptor *)ecalloc(1, sizeof(CArrayDescriptor));
     ret->type_num = typenum;
     ret->numElements = 0;
-    ret->refcount = 0;
-    ret->alignment = 0;
 
     if(typenum == 0) {
         typenum = TYPE_DEFAULT_INT;
@@ -871,6 +867,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
             }
             num_elements = self->dimensions[i] * num_elements;
         }
+
         descr->numElements = num_elements;
         if (strides == NULL) {  
             _array_fill_strides(self->strides, dims, nd, descr->elsize, flags, &(self->flags));
@@ -1574,9 +1571,8 @@ CArray_FromAnyUnwrap(CArray *op, CArrayDescriptor *newtype, int min_depth,
 CArray *
 CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPointer * ptr)
 {
-    CArray *ret;
-    ret = emalloc(sizeof(CArray));
-    if (!type || type == NULL) {
+    CArray *ret = ecalloc(1, sizeof(CArray));
+    if (type == NULL) {
         type = CArray_DescrFromType(TYPE_DEFAULT_INT);
     }
 
@@ -1602,7 +1598,7 @@ CArray_Identity(int n, char * dtype, MemoryPointer * out)
     CArray * ret, * mask;
     int * dimensions, * mask_dimensions;
     int i;
-    CArrayDescriptor *descr;
+    CArrayDescriptor *descr = NULL;
 
     if(dtype != NULL) {
         descr = CArray_DescrFromType(CHAR_TYPE_INT(*dtype));
@@ -1619,6 +1615,7 @@ CArray_Identity(int n, char * dtype, MemoryPointer * out)
     mask = CArray_Empty(1, mask_dimensions, NULL, 0, NULL);
 
     IDATA(mask)[0] = 1;
+    CARRAY_FOR_THREADING
     for(i = 0; i < n; i++) {
         IDATA(mask)[i+1] = 0;
     }

@@ -1,12 +1,8 @@
-//
-// Created by Henrique Borba on 25/11/2018.
-//
-
 #include "convert.h"
 #include "carray.h"
 #include "alloc.h"
 #include "buffer.h"
-
+#include "common/exceptions.h"
 /**
  * Slice CArray
  * 

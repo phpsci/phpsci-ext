@@ -1,7 +1,3 @@
-//
-// Created by Henrique Borba on 19/11/2018.
-//
-
 #ifndef PHPSCI_EXT_CARRAY_H
 #define PHPSCI_EXT_CARRAY_H
 
@@ -131,7 +127,6 @@ typedef enum {
  * Array Functions
  */
 typedef int (CArray_FillFunc)(void *, int, struct CArray *);
-typedef struct CArray_ArrFuncs CArray_ArrFuncs;
 typedef void * (CArray_GetItemFunc) (void *, struct CArray *);
 typedef int (CArray_SetItemFunc)(void *, void *, struct CArray *);
 typedef void (CArray_CopySwapNFunc)(void *, int, void *, int,
@@ -139,9 +134,9 @@ typedef void (CArray_CopySwapNFunc)(void *, int, void *, int,
 typedef void (CArray_CopySwapFunc)(void *, void *, int, struct CArray *);
 typedef void (CArray_VectorUnaryFunc)(void *, void *, int, void *,
                                         void *);
-                                      
 
-struct CArray_ArrFuncs {
+
+typedef struct CArray_ArrFuncs {
     /* The next four functions *cannot* be NULL */
 
     /*
@@ -176,7 +171,7 @@ struct CArray_ArrFuncs {
      * Can be NULL.
      */
     CArray_FillFunc *fill;
-};
+} CArray_ArrFuncs;
 
 /**
  * CArray Descriptor
@@ -240,7 +235,6 @@ typedef struct CArrayFlags
     CArray * array;
     int      flags;
 } CArrayFlags;
-
 
 #define CARRAY_LIKELY(x) (!!(x), 1)
 #define CARRAY_UNLIKELY(x) (!!(x), 0)

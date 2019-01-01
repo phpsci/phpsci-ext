@@ -1,7 +1,7 @@
 #include "getset.h"
 #include "iterators.h"
 #include "carray.h"
-
+#include "alloc.h"
 
 int 
 array_flat_set(CArray * self, CArray * val) 
