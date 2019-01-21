@@ -4,11 +4,88 @@
 #include "assign.h"
 #include "common/common.h"
 #include "common/exceptions.h"
+#include "php.h"
+
+/*************************** DEST SETZERO *******************************/
+
+/* Sets dest to zero */
+typedef struct {
+    CArrayAuxData base;
+    int dst_itemsize;
+} _dst_memset_zero_data;
+
+static void
+_null_to_strided_memset_zero(char *dst,
+                        int dst_stride,
+                        char *CARRAY_UNUSED(src), int CARRAY_UNUSED(src_stride),
+                        int N, int CARRAY_UNUSED(src_itemsize),
+                        CArrayAuxData *data)
+{
+    _dst_memset_zero_data *d = (_dst_memset_zero_data *)data;
+    int dst_itemsize = d->dst_itemsize;
+
+    while (N > 0) {
+        memset(dst, 0, dst_itemsize);
+        dst += dst_stride;
+        --N;
+    }
+}
+
+/* zero-padded data copy function */
+static CArrayAuxData *_dst_memset_zero_data_clone(CArrayAuxData *data)
+{
+    _dst_memset_zero_data *newdata =
+            (_dst_memset_zero_data *)emalloc(
+                                    sizeof(_dst_memset_zero_data));
+    if (newdata == NULL) {
+        return NULL;
+    }
+
+    memcpy(newdata, data, sizeof(_dst_memset_zero_data));
+
+    return (CArrayAuxData *)newdata;
+}
+
+static void
+_null_to_contig_memset_zero(char *dst,
+                        int dst_stride,
+                        char *CARRAY_UNUSED(src), int CARRAY_UNUSED(src_stride),
+                        int N, int CARRAY_UNUSED(src_itemsize),
+                        CArrayAuxData *data)
+{
+    _dst_memset_zero_data *d = (_dst_memset_zero_data *)data;
+    int dst_itemsize = d->dst_itemsize;
+    memset(dst, 0, N*dst_itemsize);
+}
+
+static void
+_dec_src_ref_nop(char *CARRAY_UNUSED(dst),
+                        int CARRAY_UNUSED(dst_stride),
+                        char *CARRAY_UNUSED(src), int CARRAY_UNUSED(src_stride),
+                        int CARRAY_UNUSED(N),
+                        int CARRAY_UNUSED(src_itemsize),
+                        CArrayAuxData *CARRAY_UNUSED(data))
+{
+    /* NOP */
+}
+
+/*
+ * Returns a transfer function which zeros out the dest values.
+ *
+ * Returns CARRAY_SUCCEED or CARRAY_FAIL.
+ */
+static int
+get_setdstzero_transfer_function(int aligned,
+                            int dst_stride,
+                            CArrayDescriptor *dst_dtype,
+                            CArray_StridedUnaryOp **out_stransfer,
+                            CArrayAuxData **out_transferdata,
+                            int *out_needs_api);
 
 /*
  * Returns a transfer function which DECREFs any references in src_type.
  *
- * Returns NPY_SUCCEED or NPY_FAIL.
+ * Returns CARRAY_SUCCEED or CARRAY_FAIL.
  */
 static int
 get_decsrcref_transfer_function(int aligned,
@@ -100,6 +177,12 @@ CArray_GetDTypeTransferFunction(int aligned,
                                 out_stransfer, out_transferdata,
                                 out_needs_api);
     }
+
+    src_itemsize = src_dtype->elsize;
+    dst_itemsize = dst_dtype->elsize;
+    src_type_num = src_dtype->type_num;
+    dst_type_num = dst_dtype->type_num;
+    is_builtin = src_type_num < CARRAY_NTYPES && dst_type_num < CARRAY_NTYPES;
 }
 
 
@@ -111,5 +194,47 @@ get_decsrcref_transfer_function(int aligned,
                                 CArrayAuxData **out_transferdata,
                                 int *out_needs_api)
 {
-    
+     /* If there are no references, it's a nop */
+    if (!CArrayDataType_REFCHK(src_dtype)) {
+        *out_stransfer = &_dec_src_ref_nop;
+        *out_transferdata = NULL;
+
+        return CARRAY_SUCCEED;
+    }
+    throw_notimplemented_exception();
 }                                                               
+
+int
+get_setdstzero_transfer_function(int aligned,
+                                 int dst_stride,
+                                 CArrayDescriptor *dst_dtype,
+                                 CArray_StridedUnaryOp **out_stransfer,
+                                 CArrayAuxData **out_transferdata,
+                                 int *out_needs_api)
+{
+    _dst_memset_zero_data *data;
+    /* If there are no references, just set the whole thing to zero */
+    if (!CArrayDataType_REFCHK(dst_dtype)) {
+        data = (_dst_memset_zero_data *)
+                        emalloc(sizeof(_dst_memset_zero_data));
+        if (data == NULL) {
+            throw_memory_exception("Memory Error");
+            return CARRAY_FAIL;
+        }
+
+        data->base.free = (CArrayAuxData_FreeFunc *)(&free);
+        data->base.clone = &_dst_memset_zero_data_clone;
+        data->dst_itemsize = dst_dtype->elsize;
+
+        if (dst_stride == data->dst_itemsize) {
+            *out_stransfer = &_null_to_contig_memset_zero;
+        }
+        else {
+            *out_stransfer = &_null_to_strided_memset_zero;
+        }
+        *out_transferdata = (CArrayAuxData *)data;
+
+        return CARRAY_SUCCEED;
+    }
+    throw_notimplemented_exception();
+}

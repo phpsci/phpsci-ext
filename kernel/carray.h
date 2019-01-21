@@ -98,6 +98,7 @@ typedef enum {
 #define CARRAY_ARRAY_FARRAY          (CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_BEHAVED)
 #define CARRAY_ARRAY_FARRAY_RO       (CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_ALIGNED)
 
+
 /* The item must be reference counted when it is inserted or extracted. */
 #define CARRAY_ITEM_REFCOUNT   0x01
 /* Same as needing REFCOUNT */
@@ -425,6 +426,9 @@ static int _safe_ceil_to_int(double value, int* ret)
     return 0;
 }
 
+#define CArrayDataType_REFCHK(dtype) \
+        CArrayDataType_FLAGCHK(dtype, CARRAY_ITEM_REFCOUNT)
+
 #define PHPObject zval
 #define CArray_ISBEHAVED(m) CArray_FLAGSWAP(m, CARRAY_ARRAY_BEHAVED)
 #define CArrayTypeNum_ISFLEXIBLE(type) (((type) >=TYPE_STRING) &&        \
@@ -436,6 +440,19 @@ static int _safe_ceil_to_int(double value, int* ret)
 #define CArray_SAFEALIGNEDCOPY(obj) (CArray_ISALIGNED(obj) &&      \
                                        !CArray_ISVARIABLE(obj))
 
+
+#ifndef __COMP_CARRAY_UNUSED
+        #if defined(__GNUC__)
+                #define __COMP_CARRAY_UNUSED __attribute__ ((__unused__))
+        # elif defined(__ICC)
+                #define __COMP_CARRAY_UNUSED __attribute__ ((__unused__))
+        # elif defined(__clang__)
+                #define __COMP_CARRAY_UNUSED __attribute__ ((unused))
+        #else
+                #define __COMP_CARRAY_UNUSED
+        #endif
+#endif
+#define CARRAY_UNUSED(x) (__CARRAY_UNUSED_TAGGED ## x) __COMP_CARRAY_UNUSED
 
 int CHAR_TYPE_INT(char CHAR_TYPE);
 int CArray_MultiplyList(const int * list, unsigned int size);
