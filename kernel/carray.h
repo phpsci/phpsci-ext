@@ -15,12 +15,14 @@ static const int CARRAY_ARRAY_WARN_ON_WRITE = (1 << 31);
 #define TYPE_BOOL        'b'
 #define TYPE_STRING      's'
 #define TYPE_VOID        'v'
+#define TYPE_LONG        'l'
 #define TYPE_INTEGER_INT  0
 #define TYPE_DOUBLE_INT   2
 #define TYPE_FLOAT_INT    1
 #define TYPE_BOOL_INT     3
 #define TYPE_STRING_INT   4
 #define TYPE_VOID_INT     5
+#define TYPE_LONG_INT     6
 #define TYPE_NOTYPE_INT   -1
 #define TYPE_DEFAULT_INT  0
 #define TYPE_DEFAULT      'd'
@@ -172,6 +174,44 @@ typedef struct CArray_ArrFuncs {
      */
     CArray_FillFunc *fill;
 } CArray_ArrFuncs;
+
+
+#define CARRAY_FAIL    0
+#define CARRAY_SUCCEED 1
+
+/************************************************************
+ * CArray Auxiliary Data for inner loops, sort functions, etc.
+ ************************************************************/
+typedef struct CArrayAuxData_tag CArrayAuxData;
+
+/* Function pointers for freeing or cloning auxiliary data */
+typedef void (CArrayAuxData_FreeFunc) (CArrayAuxData *);
+typedef CArrayAuxData *(CArrayAuxData_CloneFunc) (CArrayAuxData *);
+
+struct CArrayAuxData_tag {
+    CArrayAuxData_FreeFunc *free;
+    CArrayAuxData_CloneFunc *clone;
+    /* To allow for a bit of expansion without breaking the ABI */
+    void *reserved[2];
+};
+
+
+/**
+ * Casting
+ **/ 
+/* For specifying allowed casting in operations which support it */
+typedef enum {
+        /* Only allow identical types */
+        CARRAY_NO_CASTING=0,
+        /* Allow identical and byte swapped types */
+        CARRAY_EQUIV_CASTING=1,
+        /* Only allow safe casts */
+        CARRAY_SAFE_CASTING=2,
+        /* Allow safe casts or casts within the same kind */
+        CARRAY_SAME_KIND_CASTING=3,
+        /* Allow any casts */
+        CARRAY_UNSAFE_CASTING=4
+} CARRAY_CASTING;
 
 /**
  * CArray Descriptor
@@ -385,7 +425,7 @@ static int _safe_ceil_to_int(double value, int* ret)
     return 0;
 }
 
-
+#define PHPObject zval
 #define CArray_ISBEHAVED(m) CArray_FLAGSWAP(m, CARRAY_ARRAY_BEHAVED)
 #define CArrayTypeNum_ISFLEXIBLE(type) (((type) >=TYPE_STRING) &&        \
                                      ((type) <=TYPE_VOID))

@@ -3,6 +3,9 @@
 #include "alloc.h"
 #include "buffer.h"
 #include "common/exceptions.h"
+#include "scalar.h"
+#include "assign_scalar.h"
+
 /**
  * Slice CArray
  * 
@@ -211,4 +214,30 @@ CArray_CastTo(CArray *out, CArray *mp)
         castfunc(mp->data, out->data, mpsize, mp, out);
         return 0;
     }         
+}
+
+int
+CArray_FillWithScalar(CArray * arr, CArrayScalar * sc)
+{
+    CArrayDescriptor * dtype = NULL;
+    long long value_buffer[4];
+    char * value = NULL;
+    int retcode = 0;
+
+    dtype = CArray_DescrFromScalar(sc);
+    value = scalar_value(sc, dtype);
+    if (value == NULL) {
+        CArrayDescriptor_FREE(dtype);
+        return -1;
+    }
+
+    /* Use the value pointer we got if possible */
+    if (value != NULL) {
+        /* TODO: switch to SAME_KIND casting */
+        retcode = CArray_AssignRawScalar(arr, dtype, value, NULL, CARRAY_UNSAFE_CASTING);
+        CArrayDescriptor_FREE(dtype);
+        return retcode;
+    }
+
+    CArrayDescriptor_FREE(dtype);
 }

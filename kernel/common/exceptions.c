@@ -6,6 +6,8 @@ static zend_class_entry * phpsci_ce_CArrayAxisException;
 static zend_class_entry * phpsci_ce_CArrayValueErrorException;
 static zend_class_entry * phpsci_ce_CArrayTypeErrorException;
 static zend_class_entry * phpsci_ce_CArrayOverflowException;
+static zend_class_entry * phpsci_ce_CArrayMemoryException;
+static zend_class_entry * phpsci_ce_CArrayNotImplementedException;
 
 static const zend_function_entry phpsci_ce_CArrayAxisException_methods[] = {
         PHP_FE_END
@@ -18,6 +20,14 @@ static const zend_function_entry phpsci_ce_CArrayTypeErrorException_methods[] = 
 };
 
 static const zend_function_entry phpsci_ce_CArrayOverflowException_methods[] = {
+        PHP_FE_END
+};
+
+static const zend_function_entry phpsci_ce_CArrayMemoryException_methods[] = {
+        PHP_FE_END
+};
+
+static const zend_function_entry phpsci_ce_CArrayNotImplementedException_methods[] = {
         PHP_FE_END
 };
 
@@ -36,6 +46,29 @@ init_exception_objects()
     phpsci_ce_CArrayTypeErrorException = zend_register_internal_class_ex(&ce, zend_ce_exception);
     INIT_CLASS_ENTRY(ce, "CArrayOverflowException", phpsci_ce_CArrayOverflowException_methods);
     phpsci_ce_CArrayTypeErrorException = zend_register_internal_class_ex(&ce, zend_ce_exception);
+    INIT_CLASS_ENTRY(ce, "CArrayMemoryException", phpsci_ce_CArrayMemoryException_methods);
+    phpsci_ce_CArrayMemoryException = zend_register_internal_class_ex(&ce, zend_ce_exception);
+    INIT_CLASS_ENTRY(ce, "CArrayNotImplementedException", phpsci_ce_CArrayNotImplementedException);
+    phpsci_ce_CArrayNotImplementedException = zend_register_internal_class_ex(&ce, zend_ce_exception);
+}
+
+/**
+ * Throw CArrayAxisException
+ */
+void
+throw_notimplemented_exception()
+{
+    zend_throw_exception_ex(phpsci_ce_CArrayNotImplementedException, NOTIMPLEMENTED_EXCEPTION, "%s", 
+                            "Whoops! Looks like this situation was unexpected.");
+}
+
+/**
+ * Throw CArrayAxisException
+ */
+void
+throw_memory_exception(char * msg)
+{
+    zend_throw_exception_ex(phpsci_ce_CArrayMemoryException, MEMORY_EXCEPTION, "%s", msg);
 }
 
 /**

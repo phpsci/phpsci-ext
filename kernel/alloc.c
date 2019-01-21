@@ -6,6 +6,12 @@
 #include "carray.h"
 #include "buffer.h"
 
+void
+CArrayDescriptor_FREE(CArrayDescriptor * descr)
+{
+    efree(descr);
+}
+
 /**
  * @return
  */

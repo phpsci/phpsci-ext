@@ -86,7 +86,12 @@ PHP_NEW_EXTENSION(carray,
       kernel/number.c \
       kernel/convert_type.c \
       kernel/trigonometric.c \
+      kernel/matlib.c \
+      kernel/scalar.c \
       kernel/getset.c \
+      kernel/convert_datatype.c \
+      kernel/dtype_transfer.c \
+      kernel/assign_scalar.c \
       kernel/common/exceptions.c \
 	  kernel/buffer.c ,
 	  $ext_shared,, )

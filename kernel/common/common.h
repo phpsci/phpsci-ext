@@ -63,6 +63,40 @@ blas_stride(int stride, unsigned itemsize)
     return 0;
 }
 
+/* used for some alignment checks */
+#define _ALIGN(type) offsetof(struct {char c; type v;}, v)
+#define _UINT_ALIGN(type) carray_uint_alignment(sizeof(type))
+
+/* Get equivalent "uint" alignment given an itemsize, for use in copy code */
+static inline int
+carray_uint_alignment(int itemsize)
+{
+    int alignment = 0; /* return value of 0 means unaligned */
+
+    switch(itemsize){
+        case 1:
+            return 1;
+        case 2:
+            alignment = _ALIGN(uint16_t);
+            break;
+        case 4:
+            alignment = _ALIGN(uint32_t);
+            break;
+        case 8:
+            alignment = _ALIGN(uint64_t);
+            break;
+        case 16:
+            /*
+             * 16 byte types are copied using 2 uint64 assignments.
+             * See the strided copy function in lowlevel_strided_loops.c.
+             */
+            alignment = _ALIGN(uint64_t);
+            break;
+        default:
+            break;
+    }
+    return alignment;
+}
 
 CArray * new_array_for_sum(CArray *ap1, CArray *ap2, CArray* out,
                            int nd, int dimensions[], int typenum, CArray **result);

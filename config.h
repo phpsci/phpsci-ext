@@ -48,7 +48,7 @@
 #define HAVE__USR_INCLUDE_LAPACKE_H 1
 
 /* Define to 1 if you have the </usr/include/openblas/cblas.h> header file. */
-#define HAVE__USR_INCLUDE_OPENBLAS_CBLAS_H 1
+/* #undef HAVE__USR_INCLUDE_OPENBLAS_CBLAS_H */
 
 /* Define to 1 if you have the </usr/include/openblas/lapacke.h> header file.
    */
