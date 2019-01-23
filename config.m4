@@ -89,6 +89,7 @@ PHP_NEW_EXTENSION(carray,
       kernel/matlib.c \
       kernel/scalar.c \
       kernel/getset.c \
+      kernel/common/strided_loops.c \
       kernel/convert_datatype.c \
       kernel/dtype_transfer.c \
       kernel/assign_scalar.c \

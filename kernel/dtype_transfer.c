@@ -5,6 +5,8 @@
 #include "common/common.h"
 #include "common/exceptions.h"
 #include "php.h"
+#include "descriptor.h"
+#include "common/strided_loops.h"
 
 /*************************** DEST SETZERO *******************************/
 
@@ -183,6 +185,30 @@ CArray_GetDTypeTransferFunction(int aligned,
     src_type_num = src_dtype->type_num;
     dst_type_num = dst_dtype->type_num;
     is_builtin = src_type_num < CARRAY_NTYPES && dst_type_num < CARRAY_NTYPES;
+
+    /*
+     * If there are no references and the data types are equivalent and builtin,
+     * return a simple copy
+     */
+    if (CArray_EquivTypes(src_dtype, dst_dtype) &&
+            !CArrayDataType_REFCHK(src_dtype) && !CArrayDataType_REFCHK(dst_dtype) &&
+            is_builtin) {
+        /*
+         * We can't pass through the aligned flag because it's not
+         * appropriate. Consider a size-8 string, it will say it's
+         * aligned because strings only need alignment 1, but the
+         * copy function wants to know if it's alignment 8.
+         *
+         * TODO: Change align from a flag to a "best power of 2 alignment"
+         *       which holds the strongest alignment value for all
+         *       the data which will be used.
+         */
+        *out_stransfer = CArray_GetStridedCopyFn(0,
+                                        src_stride, dst_stride,
+                                        src_dtype->elsize);
+        *out_transferdata = NULL;
+        return CARRAY_SUCCEED;
+    }
 }
 
 

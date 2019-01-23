@@ -84,7 +84,7 @@ CArray_AssignRawScalar(CArray *dst, CArrayDescriptor *src_dtype, char *src_data,
 
 fail:
     if (allocated_src_data) {
-        CArray_Free(src_data);
+        free(src_data);
     }
     return -1;
 }

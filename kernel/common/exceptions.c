@@ -48,7 +48,7 @@ init_exception_objects()
     phpsci_ce_CArrayTypeErrorException = zend_register_internal_class_ex(&ce, zend_ce_exception);
     INIT_CLASS_ENTRY(ce, "CArrayMemoryException", phpsci_ce_CArrayMemoryException_methods);
     phpsci_ce_CArrayMemoryException = zend_register_internal_class_ex(&ce, zend_ce_exception);
-    INIT_CLASS_ENTRY(ce, "CArrayNotImplementedException", phpsci_ce_CArrayNotImplementedException);
+    INIT_CLASS_ENTRY(ce, "CArrayNotImplementedException", phpsci_ce_CArrayNotImplementedException_methods);
     phpsci_ce_CArrayNotImplementedException = zend_register_internal_class_ex(&ce, zend_ce_exception);
 }
 
