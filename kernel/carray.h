@@ -7,7 +7,7 @@ typedef struct CArray CArray;
 
 static const int CARRAY_ARRAY_WARN_ON_WRITE = (1 << 31);
 
-#define CARRAY_NTYPES     5
+#define CARRAY_NTYPES     7
 #define CARRAY_MAXDIMS   100
 #define TYPE_INTEGER     'i'
 #define TYPE_DOUBLE      'd'
@@ -26,6 +26,14 @@ static const int CARRAY_ARRAY_WARN_ON_WRITE = (1 << 31);
 #define TYPE_NOTYPE_INT   -1
 #define TYPE_DEFAULT_INT  0
 #define TYPE_DEFAULT      'd'
+
+/* Macros to use for freeing and cloning auxiliary data */
+#define CARRAY_AUXDATA_FREE(auxdata) \
+    do { \
+        if ((auxdata) != NULL) { \
+            (auxdata)->free(auxdata); \
+        } \
+    } while(0)
 
 /* For specifying array memory layout or iteration order */
 typedef enum {

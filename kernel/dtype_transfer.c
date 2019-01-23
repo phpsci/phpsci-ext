@@ -136,7 +136,15 @@ CArray_CastRawArrays(int count, char *src, char *dst,
                         &stransfer, &transferdata,
                         &needs_api) != CARRAY_SUCCEED) {
         return CARRAY_FAIL;
-    }                               
+    }           
+
+    /* Cast */
+    stransfer(dst, dst_stride, src, src_stride, count,
+              src_dtype->elsize, transferdata);
+
+    CARRAY_AUXDATA_FREE(transferdata);
+    
+    return (needs_api) ? CARRAY_FAIL : CARRAY_SUCCEED;
 }
 
 
@@ -205,10 +213,12 @@ CArray_GetDTypeTransferFunction(int aligned,
          */
         *out_stransfer = CArray_GetStridedCopyFn(0,
                                         src_stride, dst_stride,
-                                        src_dtype->elsize);
+                                        src_dtype->elsize);                           
         *out_transferdata = NULL;
         return CARRAY_SUCCEED;
     }
+
+    throw_notimplemented_exception();     
 }
 
 

@@ -7,18 +7,22 @@
  * SCALARS STRUCTURES
  */ 
 typedef struct {
+        int  type;
         int obval;
 } CArrayIntegerScalarObject;
 
 typedef struct {
+        int  type;
         float obval;
 } CArrayFloatScalarObject;
 
 typedef struct {
+        int  type;
         double obval;
 } CArrayDoubleScalarObject;
 
 typedef struct {
+        int  type;
         double obval;
 } CArrayLongScalarObject;
 

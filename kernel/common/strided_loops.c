@@ -1894,12 +1894,6 @@ _strided_to_strided_size4(char *dst, int dst_stride,
 #endif
 
 
-
-/*
- * unrolling gains about 20-50% if the copy can be done in one mov instruction
- * if not it can decrease performance
- * tested to improve performance on intel xeon 5x/7x, core2duo, amd phenom x4
- */
 static void
 _strided_to_strided_size8(char *dst, int dst_stride,
                         char *src, int src_stride,
