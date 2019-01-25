@@ -27,9 +27,8 @@ CArray_Zeros(int * shape, int nd, char * type, char * order, MemoryPointer * rtn
     sc->type  = CHAR_TYPE_INT(*type);
 
     if(*type == TYPE_DOUBLE){
-        *((double *)sc->obval) = (double)1.00;
+        *((double *)sc->obval) = (double)0.00;
     }
-    
     
     CArray_FillWithScalar(rtn, sc);
 
