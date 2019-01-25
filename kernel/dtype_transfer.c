@@ -55,6 +55,7 @@ CArray_PrepareOneRawArrayIter(int ndim, int *shape,
             *out_data = data + stride_entry * (shape_entry - 1);
             out_strides[0] = -stride_entry;
         }
+        efree(strideperm);
         return 0;
     }
 

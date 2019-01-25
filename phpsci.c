@@ -448,6 +448,31 @@ PHP_METHOD(CArray, zeros)
     }
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
+PHP_METHOD(CArray, ones)
+{   
+    zval * zshape;
+    char * dtype, order = 'C';
+    int ndim;
+    int * shape;
+    MemoryPointer ptr;
+    size_t type_len;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_ZVAL(zshape)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_STRING(dtype, type_len)
+    ZEND_PARSE_PARAMETERS_END();
+    if(ZEND_NUM_ARGS() == 1) {
+        dtype = emalloc(sizeof(char));
+        *dtype = 'd';
+    }
+    shape = ZVAL_TO_TUPLE(zshape, &ndim);
+    CArray_Ones(shape, ndim, dtype, &order, &ptr);
+    efree(shape);
+    if(ZEND_NUM_ARGS() == 1) {
+        efree(dtype);
+    }
+    RETURN_MEMORYPOINTER(return_value, &ptr);
+}
 PHP_METHOD(CArray, add)
 {
     MemoryPointer target1_ptr, target2_ptr, result_ptr;
@@ -557,6 +582,7 @@ static zend_function_entry carray_class_methods[] =
 
         // INITIALIZERS
         PHP_ME(CArray, zeros, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, ones, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // NUMERICAL RANGES
         PHP_ME(CArray, arange, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
