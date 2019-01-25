@@ -8,7 +8,7 @@
  */ 
 typedef struct {
         int  type;
-        int obval;
+        int  obval;
 } CArrayIntegerScalarObject;
 
 typedef struct {
@@ -26,9 +26,9 @@ typedef struct {
         double obval;
 } CArrayLongScalarObject;
 
-typedef struct CArrayScalar {
-    void * obval;
+typedef struct {
     int  type;
+    char * obval;    
 } CArrayScalar;
 
 CArrayDescriptor * CArray_DescrFromScalar(CArrayScalar *sc);
@@ -38,5 +38,5 @@ CArrayScalar * CArrayScalar_NewInt(int sc);
 CArrayScalar * CArrayScalar_NewDouble(double sc);
 CArrayScalar * CArrayScalar_NewFloat(float sc);
 CArrayScalar * CArrayScalar_NewLong(long sc);
-
+void * scalar_value(CArrayScalar *scalar, CArrayDescriptor *descr);
 #endif //PHPSCI_EXT_SCALAR_H

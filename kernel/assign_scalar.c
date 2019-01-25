@@ -8,6 +8,79 @@
 #include "dtype_transfer.h"
 
 /*
+ * Assigns the scalar value to every element of the destination raw array.
+ *
+ * Returns 0 on success, -1 on failure.
+ */
+ int
+raw_array_assign_scalar(int ndim, int *shape,
+        CArrayDescriptor *dst_dtype, char *dst_data, int *dst_strides,
+        CArrayDescriptor *src_dtype, char *src_data)
+{
+    int idim;
+    int * shape_it, * dst_strides_it;
+    int * coord;
+
+    CArray_StridedUnaryOp *stransfer = NULL;
+    CArrayAuxData *transferdata = NULL;
+    int aligned, needs_api = 0;
+    int src_itemsize = src_dtype->elsize;
+
+    shape_it = emalloc(sizeof(int) * ndim * 2);
+    dst_strides_it = emalloc(sizeof(int) * ndim * 2);
+    coord = emalloc(sizeof(int) * ndim * 2);
+
+    /* Check both uint and true alignment */
+    aligned = raw_array_is_aligned(ndim, shape, dst_data, dst_strides,
+                                   carray_uint_alignment(dst_dtype->elsize)) &&
+              raw_array_is_aligned(ndim, shape, dst_data, dst_strides,
+                                   dst_dtype->alignment) &&
+              carray_is_aligned(src_data, carray_uint_alignment(src_dtype->elsize) &&
+              carray_is_aligned(src_data, src_dtype->alignment));
+
+    /* Use raw iteration with no heap allocation */
+    if (CArray_PrepareOneRawArrayIter(
+                    ndim, shape,
+                    dst_data, dst_strides,
+                    &ndim, shape_it,
+                    &dst_data, dst_strides_it) < 0) {
+        return -1;
+    }
+
+    /* Get the function to do the casting */
+    if (CArray_GetDTypeTransferFunction(aligned,
+                        0, dst_strides_it[0],
+                        src_dtype, dst_dtype,
+                        0,
+                        &stransfer, &transferdata,
+                        &needs_api) != CARRAY_SUCCEED) {
+        return -1;
+    }
+
+    if (!needs_api) {
+        int nitems = 1, i;
+        for (i = 0; i < ndim; i++) {
+            nitems *= shape_it[i];
+        }
+    }
+
+    CARRAY_RAW_ITER_START(idim, ndim, coord, shape_it) {
+        /* Process the innermost dimension */
+        stransfer(dst_data, dst_strides_it[0], src_data, 0,
+                    shape_it[0], src_itemsize, transferdata);
+    } CARRAY_RAW_ITER_ONE_NEXT(idim, ndim, coord,
+                            shape_it, dst_data, dst_strides_it);
+
+
+    CARRAY_AUXDATA_FREE(transferdata);
+
+    efree(shape_it);
+    efree(dst_strides_it);
+    efree(coord);
+    return (needs_api) ? -1 : 0;
+}
+
+/*
  * Assigns a scalar value specified by 'src_dtype' and 'src_data'
  * to elements of 'dst'.
  *
@@ -80,8 +153,18 @@ CArray_AssignRawScalar(CArray *dst, CArrayDescriptor *src_dtype, char *src_data,
             src_data = tmp_src_data;
             src_dtype = CArray_DESCR(dst);
     }
-
-
+    if (wheremask == NULL) {
+        /* A straightforward value assignment */
+        /* Do the assignment with raw array iteration */
+        if (raw_array_assign_scalar(CArray_NDIM(dst), CArray_DIMS(dst),
+                CArray_DESCR(dst), CArray_DATA(dst), CArray_STRIDES(dst),
+                src_dtype, src_data) < 0) {
+            goto fail;
+        }
+    }
+    else {
+        throw_notimplemented_exception();
+    }
 fail:
     if (allocated_src_data) {
         free(src_data);

@@ -1926,7 +1926,6 @@ _strided_to_strided_size8(char *dst, int dst_stride,
 #  endif
 
 #else
-
         /* unaligned copy and swap */
         memmove(dst, src, 8);
 #  if 0 == 1
@@ -2475,6 +2474,7 @@ _contig_to_contig(char *dst, int CARRAY_UNUSED(dst_stride),
                         int N, int src_itemsize,
                         CArrayAuxData *CARRAY_UNUSED(data))
 {
+        
     memmove(dst, src, src_itemsize*N);
 }
 
@@ -2498,6 +2498,7 @@ CArray_GetStridedCopyFn(int aligned, int src_stride, int dst_stride, int itemsiz
             if (src_stride == 0) {
                 switch (itemsize) {
                     case 1:
+                    
                         return
                           &_aligned_strided_to_contig_size1_srcstride0;
                     case 2:

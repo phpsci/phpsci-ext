@@ -2,11 +2,133 @@
 #include "dtype_transfer.h"
 #include "common/strided_loops.h"
 #include "assign.h"
+#include "shape.h"
 #include "common/common.h"
 #include "common/exceptions.h"
 #include "php.h"
 #include "descriptor.h"
 #include "common/strided_loops.h"
+
+
+
+/*
+ * Prepares shape and strides for a simple raw array iteration.
+ * This sorts the strides into FORTRAN order, reverses any negative
+ * strides, then coalesces axes where possible. The results are
+ * filled in the output parameters.
+ *
+ * This is intended for simple, lightweight iteration over arrays
+ * where no buffering of any kind is needed.
+ *
+ * The arrays shape, out_shape, strides, and out_strides must all
+ * point to different data.
+ *
+ * Returns 0 on success, -1 on failure.
+ */
+int
+CArray_PrepareOneRawArrayIter(int ndim, int *shape,
+                              char *data, int *strides,
+                              int *out_ndim, int *out_shape,
+                              char **out_data, int *out_strides)
+{
+    ca_stride_sort_item * strideperm = emalloc(sizeof(ca_stride_sort_item) * ndim);
+    int i, j;
+
+    /* Special case 0 and 1 dimensions */
+    if (ndim == 0) {
+        *out_ndim = 1;
+        *out_data = data;
+        out_shape[0] = 1;
+        out_strides[0] = 0;
+        return 0;
+    }
+    else if (ndim == 1) {
+        int stride_entry = strides[0], shape_entry = shape[0];
+        *out_ndim = 1;
+        out_shape[0] = shape[0];
+        /* Always make a positive stride */
+        if (stride_entry >= 0) {
+            *out_data = data;
+            out_strides[0] = stride_entry;
+        }
+        else {
+            *out_data = data + stride_entry * (shape_entry - 1);
+            out_strides[0] = -stride_entry;
+        }
+        return 0;
+    }
+
+    /* Sort the axes based on the destination strides */
+    CArray_CreateSortedStridePerm(ndim, strides, strideperm);
+    for (i = 0; i < ndim; ++i) {
+        int iperm = strideperm[ndim - i - 1].perm;
+        out_shape[i] = shape[iperm];
+        out_strides[i] = strides[iperm];
+    }
+
+    /* Reverse any negative strides */
+    for (i = 0; i < ndim; ++i) {
+        int stride_entry = out_strides[i], shape_entry = out_shape[i];
+
+        if (stride_entry < 0) {
+            data += stride_entry * (shape_entry - 1);
+            out_strides[i] = -stride_entry;
+        }
+        /* Detect 0-size arrays here */
+        if (shape_entry == 0) {
+            *out_ndim = 1;
+            *out_data = data;
+            out_shape[0] = 0;
+            out_strides[0] = 0;
+            return 0;
+        }
+    }
+
+    /* Coalesce any dimensions where possible */
+    i = 0;
+    for (j = 1; j < ndim; ++j) {
+        if (out_shape[i] == 1) {
+            /* Drop axis i */
+            out_shape[i] = out_shape[j];
+            out_strides[i] = out_strides[j];
+        }
+        else if (out_shape[j] == 1) {
+            /* Drop axis j */
+        }
+        else if (out_strides[i] * out_shape[i] == out_strides[j]) {
+            /* Coalesce axes i and j */
+            out_shape[i] *= out_shape[j];
+        }
+        else {
+            /* Can't coalesce, go to next i */
+            ++i;
+            out_shape[i] = out_shape[j];
+            out_strides[i] = out_strides[j];
+        }
+    }
+    ndim = i+1;
+
+#if 0
+    /* DEBUG */
+    {
+        printf("raw iter ndim %d\n", ndim);
+        printf("shape: ");
+        for (i = 0; i < ndim; ++i) {
+            printf("%d ", (int)out_shape[i]);
+        }
+        printf("\n");
+        printf("strides: ");
+        for (i = 0; i < ndim; ++i) {
+            printf("%d ", (int)out_strides[i]);
+        }
+        printf("\n");
+    }
+#endif
+    efree(strideperm);
+    *out_data = data;
+    *out_ndim = ndim;
+    return 0;
+}
 
 /*************************** DEST SETZERO *******************************/
 
@@ -201,6 +323,7 @@ CArray_GetDTypeTransferFunction(int aligned,
     if (CArray_EquivTypes(src_dtype, dst_dtype) &&
             !CArrayDataType_REFCHK(src_dtype) && !CArrayDataType_REFCHK(dst_dtype) &&
             is_builtin) {
+                
         /*
          * We can't pass through the aligned flag because it's not
          * appropriate. Consider a size-8 string, it will say it's

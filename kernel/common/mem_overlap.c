@@ -384,9 +384,9 @@ solve_diophantine(unsigned int n, diophantine_term_t *E, int64_t b,
             res = diophantine_dfs(n, n-1, E, Ep, Gamma, Epsilon, b, max_work,
                                   require_ub_nontrivial, x, &count);
         }
-        free(Ep);
-        free(Gamma);
-        free(Epsilon);
+        efree(Ep);
+        efree(Gamma);
+        efree(Epsilon);
         return res;
     }
 }

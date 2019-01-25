@@ -221,7 +221,7 @@ CArray_FillWithScalar(CArray * arr, CArrayScalar * sc)
 {
     CArrayDescriptor * dtype = NULL;
     long long value_buffer[4];
-    char * value = NULL;
+    void * value = NULL;
     int retcode = 0;
 
     dtype = CArray_DescrFromScalar(sc);
@@ -230,7 +230,7 @@ CArray_FillWithScalar(CArray * arr, CArrayScalar * sc)
         CArrayDescriptor_FREE(dtype);
         return -1;
     }
-    php_printf("%f", *((double *)value));
+    
     /* Use the value pointer we got if possible */
     if (value != NULL) {
         /* TODO: switch to SAME_KIND casting */

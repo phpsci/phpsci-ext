@@ -8,7 +8,7 @@ CArray_Zeros(int * shape, int nd, char * type, char * order, MemoryPointer * rtn
 {
     int is_fortran = 0;
     CArrayDescriptor * new_descr;
-    CArrayScalar sc;
+    CArrayScalar * sc = emalloc(sizeof(CArrayScalar));
     CArray * rtn;
 
     if (order == NULL) {
@@ -23,13 +23,17 @@ CArray_Zeros(int * shape, int nd, char * type, char * order, MemoryPointer * rtn
     new_descr = CArray_DescrFromType(CHAR_TYPE_INT(*type));
     rtn = CArray_Empty(nd, shape, new_descr, is_fortran, rtn_ptr);
 
-    sc.obval = emalloc(new_descr->elsize);
-    sc.type = CHAR_TYPE_INT(*type);
+    sc->obval = emalloc(new_descr->elsize);
+    sc->type  = CHAR_TYPE_INT(*type);
+
     if(*type == TYPE_DOUBLE){
-        *((double *)sc.obval) = (double)1.00;
+        *((double *)sc->obval) = (double)1.00;
     }
+    
+    
+    CArray_FillWithScalar(rtn, sc);
 
-    CArray_FillWithScalar(rtn, &sc);
-
-    efree(sc.obval);
+    efree(sc->obval);
+    efree(sc);
+    return rtn;
 }

@@ -1,7 +1,3 @@
-//
-// Created by Henrique Borba on 25/11/2018.
-//
-
 #include "shape.h"
 #include "carray.h"
 #include "common/exceptions.h"
@@ -9,6 +5,61 @@
 #include "alloc.h"
 #include "flagsobject.h"
 #include "buffer.h"
+
+/*
+ * Sorts items so stride is descending, because C-order
+ * is the default in the face of ambiguity.
+ */
+static int _carray_stride_sort_item_comparator(const void *a, const void *b)
+{
+    int astride = ((const ca_stride_sort_item *)a)->stride,
+            bstride = ((const ca_stride_sort_item *)b)->stride;
+
+    /* Sort the absolute value of the strides */
+    if (astride < 0) {
+        astride = -astride;
+    }
+    if (bstride < 0) {
+        bstride = -bstride;
+    }
+
+    if (astride == bstride) {
+        /*
+         * Make the qsort stable by next comparing the perm order.
+         * (Note that two perm entries will never be equal)
+         */
+        int aperm = ((const ca_stride_sort_item *)a)->perm,
+                bperm = ((const ca_stride_sort_item *)b)->perm;
+        return (aperm < bperm) ? -1 : 1;
+    }
+    if (astride > bstride) {
+        return -1;
+    }
+    return 1;
+}
+
+/*
+ * This function populates the first ndim elements
+ * of strideperm with sorted descending by their absolute values.
+ * For example, the stride array (4, -2, 12) becomes
+ * [(2, 12), (0, 4), (1, -2)].
+ */
+void
+CArray_CreateSortedStridePerm(int ndim, int *strides,
+                              ca_stride_sort_item *out_strideperm)
+{
+    int i;
+
+    /* Set up the strideperm values */
+    for (i = 0; i < ndim; ++i) {
+        out_strideperm[i].perm = i;
+        out_strideperm[i].stride = strides[i];
+    }
+
+    /* Sort them */
+    qsort(out_strideperm, ndim, sizeof(ca_stride_sort_item),
+                                    &_carray_stride_sort_item_comparator);
+}
 
 /*
  * attempt to reshape an array without copying data

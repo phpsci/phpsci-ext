@@ -70,6 +70,26 @@ carray_bswap8_unaligned(char * x)
     a = x[3]; x[3] = x[4]; x[4] = a;
 }
 
+/* Start raw iteration */
+#define CARRAY_RAW_ITER_START(idim, ndim, coord, shape) \
+        memset((coord), 0, (ndim) * sizeof(coord[0])); \
+        do {
+
+
+/* Increment to the next n-dimensional coordinate for one raw array */
+#define CARRAY_RAW_ITER_ONE_NEXT(idim, ndim, coord, shape, data, strides) \
+            for ((idim) = 1; (idim) < (ndim); ++(idim)) { \
+                if (++(coord)[idim] == (shape)[idim]) { \
+                    (coord)[idim] = 0; \
+                    (data) -= ((shape)[idim] - 1) * (strides)[idim]; \
+                } \
+                else { \
+                    (data) += (strides)[idim]; \
+                    break; \
+                } \
+            } \
+        } while ((idim) < (ndim))
+
 /*
  * This function pointer is for unary operations that input an
  * arbitrarily strided one-dimensional array segment and output

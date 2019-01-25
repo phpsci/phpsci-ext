@@ -1086,9 +1086,9 @@ CArray_NewLikeArray(CArray *prototype, CARRAY_ORDER order, CArrayDescriptor *dty
         ca_stride_sort_item strideperm[CARRAY_MAXDIMS];
         int idim;
 
-        //CArray_CreateSortedStridePerm(CArray_NDIM(prototype),
-        //                               CArray_STRIDES(prototype),
-        //                               strideperm);
+        CArray_CreateSortedStridePerm(CArray_NDIM(prototype),
+                                      CArray_STRIDES(prototype),
+                                      strideperm);
 
         /* Build the new strides */
         stride = dtype->elsize;

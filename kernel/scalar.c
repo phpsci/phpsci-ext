@@ -89,14 +89,27 @@ scalar_value(CArrayScalar *scalar, CArrayDescriptor *descr)
     else {
         type_num = descr->type_num;
     }
+    
+    switch(type_num)
+    {
+        case TYPE_DOUBLE_INT:
+            return (double *) scalar->obval;
+            break;
+        case TYPE_INTEGER_INT:
+            return (int *) scalar->obval;
+            break;    
+        case TYPE_FLOAT_INT:
+            return (float *) scalar->obval;
+            break;    
+    }
 
-    switch (type_num) {
+    /**switch (type_num) {
         #define CASE(ut,lt) case TYPE_##ut: return &(((CArray##lt##ScalarObject *)scalar)->obval)
         CASE(INTEGER, Integer);
         CASE(LONG, Long);
         CASE(FLOAT, Float);
         CASE(DOUBLE, Double);
-    }
+    }**/
 }
 
 CArrayDescriptor *
