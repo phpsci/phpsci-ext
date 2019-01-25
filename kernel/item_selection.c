@@ -1,5 +1,6 @@
 #include "carray.h"
 #include "buffer.h"
+#include "common/exceptions.h"
 
 /*
  * Diagonal
@@ -20,7 +21,6 @@ CArray_Diagonal(CArray *self, int offset, int axis1, int axis2, MemoryPointer * 
 
     if (ndim < 2) {
         throw_valueerror_exception("diag requires an array of at least two dimensions");
-        return NULL;
     }
 
     if (check_and_adjust_axis_msg(&axis1, ndim) < 0) {
@@ -32,11 +32,10 @@ CArray_Diagonal(CArray *self, int offset, int axis1, int axis2, MemoryPointer * 
 
     if (axis1 == axis2) {
         throw_valueerror_exception("axis1 and axis2 cannot be the same");
-        return NULL;
     }
 
     /* Get the shape and strides of the two axes */
-    shape = CArray_SHAPE(self);
+    shape = CArray_DIMS(self);
     dim1 = shape[axis1];
     dim2 = shape[axis2];
     strides = CArray_STRIDES(self);
@@ -85,6 +84,7 @@ CArray_Diagonal(CArray *self, int offset, int axis1, int axis2, MemoryPointer * 
     }
 
     if(rtn_ptr != NULL) {
+        
         add_to_buffer(rtn_ptr, ret, sizeof(CArray));
     }
 
