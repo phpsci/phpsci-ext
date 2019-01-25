@@ -442,8 +442,10 @@ PHP_METHOD(CArray, zeros)
     }
     shape = ZVAL_TO_TUPLE(zshape, &ndim);
     CArray_Zeros(shape, ndim, dtype, &order, &ptr);
-    efree(dtype);
     efree(shape);
+    if(ZEND_NUM_ARGS() == 1) {
+        efree(dtype);
+    }
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
 PHP_METHOD(CArray, add)

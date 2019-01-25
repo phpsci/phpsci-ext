@@ -34,6 +34,9 @@ CHAR_TYPE_INT(char CHAR_TYPE)
     if(CHAR_TYPE == TYPE_INTEGER) {
         return TYPE_INTEGER_INT;
     }
+    if(CHAR_TYPE == TYPE_FLOAT) {
+        return TYPE_FLOAT_INT;
+    }
     throw_valueerror_exception("Unknown type");
 }
 
@@ -1005,6 +1008,14 @@ _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int cur
                 CArrayIterator_NEXT(iterator);
             }
         }
+        if(array->descriptor->type == TYPE_FLOAT) {
+            double * value;
+            for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
+                value = (float *)CArrayIterator_DATA(iterator);
+                php_printf(" %f ", *value);
+                CArrayIterator_NEXT(iterator);
+            }
+        }
     }
     php_printf("]");
 }
@@ -1023,6 +1034,10 @@ CArray_Print(CArray *array)
         }
         if(CArray_TYPE(array) == TYPE_INTEGER_INT) {
             php_printf("%d", IDATA(array)[0]);
+            return;
+        }
+        if(CArray_TYPE(array) == TYPE_FLOAT_INT) {
+            php_printf("%d", FDATA(array)[0]);
             return;
         }
     }
