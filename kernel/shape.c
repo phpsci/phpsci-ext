@@ -343,7 +343,7 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
             ret, CArray_DESCR(self),
             ndim, newdims, strides, CArray_DATA(self),
             flags, self, 0, 1);
-              
+    CArrayDescriptor_INCREF(CArray_DESCR(self));          
     CArray_DECREF(self);
     add_to_buffer(ptr, ret, sizeof(CArray));
     efree(strides);

@@ -2,6 +2,7 @@
 #include "matlib.h"
 #include "scalar.h"
 #include "alloc.h"
+#include "convert.h"
 
 CArray *
 CArray_Zeros(int * shape, int nd, char * type, char * order, MemoryPointer * rtn_ptr)
@@ -77,7 +78,6 @@ CArray_Ones(int * shape, int nd, char * type, char * order, MemoryPointer * rtn_
     if(*type == TYPE_FLOAT){
         *((float *)sc->obval) = (float)1;
     }
-    
     
     CArray_FillWithScalar(rtn, sc);
 
