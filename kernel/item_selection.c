@@ -79,6 +79,9 @@ CArray_Diagonal(CArray *self, int offset, int axis1, int axis2, MemoryPointer * 
             ret, dtype, ndim-1, ret_shape, ret_strides, data,
             CArray_FLAGS(self), self);
 
+    ret->flags &= ~CARRAY_ARRAY_WRITEABLE;
+    ret->flags |= CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_F_CONTIGUOUS;
+
     if (ret == NULL) {
         return NULL;
     }
