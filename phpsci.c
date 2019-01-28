@@ -524,7 +524,10 @@ PHP_METHOD(CArray, diagonal)
     
     ZVAL_TO_MEMORYPOINTER(a, &a_ptr);
     target_array = CArray_FromMemoryPointer(&a_ptr);
-    CArray_Diagonal(target_array, offset, axis1, axis2, &rtn_ptr);
+    CArray * rtn_array = CArray_Diagonal(target_array, offset, axis1, axis2, &rtn_ptr);
+    if(rtn_array == NULL) {
+        throw_axis_exception("");
+    }
     RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
 }
 
