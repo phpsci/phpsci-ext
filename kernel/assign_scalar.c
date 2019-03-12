@@ -112,7 +112,7 @@ CArray_AssignRawScalar(CArray *dst, CArrayDescriptor *src_dtype, char *src_data,
         throw_typeerror_exception("Cannot cast scalar");
         return -1;
     }
-
+    
      /*
      * Make a copy of the src data if it's a different dtype than 'dst'
      * or isn't aligned, and the destination we're copying to has
@@ -142,7 +142,7 @@ CArray_AssignRawScalar(CArray *dst, CArrayDescriptor *src_dtype, char *src_data,
             if (CArrayDataType_FLAGCHK(CArray_DESCR(dst), CARRAY_NEEDS_INIT)) {
                 memset(tmp_src_data, 0, CArray_DESCR(dst)->elsize);
             }
-
+            
             if (CArray_CastRawArrays(1, src_data, tmp_src_data, 0, 0,
                                 src_dtype, CArray_DESCR(dst), 0) != CARRAY_SUCCEED) {
                 src_data = tmp_src_data;
@@ -153,19 +153,28 @@ CArray_AssignRawScalar(CArray *dst, CArrayDescriptor *src_dtype, char *src_data,
             src_data = tmp_src_data;
             src_dtype = CArray_DESCR(dst);
     }
+    
     if (wheremask == NULL) {
         /* A straightforward value assignment */
         /* Do the assignment with raw array iteration */
         if (raw_array_assign_scalar(CArray_NDIM(dst), CArray_DIMS(dst),
                 CArray_DESCR(dst), CArray_DATA(dst), CArray_STRIDES(dst),
                 src_dtype, src_data) < 0) {
+                    
             goto fail;
         }
     }
     else {
         throw_notimplemented_exception();
     }
+
+    //if (allocated_src_data) {
+    //    free(src_data);
+    //}
+
+    return 0;
 fail:
+
     if (allocated_src_data) {
         free(src_data);
     }

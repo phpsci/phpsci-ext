@@ -9,6 +9,87 @@
 #include "descriptor.h"
 #include "common/strided_loops.h"
 
+/*************************** DTYPE CAST FUNCTIONS *************************/
+
+/* Does a simple aligned cast */
+typedef struct {
+    CArrayAuxData base;
+    CArray_VectorUnaryFunc *castfunc;
+    CArray *aip, *aop;
+} _strided_cast_data;
+
+static int
+get_nbo_cast_numeric_transfer_function(int aligned,
+                            int src_stride, int dst_stride,
+                            int src_type_num, int dst_type_num,
+                            CArray_StridedUnaryOp **out_stransfer,
+                            CArrayAuxData **out_transferdata)
+{
+    *out_stransfer = CArray_GetStridedNumericCastFn(aligned,
+                                src_stride, dst_stride,
+                                src_type_num, dst_type_num);
+    *out_transferdata = NULL;
+    if (*out_stransfer == NULL) {
+        throw_typeerror_exception("unexpected error in GetStridedNumericCastFn");
+        return CARRAY_FAIL;
+    }
+
+    return CARRAY_SUCCEED;
+}
+
+static int
+get_nbo_cast_transfer_function(int aligned,
+                            int src_stride, int dst_stride,
+                            CArrayDescriptor *src_dtype, CArrayDescriptor *dst_dtype,
+                            int move_references,
+                            CArray_StridedUnaryOp **out_stransfer,
+                            CArrayAuxData **out_transferdata,
+                            int *out_needs_api,
+                            int *out_needs_wrap)
+{
+    _strided_cast_data *data;
+    CArray_VectorUnaryFunc *castfunc;
+    CArrayDescriptor *tmp_dtype;
+    int shape = 1, src_itemsize = src_dtype->elsize, dst_itemsize = dst_dtype->elsize;
+
+    return get_nbo_cast_numeric_transfer_function(aligned,
+                                    src_stride, dst_stride,
+                                    src_dtype->type_num, dst_dtype->type_num,
+                                    out_stransfer, out_transferdata);
+}
+
+static int
+get_cast_transfer_function(int aligned,
+                            int src_stride, int dst_stride,
+                            CArrayDescriptor *src_dtype, CArrayDescriptor *dst_dtype,
+                            int move_references,
+                            CArray_StridedUnaryOp **out_stransfer,
+                            CArrayAuxData **out_transferdata,
+                            int *out_needs_api)
+{
+    CArray_StridedUnaryOp *caststransfer;
+    CArrayAuxData *castdata, *todata = NULL, *fromdata = NULL;
+    int needs_wrap = 0;
+    int src_itemsize = src_dtype->elsize, dst_itemsize = dst_dtype->elsize;
+    
+    if (get_nbo_cast_transfer_function(aligned,
+                            src_stride, dst_stride,
+                            src_dtype, dst_dtype,
+                            move_references,
+                            &caststransfer,
+                            &castdata,
+                            out_needs_api,
+                            &needs_wrap) != CARRAY_SUCCEED) {
+        return CARRAY_FAIL;
+    }
+
+    if (!needs_wrap) {
+        *out_stransfer = caststransfer;
+        *out_transferdata = castdata;
+
+        return CARRAY_SUCCEED;
+    }
+}
 
 
 /*
@@ -231,7 +312,7 @@ CArray_CastRawArrays(int count, char *src, char *dst,
     CArrayAuxData *transferdata = NULL;
     int aligned = 1, needs_api = 0;
 
-
+    
     /* Make sure the copy is reasonable */
     if (dst_stride == 0 && count > 1) {
         throw_valueerror_exception("CArray CastRawArrays cannot do a reduction");
@@ -316,7 +397,7 @@ CArray_GetDTypeTransferFunction(int aligned,
     src_type_num = src_dtype->type_num;
     dst_type_num = dst_dtype->type_num;
     is_builtin = src_type_num < CARRAY_NTYPES && dst_type_num < CARRAY_NTYPES;
-
+    //php_printf("%d", src_dtype->elsize);
     /*
      * If there are no references and the data types are equivalent and builtin,
      * return a simple copy
@@ -342,8 +423,14 @@ CArray_GetDTypeTransferFunction(int aligned,
         return CARRAY_SUCCEED;
     }
 
-    throw_notimplemented_exception();     
+    return get_cast_transfer_function(aligned,
+                    src_stride, dst_stride,
+                    src_dtype, dst_dtype,
+                    move_references,
+                    out_stransfer, out_transferdata,
+                    out_needs_api);
 }
+
 
 
 int

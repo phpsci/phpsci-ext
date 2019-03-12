@@ -43,6 +43,7 @@
 #include "kernel/common/exceptions.h"
 #include "kernel/shape.h"
 #include "kernel/item_selection.h"
+#include "kernel/scalar.h"
 
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
 {
@@ -260,7 +261,6 @@ PHP_METHOD(CArray, sum)
     efree(axis_p);
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
-
 
 PHP_METHOD(CArray, sin)
 {
@@ -608,6 +608,33 @@ PHP_METHOD(CArray, arange)
     RETURN_MEMORYPOINTER(return_value, &a_ptr);
 }
 
+/**
+ * MISC
+ **/ 
+PHP_METHOD(CArray, fill)
+{
+    zval * obj = getThis();
+    zval * scalar_obj;
+    CArrayScalar * scalar;
+    MemoryPointer ptr;
+    CArray * target_ca;
+    ZVAL_TO_MEMORYPOINTER(obj, &ptr);
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+       Z_PARAM_ZVAL(scalar_obj)
+    ZEND_PARSE_PARAMETERS_END();
+    if(Z_TYPE_P(scalar_obj) == IS_LONG) {
+        convert_to_long(scalar_obj);
+        scalar = CArrayScalar_NewInt((int)zval_get_long(scalar_obj));
+    }
+    if(Z_TYPE_P(scalar_obj) == IS_DOUBLE) {
+        convert_to_double(scalar_obj);
+        scalar = CArrayScalar_NewDouble(zval_get_double(scalar_obj));
+    }
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    CArray_FillWithScalar(target_ca, scalar);
+    CArrayScalar_FREE(scalar);
+}
+
 
 /**
  * CLASS METHODS
@@ -619,6 +646,9 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, dump, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, print, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, __set, arginfo_array_set, ZEND_ACC_PUBLIC)
+
+        // MISC
+        PHP_ME(CArray, fill, NULL, ZEND_ACC_PUBLIC)
 
         // INDEXING
         PHP_ME(CArray, diagonal, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

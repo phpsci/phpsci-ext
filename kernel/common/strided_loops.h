@@ -2,6 +2,7 @@
 #define PHPSCI_EXT_STRIDE_LOOPS_H
 
 #include "../carray.h"
+#include "common.h"
 
 /* byte swapping functions */
 static inline uint16_t
@@ -130,5 +131,7 @@ typedef void (CArray_StridedUnaryOp)(char *dst, int dst_stride,
  *
  */
 CArray_StridedUnaryOp * CArray_GetStridedCopyFn(int aligned, int src_stride, int dst_stride, int itemsize);
-
+CArray_StridedUnaryOp * CArray_GetStridedNumericCastFn(int aligned, int src_stride,
+                             int dst_stride,
+                             int src_type_num, int dst_type_num);
 #endif //PHPSCI_EXT_STRIDE_LOOPS_H

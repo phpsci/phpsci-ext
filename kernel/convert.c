@@ -223,7 +223,7 @@ CArray_FillWithScalar(CArray * arr, CArrayScalar * sc)
     long long value_buffer[4];
     void * value = NULL;
     int retcode = 0;
-
+    
     dtype = CArray_DescrFromScalar(sc);
     value = scalar_value(sc, dtype);
     if (value == NULL) {
@@ -235,6 +235,7 @@ CArray_FillWithScalar(CArray * arr, CArrayScalar * sc)
     if (value != NULL) {
         /* TODO: switch to SAME_KIND casting */
         retcode = CArray_AssignRawScalar(arr, dtype, value, NULL, CARRAY_UNSAFE_CASTING);
+        
         CArrayDescriptor_FREE(dtype);
         return retcode;
     }

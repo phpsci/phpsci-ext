@@ -694,6 +694,7 @@ CArray_DescrFromType(int typenum)
     if(typenum == 0) {
         typenum = TYPE_DEFAULT_INT;
         ret->type_num = TYPE_DEFAULT_INT;
+        ret->elsize = sizeof(int);
     }
     if(typenum == TYPE_DOUBLE_INT) {
         ret->elsize = sizeof(double);
@@ -706,6 +707,10 @@ CArray_DescrFromType(int typenum)
     if(typenum == TYPE_FLOAT_INT) {
         ret->elsize = sizeof(float);
         ret->type   = TYPE_FLOAT;
+    }
+    if(typenum == TYPE_LONG_INT) {
+        ret->elsize = sizeof(long);
+        ret->type   = TYPE_LONG;
     }
     return ret;
 }

@@ -9,6 +9,7 @@ CArrayScalar_NewLong(long sc)
     ret = emalloc(sizeof(CArrayScalar));
     ret->obval = emalloc(sizeof(long));
     ret->type = TYPE_LONG_INT;
+    *((long*)ret->obval) = sc;
     return ret;
 }
 
@@ -19,6 +20,7 @@ CArrayScalar_NewFloat(float sc)
     ret = emalloc(sizeof(CArrayScalar));
     ret->obval = emalloc(sizeof(float));
     ret->type = TYPE_FLOAT_INT;
+    *((float*)ret->obval) = sc;
     return ret;
 }
 
@@ -29,6 +31,7 @@ CArrayScalar_NewDouble(double sc)
     ret = emalloc(sizeof(CArrayScalar));
     ret->obval = emalloc(sizeof(double));
     ret->type = TYPE_DOUBLE_INT;
+    *((double*)ret->obval) = sc;
     return ret;
 }
 
@@ -39,6 +42,7 @@ CArrayScalar_NewInt(int sc)
     ret = emalloc(sizeof(CArrayScalar));
     ret->obval = emalloc(sizeof(int));
     ret->type = TYPE_INTEGER_INT;
+    *((int*)ret->obval) = sc;
     return ret;
 }
 

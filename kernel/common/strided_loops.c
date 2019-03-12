@@ -2454,6 +2454,125 @@ _strided_to_contig_size4(char *dst,
     }
 }
 
+
+/**
+ * DOUBLE TO INT
+ **/ 
+#define _CONVERT_FN(x) ((int)x)
+
+static void
+_cast_double_to_int(
+                        char *dst, int dst_stride,
+                        char *src, int src_stride,
+                        int N, int CARRAY_UNUSED(src_itemsize),
+                        CArrayAuxData *CARRAY_UNUSED(data))
+{
+    double src_value;
+    int dst_value;
+    
+    while (N--) {
+        memmove(&src_value, src, sizeof(src_value));
+        dst_value = _CONVERT_FN(src_value);
+        *(int *)dst = _CONVERT_FN(*(double *)src);
+        memmove(dst, &dst_value, sizeof(dst_value));
+        dst += dst_stride;
+        src += src_stride;
+    }
+}
+
+static void
+_aligned_cast_double_to_int(
+                        char *dst, int dst_stride,
+                        char *src, int src_stride,
+                        int N, int CARRAY_UNUSED(src_itemsize),
+                        CArrayAuxData *CARRAY_UNUSED(data))
+{
+    double src_value;
+    int dst_value;
+
+    assert(N == 0 || carray_is_aligned(src, _ALIGN(double)));
+    assert(N == 0 || carray_is_aligned(dst, _ALIGN(int)));
+
+    while (N--) {
+        memmove(&src_value, src, sizeof(src_value));
+        dst_value = _CONVERT_FN(src_value);
+        *(int *)dst = _CONVERT_FN(*(double *)src);
+        memmove(dst, &dst_value, sizeof(dst_value));
+        dst += dst_stride;
+        src += src_stride;
+    }
+}
+#undef _CONVERT_FN
+
+
+/**
+ * INT TO DOUBLE
+ **/ 
+#define _CONVERT_FN(x) ((double)x)
+static void
+_cast_int_to_double(
+                        char *dst, int dst_stride,
+                        char *src, int src_stride,
+                        int N, int CARRAY_UNUSED(src_itemsize),
+                        CArrayAuxData *CARRAY_UNUSED(data))
+{
+    int src_value;
+    double dst_value;
+    
+    while (N--) {
+        memmove(&src_value, src, sizeof(src_value));
+        dst_value = _CONVERT_FN(src_value);
+        *(double *)dst = _CONVERT_FN(*(int *)src);
+        memmove(dst, &dst_value, sizeof(dst_value));
+        dst += dst_stride;
+        src += src_stride;
+    }
+}
+static void
+_aligned_cast_int_to_double(
+                        char *dst, int dst_stride,
+                        char *src, int src_stride,
+                        int N, int CARRAY_UNUSED(src_itemsize),
+                        CArrayAuxData *CARRAY_UNUSED(data))
+{
+    int src_value;
+    double dst_value;
+
+    assert(N == 0 || carray_is_aligned(src, _ALIGN(int)));
+    assert(N == 0 || carray_is_aligned(dst, _ALIGN(double)));
+
+    while (N--) {
+        memmove(&src_value, src, sizeof(src_value));
+        dst_value = _CONVERT_FN(src_value);
+        *(double *)dst = _CONVERT_FN(*(int *)src);
+        memmove(dst, &dst_value, sizeof(dst_value));
+        dst += dst_stride;
+        src += src_stride;
+    }
+}
+#undef _CONVERT_FN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 static void
 _strided_to_strided(char *dst, int dst_stride,
                         char *src, int src_stride,
@@ -2479,6 +2598,60 @@ _contig_to_contig(char *dst, int CARRAY_UNUSED(dst_stride),
 }
 
 
+CArray_StridedUnaryOp * 
+CArray_GetStridedNumericCastFn(int aligned, int src_stride,
+                             int dst_stride,
+                             int src_type_num, int dst_type_num)
+{
+        switch (src_type_num) {
+                case TYPE_INTEGER_INT:
+                        switch (dst_type_num) {
+                                case TYPE_DOUBLE_INT:
+                                #  if CARRAY_USE_UNALIGNED_ACCESS
+                                       if (src_stride == sizeof(int) && dst_stride == sizeof(double)) {
+                                           //return &_aligned_contig_cast_int_to_double;
+                                       }
+                                       else {
+                                           //return &_aligned_cast_int_to_double;
+                                       }    
+                                #  else
+                                        if (src_stride == sizeof(double) &&
+                                                        dst_stride == sizeof(int)) {
+                                                //return aligned ?
+                                                //        &_aligned_contig_cast_double_to_int :
+                                                //        &_contig_cast_double_to_int;
+                                        }
+                                        else { 
+                                                return aligned ? &_aligned_cast_int_to_double :
+                                                                &_cast_int_to_double;
+                                        }   
+                                #endif            
+                        }      
+                case TYPE_DOUBLE_INT:
+                        switch (dst_type_num) {
+                                case TYPE_INTEGER_INT:
+                                #  if CARRAY_USE_UNALIGNED_ACCESS
+                                       if (src_stride == sizeof(int) && dst_stride == sizeof(double)) {
+                                           //return &_aligned_contig_cast_int_to_double;
+                                       }
+                                       else {
+                                           //return &_aligned_cast_int_to_double;
+                                       }    
+                                #  else
+                                        if (src_stride == sizeof(double) &&
+                                                        dst_stride == sizeof(int)) {
+                                                //return aligned ?
+                                                //        &_aligned_contig_cast_double_to_int :
+                                                //        &_contig_cast_double_to_int;
+                                        }
+                                        else { 
+                                                return aligned ? &_aligned_cast_double_to_int :
+                                                                &_cast_double_to_int;
+                                        }   
+                                #endif            
+                        }      
+        }
+}
 
 CArray_StridedUnaryOp * 
 CArray_GetStridedCopyFn(int aligned, int src_stride, int dst_stride, int itemsize)
