@@ -8,6 +8,33 @@ dev_addr: '0.0.0.0:8000'
 
 pages:
 - Home: index.md
+- Routines:
+    - Ones and Zeros: routines/ones_and_zeros.md
+    - Numerical Ranges: routines/numerical_ranges.md
+    - Array Shape: routines/shape.md
+    - Transpose: routines/transpose.md
+    - Dimensions: routines/dimensions.md
+    - Indexing: routines/indexing.md
+    - Matrix & Vector Products: routines/ma_products.md
+    - Decompositions: routines/decompositions.md
+    - Eigenvalues: routines/eigenvalues.md
+    - Matrix Norms: routines/ma_norms.md
+    - Equations & Inverse: routines/equations_and_inverse.md
+    - Trigonometric:  routines/trigonometric.md
+    - Hyperbolic:  routines/hyperbolic.md
+    - Rounding: routines/rounding.md
+    - Sums, products, differences: routines/sum_products_and_diff.md
+    - Exponents and logarithms: routines/exponents_loga.md
+    - Arithmetic: routines/arithmetic.md
+    - Miscellaneous: routines/miscellaneous.md
+    - Sorting: routines/sorting.md
+    - Searching: routines/searching.md
+    - Counting: routines/counting.md
+    - Padding: routines/padding.md
+    - Random Sampling: routines/random.md
+    - Permutations: routines/permutations.md
+    - Distributions: routines/distributions.md
+    - Statistics: routines/statistics.md
 - CArray Internals:
   - Internals Explanation: internals/explanation.md
   - C Reference: internals/carray_api.md
