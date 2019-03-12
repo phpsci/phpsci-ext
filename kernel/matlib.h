@@ -3,7 +3,7 @@
 
 #include "carray.h"
 
-CArray * CArray_Zeros(int * shape, int nd, char * type, char * order, MemoryPointer * rtn_ptr);
+CArray * CArray_Zeros(int * shape, int nd, char type, char * order, MemoryPointer * rtn_ptr);
 CArray * CArray_Ones(int * shape, int nd, char * type, char * order, MemoryPointer * rtn_ptr);
 
 #endif //PHPSCI_EXT_MATLIB_H

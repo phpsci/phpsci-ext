@@ -95,6 +95,7 @@ PHP_NEW_EXTENSION(carray,
       kernel/assign_scalar.c \
       kernel/common/exceptions.c \
       kernel/item_selection.c \
+      kernel/random.c \
 	  kernel/buffer.c ,
 	  $ext_shared,, )
   PHP_INSTALL_HEADERS([ext/carray], [phpsci.h, kernel/carray.h, kernel/types.h])

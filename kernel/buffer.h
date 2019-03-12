@@ -14,6 +14,7 @@ struct MemoryStack {
     CArray ** buffer;
     int size;
     int capacity;
+    int freed;
     size_t bsize;
 } MemoryStack;
 

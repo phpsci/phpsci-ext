@@ -44,6 +44,7 @@
 #include "kernel/shape.h"
 #include "kernel/item_selection.h"
 #include "kernel/scalar.h"
+#include "kernel/random.h"
 
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
 {
@@ -442,7 +443,7 @@ PHP_METHOD(CArray, zeros)
         *dtype = 'd';
     }
     shape = ZVAL_TO_TUPLE(zshape, &ndim);
-    CArray_Zeros(shape, ndim, dtype, &order, &ptr);
+    CArray_Zeros(shape, ndim, *dtype, &order, &ptr);
     efree(shape);
     if(ZEND_NUM_ARGS() == 1) {
         efree(dtype);
@@ -609,6 +610,23 @@ PHP_METHOD(CArray, arange)
 }
 
 /**
+ * RANDOM
+ **/ 
+PHP_METHOD(CArray, rand)
+{
+    zval * size;
+    int len, *dims;
+    MemoryPointer out;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+       Z_PARAM_ARRAY(size)
+    ZEND_PARSE_PARAMETERS_END();
+    dims = ZVAL_TO_TUPLE(size, &len);
+    CArray_Rand(dims, len, &out);
+    RETURN_MEMORYPOINTER(return_value, &out);
+    FREE_TUPLE(dims);
+}
+
+/**
  * MISC
  **/ 
 PHP_METHOD(CArray, fill)
@@ -646,6 +664,9 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, dump, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, print, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, __set, arginfo_array_set, ZEND_ACC_PUBLIC)
+
+        // RANDOM
+        PHP_ME(CArray, rand, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // MISC
         PHP_ME(CArray, fill, NULL, ZEND_ACC_PUBLIC)

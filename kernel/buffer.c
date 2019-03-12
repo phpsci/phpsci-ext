@@ -15,6 +15,7 @@ struct MemoryStack PHPSCI_MAIN_MEM_STACK;
  * @todo Same from buffer_to_capacity
  */
 void buffer_init(size_t size) {
+    PHPSCI_MAIN_MEM_STACK.freed = 0;
     PHPSCI_MAIN_MEM_STACK.size = 0;
     PHPSCI_MAIN_MEM_STACK.capacity = 1;
     PHPSCI_MAIN_MEM_STACK.bsize = size;
@@ -24,9 +25,9 @@ void buffer_init(size_t size) {
 
 void buffer_remove(MemoryPointer * ptr)
 {
-    PHPSCI_MAIN_MEM_STACK.size = PHPSCI_MAIN_MEM_STACK.size - 1;
+    PHPSCI_MAIN_MEM_STACK.freed = PHPSCI_MAIN_MEM_STACK.freed + 1;
     efree(PHPSCI_MAIN_MEM_STACK.buffer[ptr->uuid]);
-    if(PHPSCI_MAIN_MEM_STACK.size == 0) {
+    if(PHPSCI_MAIN_MEM_STACK.size == PHPSCI_MAIN_MEM_STACK.freed) {
         efree(PHPSCI_MAIN_MEM_STACK.buffer);
         PHPSCI_MAIN_MEM_STACK.buffer = NULL;
     }

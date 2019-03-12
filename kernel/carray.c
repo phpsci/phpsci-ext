@@ -546,9 +546,12 @@ CArray_MultiplyList(const int * list, unsigned int size)
     if(size == 1) {
         return list[0];
     }
-    for(i = 0; i < size; i++) {
-        if(i > 0)
-            total += list[i] * list[i-1];
+    for(i = size-1; i >= 0; i--) {
+        if(i == size - 1) {
+            total = list[i];
+        } else {
+            total = total * list[i];
+        }
     }
     return total;
 }
@@ -1606,6 +1609,7 @@ CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPoint
     if(ptr != NULL) {
         add_to_buffer(ptr, ret, sizeof(CArray));
     }
+    
     return ret;
 }
 
