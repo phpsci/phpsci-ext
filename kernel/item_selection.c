@@ -287,7 +287,6 @@ CArray_TakeFrom(CArray * target, CArray * indices0, int axis,
     
     self = (CArray *)CArray_CheckAxis(target, &axis, CARRAY_ARRAY_CARRAY_RO);
 
-    
     if (self == NULL) {
         return NULL;
     }
@@ -396,13 +395,14 @@ CArray_TakeFrom(CArray * target, CArray * indices0, int axis,
     }
 
     if(out_ptr != NULL) {
-        
         add_to_buffer(out_ptr, obj, sizeof(CArray));
     }
+    
     CArrayDescriptor_FREE(indices_type);
     CArray_DECREF(target);
     CArray_DECREF(target);
     return obj;
 fail:
+
     return NULL;
 }

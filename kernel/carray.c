@@ -945,16 +945,17 @@ CArray_CheckAxis(CArray * arr, int * axis, int flags)
         return arr;
     }
 
-    if (*axis == CARRAY_MAXDIMS || n == 0) {
+    if (*axis == INT_MAX || n == 0) {
         if (n != 1) {
             if (temp1 == NULL) {
                 *axis = 0;
                 return NULL;
             }
-            if (*axis == CARRAY_MAXDIMS) {
+            if (*axis == INT_MAX) {
                 *axis = CArray_NDIM(temp1)-1;
             }
         } else {
+            temp1 = arr;
             *axis = 0;
         }
         if (!flags && *axis == 0) {
@@ -981,6 +982,7 @@ CArray_CheckAxis(CArray * arr, int * axis, int flags)
         CArray_DECREF(temp2);
         return NULL;
     }
+    
     return temp2;
 }
 

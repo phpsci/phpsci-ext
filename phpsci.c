@@ -577,16 +577,26 @@ PHP_METHOD(CArray, take)
     CArray * ca_a, * ca_indices, * out;
     MemoryPointer a_ptr, indices_ptr, out_ptr;
     zval * a, * indices;
-    ZEND_PARSE_PARAMETERS_START(2, 2)
+    zend_long axis;
+    ZEND_PARSE_PARAMETERS_START(2, 3)
         Z_PARAM_ZVAL(a)
         Z_PARAM_ZVAL(indices)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(axis)
     ZEND_PARSE_PARAMETERS_END();
     ZVAL_TO_MEMORYPOINTER(a, &a_ptr);
     ZVAL_TO_MEMORYPOINTER(indices, &indices_ptr);
     ca_a = CArray_FromMemoryPointer(&a_ptr);
+    if(ZEND_NUM_ARGS() < 3) {
+        axis = INT_MAX;
+    }
+
     ca_indices = CArray_FromMemoryPointer(&indices_ptr);
-    out = CArray_TakeFrom(ca_a, ca_indices, 0, &out_ptr, CARRAY_RAISE);
-    RETURN_MEMORYPOINTER(return_value, &out_ptr);
+    out = CArray_TakeFrom(ca_a, ca_indices, axis, &out_ptr, CARRAY_RAISE);
+
+    if(out != NULL) {
+        RETURN_MEMORYPOINTER(return_value, &out_ptr);
+    }
 }
 
 /**

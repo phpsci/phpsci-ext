@@ -2,6 +2,7 @@
 #define PHPSCI_EXT_CARRAY_H
 
 #include "php.h"
+#include "common/exceptions.h"
 
 typedef struct CArray CArray;
 
@@ -420,8 +421,10 @@ check_and_adjust_axis_msg(int *axis, int ndim)
 {
     /* Check that index is valid, taking into account negative indices */
     if (CARRAY_UNLIKELY((*axis < -ndim) || (*axis >= ndim))) {
+        throw_axis_exception("Axis is out of bounds for array dimension");
         return -1;
     }
+    
     /* adjust negative indices */
     if (*axis < 0) {
         *axis += ndim;
