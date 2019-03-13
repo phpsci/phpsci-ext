@@ -88,6 +88,10 @@ CArray_Free(CArray * self)
         efree(self->descriptor);
         efree(self->data);
         efree(self);
+    } else {
+        efree(self->dimensions);
+        efree(self->strides);
+        efree(self);
     }
 }
 

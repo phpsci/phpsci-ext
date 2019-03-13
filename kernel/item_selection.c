@@ -282,11 +282,16 @@ CArray_TakeFrom(CArray * target, CArray * indices0, int axis,
     char *src, *dest, *tmp_src;
     int err;
     int needs_refcounting;
+    int auto_free = 0;
 
     indices = NULL;
     
-    self = (CArray *)CArray_CheckAxis(target, &axis, CARRAY_ARRAY_CARRAY_RO);
+    if (axis == INT_MAX) {
+        auto_free = 1;
+    }
 
+    self = (CArray *)CArray_CheckAxis(target, &axis, CARRAY_ARRAY_CARRAY_RO);
+    
     if (self == NULL) {
         return NULL;
     }
@@ -328,7 +333,7 @@ CArray_TakeFrom(CArray * target, CArray * indices0, int axis,
         CArrayDescriptor_INCREF(dtype);
         obj = (CArray *)CArray_NewFromDescr(obj, dtype, nd, shape,
                                             NULL, NULL, 0, self);
-
+        
         if (obj == NULL) {
             goto fail;
         }
@@ -386,21 +391,24 @@ CArray_TakeFrom(CArray * target, CArray * indices0, int axis,
     }
 
     CArray_DECREF(indices);
-    CArray_DECREF(self);
     if (out != NULL && out != obj) {
         CArray_INCREF(out);
         CArray_ResolveWritebackIfCopy(obj);
         CArray_DECREF(obj);
         obj = out;
     }
-
     if(out_ptr != NULL) {
         add_to_buffer(out_ptr, obj, sizeof(CArray));
     }
-    
     CArrayDescriptor_FREE(indices_type);
+    
     CArray_DECREF(target);
-    CArray_DECREF(target);
+    if(auto_free) {    
+        CArrayDescriptor_DECREF(CArray_DESCR(self));
+        CArray_Free(self);
+    } else {
+        CArray_DECREF(target);
+    }
     return obj;
 fail:
 

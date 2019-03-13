@@ -22,6 +22,7 @@
 #include "getset.h"
 #include "matlib.h"
 #include "item_selection.h"
+#include "shape.h"
 
 
 /**
@@ -947,6 +948,7 @@ CArray_CheckAxis(CArray * arr, int * axis, int flags)
 
     if (*axis == INT_MAX || n == 0) {
         if (n != 1) {
+            temp1 = CArray_Ravel(arr, 0);
             if (temp1 == NULL) {
                 *axis = 0;
                 return NULL;
@@ -974,15 +976,15 @@ CArray_CheckAxis(CArray * arr, int * axis, int flags)
             return NULL;
         }
     } else {
+        CArray_INCREF(temp1);
         temp2 = temp1;
     }
-
+    CArray_DECREF(temp1);
     n = CArray_NDIM(temp2);
     if (check_and_adjust_axis(axis, n) < 0) {
         CArray_DECREF(temp2);
         return NULL;
     }
-    
     return temp2;
 }
 

@@ -290,7 +290,9 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
         }
         if (same) {
             ret = CArray_View(self);
-            add_to_buffer(ptr, ret, sizeof(CArray));
+            if(ptr != NULL) { 
+                add_to_buffer(ptr, ret, sizeof(CArray));
+            }
             return ret;
         }
     }
@@ -343,9 +345,12 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
             ret, CArray_DESCR(self),
             ndim, newdims, strides, CArray_DATA(self),
             flags, self, 0, 1);
-    CArrayDescriptor_INCREF(CArray_DESCR(self));          
+     
+            
     CArray_DECREF(self);
-    add_to_buffer(ptr, ret, sizeof(CArray));
+    if(ptr != NULL) {
+        add_to_buffer(ptr, ret, sizeof(CArray));
+    }
     efree(strides);
     return ret;
 }
@@ -407,4 +412,35 @@ CArray_SwapAxes(CArray * ap, int a1, int a2, MemoryPointer * out)
     ret = CArray_Transpose(ap, &new_axes, out);
     efree(dims);
     return ret;
+}
+
+/*
+ * Ravel
+ * Returns a contiguous array
+ */
+CArray *
+CArray_Ravel(CArray *arr, CARRAY_ORDER order)
+{
+    CArray_Dims newdim = {NULL,1};
+    int val[1] = {CArray_SIZE(arr)};
+
+    newdim.ptr = val;
+
+    if (order == CARRAY_KEEPORDER) {
+        /* This handles some corner cases, such as 0-d arrays as well */
+        if (CArray_IS_C_CONTIGUOUS(arr)) {
+            order = CARRAY_CORDER;
+        }
+        else if (CArray_IS_F_CONTIGUOUS(arr)) {
+            order = CARRAY_FORTRANORDER;
+        }
+    }
+    else if (order == CARRAY_ANYORDER) {
+        order = CArray_ISFORTRAN(arr) ? CARRAY_FORTRANORDER : CARRAY_CORDER;
+    }
+    
+    if (order == CARRAY_CORDER && CArray_IS_C_CONTIGUOUS(arr)) {
+        return CArray_Newshape(arr, newdim.ptr, 1, CARRAY_CORDER, NULL);
+    }
+   
 }
