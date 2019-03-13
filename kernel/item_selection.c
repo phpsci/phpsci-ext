@@ -399,7 +399,9 @@ CArray_TakeFrom(CArray * target, CArray * indices0, int axis,
         
         add_to_buffer(out_ptr, obj, sizeof(CArray));
     }
-
+    CArrayDescriptor_FREE(indices_type);
+    CArray_DECREF(target);
+    CArray_DECREF(target);
     return obj;
 fail:
     return NULL;

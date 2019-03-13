@@ -574,7 +574,7 @@ PHP_METHOD(CArray, diagonal)
 }
 PHP_METHOD(CArray, take)
 {
-    CArray * ca_a, * ca_indices;
+    CArray * ca_a, * ca_indices, * out;
     MemoryPointer a_ptr, indices_ptr, out_ptr;
     zval * a, * indices;
     ZEND_PARSE_PARAMETERS_START(2, 2)
@@ -585,7 +585,7 @@ PHP_METHOD(CArray, take)
     ZVAL_TO_MEMORYPOINTER(indices, &indices_ptr);
     ca_a = CArray_FromMemoryPointer(&a_ptr);
     ca_indices = CArray_FromMemoryPointer(&indices_ptr);
-    CArray_TakeFrom(ca_a, ca_indices, 0, &out_ptr, CARRAY_RAISE);
+    out = CArray_TakeFrom(ca_a, ca_indices, 0, &out_ptr, CARRAY_RAISE);
     RETURN_MEMORYPOINTER(return_value, &out_ptr);
 }
 
