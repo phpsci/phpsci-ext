@@ -20,6 +20,7 @@
 #include "zend_smart_str.h"
 #include "casting.h"
 #include "getset.h"
+#include "matlib.h"
 
 
 /**
@@ -1045,7 +1046,7 @@ CArray_Print(CArray *array)
             return;
         }
         if(CArray_TYPE(array) == TYPE_FLOAT_INT) {
-            php_printf("%d", FDATA(array)[0]);
+            php_printf("%f", FDATA(array)[0]);
             return;
         }
     }
@@ -1611,6 +1612,47 @@ CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPoint
     }
     
     return ret;
+}
+
+/**
+ * ca::eye
+ **/ 
+CArray *
+CArray_Eye(int n, int m, int k, char * dtype, MemoryPointer * out)
+{
+    int i, aux = 0;
+    int dims[2];
+    CArray * target;
+
+    dims[0] = n;
+    dims[1] = m;
+
+    if(dtype != NULL) {
+        target = CArray_Zeros(dims, 2, *dtype, NULL, out);
+    } else {
+        target = CArray_Zeros(dims, 2, TYPE_DOUBLE, NULL, out);
+    }
+
+    if (k >= m) {
+        return target;
+    }
+
+    if (k >= 0) {
+        i = k;
+    } else {
+        i = (-k) * m;
+    }
+    
+    if(CArray_TYPE(target) == TYPE_DOUBLE_INT) {
+        for(aux = i; aux < ((m*n)/(n/m)); aux+=m+1) {
+            DDATA(target)[aux] = 1;
+        }
+    }
+    if(CArray_TYPE(target) == TYPE_INTEGER_INT) {
+         for(aux = i; aux < ((m*n)/(n/m)); aux+=m+1) {
+            IDATA(target)[aux] = 1;
+        }
+    }
 }
 
 /**

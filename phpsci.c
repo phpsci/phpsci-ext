@@ -386,6 +386,9 @@ PHP_METHOD(CArray, transpose)
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
 
+/**
+ * METHODS
+ */  
 PHP_METHOD(CArray, identity)
 {
     MemoryPointer ptr;
@@ -406,7 +409,41 @@ PHP_METHOD(CArray, identity)
     output = CArray_Identity((int)size, dtype, &ptr);
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
+PHP_METHOD(CArray, eye)
+{
+    MemoryPointer ptr;
+    CArray * output;
+    zend_long n, m, k;
+    char * dtype;
+    size_t type_len;
+    ZEND_PARSE_PARAMETERS_START(1, 4)
+        Z_PARAM_LONG(n)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(m)
+        Z_PARAM_LONG(k)
+        Z_PARAM_STRING(dtype, type_len)
+    ZEND_PARSE_PARAMETERS_END();
 
+    if(ZEND_NUM_ARGS() == 1) {
+        dtype = NULL;
+        m = n;
+        k = 0;
+    }
+    if(ZEND_NUM_ARGS() == 2) {
+        dtype = NULL;
+        k = 0;
+    }
+    if(ZEND_NUM_ARGS() == 3) {
+        dtype = NULL;
+    }
+
+    output = CArray_Eye((int)n, (int)m, (int)k, dtype, &ptr);
+    RETURN_MEMORYPOINTER(return_value, &ptr);
+}
+
+/**
+ * LINEAR ALGEBRA 
+ */ 
 PHP_METHOD(CArray, matmul)
 {
     MemoryPointer target1_ptr, target2_ptr, result_ptr;
@@ -686,6 +723,7 @@ static zend_function_entry carray_class_methods[] =
 
         // METHODS
         PHP_ME(CArray, identity, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, eye, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // SHAPE
         PHP_ME(CArray, transpose, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

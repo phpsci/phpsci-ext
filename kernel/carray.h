@@ -513,5 +513,6 @@ int CArray_CopyInto(CArray * dest, CArray * src);
 CArray * CArray_Identity(int n, char * dtype, MemoryPointer * out);
 CArray * CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPointer * ptr);
 CArray * CArray_Arange(double start, double stop, double step, int type_num, MemoryPointer * ptr);
+CArray * CArray_Eye(int n, int m, int k, char * dtype, MemoryPointer * out);
 
 #endif //PHPSCI_EXT_CARRAY_H
