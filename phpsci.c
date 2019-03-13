@@ -46,18 +46,21 @@
 #include "kernel/scalar.h"
 #include "kernel/random.h"
 
+static
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
 {
     zval rv;
     ptr->uuid = (int)zval_get_long(zend_read_property(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, 1, &rv));
 }
 
+static
 void * FREE_TUPLE(int * tuple)
 {
     if(tuple != NULL)
         efree(tuple);
 }
 
+static
 int * ZVAL_TO_TUPLE(zval * obj, int * size)
 {
     zval * element;
@@ -73,6 +76,7 @@ int * ZVAL_TO_TUPLE(zval * obj, int * size)
     return data_int;
 }
 
+static
 void RETURN_MEMORYPOINTER(zval * return_value, MemoryPointer * ptr)
 {
     object_init_ex(return_value, carray_sc_entry);
@@ -568,6 +572,22 @@ PHP_METHOD(CArray, diagonal)
     }
     RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
 }
+PHP_METHOD(CArray, take)
+{
+    CArray * ca_a, * ca_indices;
+    MemoryPointer a_ptr, indices_ptr, out_ptr;
+    zval * a, * indices;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_ZVAL(a)
+        Z_PARAM_ZVAL(indices)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(a, &a_ptr);
+    ZVAL_TO_MEMORYPOINTER(indices, &indices_ptr);
+    ca_a = CArray_FromMemoryPointer(&a_ptr);
+    ca_indices = CArray_FromMemoryPointer(&indices_ptr);
+    CArray_TakeFrom(ca_a, ca_indices, 0, &out_ptr, CARRAY_RAISE);
+    RETURN_MEMORYPOINTER(return_value, &out_ptr);
+}
 
 /**
  * MANIPULATION ROUTINES
@@ -710,6 +730,7 @@ static zend_function_entry carray_class_methods[] =
 
         // INDEXING
         PHP_ME(CArray, diagonal, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, take, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // INITIALIZERS
         PHP_ME(CArray, zeros, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

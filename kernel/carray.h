@@ -35,6 +35,13 @@ static const int CARRAY_ARRAY_WARN_ON_WRITE = (1 << 31);
         } \
     } while(0)
 
+
+typedef enum {
+        CARRAY_CLIP=0,
+        CARRAY_WRAP=1,
+        CARRAY_RAISE=2
+} CARRAY_CLIPMODE;
+
 /* For specifying array memory layout or iteration order */
 typedef enum {
     /* Fortran order if inputs are all Fortran, C otherwise */
@@ -105,7 +112,15 @@ typedef enum {
 #define CARRAY_ARRAY_ENSUREARRAY     0x0040
 #define CARRAY_ARRAY_FARRAY          (CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_BEHAVED)
 #define CARRAY_ARRAY_FARRAY_RO       (CARRAY_ARRAY_F_CONTIGUOUS | CARRAY_ARRAY_ALIGNED)
+#define CARRAY_ARRAY_NOTSWAPPED      0x0200
 
+/*
+ * Make sure that the strides are in units of the element size Needed
+ * for some operations with record-arrays.
+ *
+ * This flag may be requested in constructor functions.
+ */
+#define CARRAY_ARRAY_ELEMENTSTRIDES  0x0080
 
 /* The item must be reference counted when it is inserted or extracted. */
 #define CARRAY_ITEM_REFCOUNT   0x01
@@ -133,7 +148,9 @@ typedef enum {
 #define CArray_GETPTR2(obj, i, j) ((void *)(CArray_BYTES(obj) + \
                                             (i)*CArray_STRIDES(obj)[0] + \
                                             (j)*CArray_STRIDES(obj)[1]))
-
+#define CArray_ContiguousFromAny(op, type, min_depth, max_depth) \
+        CArray_FromAny(op, CArray_DescrFromType(type), min_depth, \
+                              max_depth, CARRAY_ARRAY_DEFAULT, NULL)
 /**
  * Array Functions
  */
@@ -145,10 +162,15 @@ typedef void (CArray_CopySwapNFunc)(void *, int, void *, int,
 typedef void (CArray_CopySwapFunc)(void *, void *, int, struct CArray *);
 typedef void (CArray_VectorUnaryFunc)(void *, void *, int, void *,
                                         void *);
+typedef int  (CArray_FastTakeFunc)(void *dest, void *src, int *indarray,
+                                       int nindarray, int n_outer,
+                                       int m_middle, int nelem,
+                                       CARRAY_CLIPMODE clipmode);                                        
 
 
 typedef struct CArray_ArrFuncs {
     /* The next four functions *cannot* be NULL */
+    CArray_FastTakeFunc *fasttake;
 
     /*
      * Functions to get and set items with standard Python types
@@ -285,8 +307,8 @@ typedef struct CArrayFlags
     int      flags;
 } CArrayFlags;
 
-#define CARRAY_LIKELY(x) (!!(x), 1)
-#define CARRAY_UNLIKELY(x) (!!(x), 0)
+#define CARRAY_LIKELY(x) (x)
+#define CARRAY_UNLIKELY(x) (x)
 
 /**
  * CArray Data Macros
@@ -310,7 +332,6 @@ typedef struct CArrayFlags
 #define CArray_DESCR(a) ((a)->descriptor)
 #define CArray_SIZE(m) CArray_MultiplyList(CArray_DIMS(m), CArray_NDIM(m))
 #define CArray_NBYTES(m) (CArray_ITEMSIZE(m) * CArray_SIZE(m))
-
 #define CArray_DESCR_REPLACE(descr)                             \
     do {                                                          \
         CArrayDescriptor *_new_;                                    \
@@ -324,6 +345,9 @@ typedef struct CArrayFlags
 #define CArray_ISFARRAY_RO(m) CArray_FLAGSWAP(m, CARRAY_ARRAY_FARRAY_RO) 
 #define CArray_ISNOTSWAPPED(m) CArray_ISNBO(CArray_DESCR(m)->byteorder)
 #define CArray_FLAGSWAP(m, flags) (CArray_CHKFLAGS(m, flags) && CArray_ISNOTSWAPPED(m))
+#define CArray_ISBYTESWAPPED(m) (!CArray_ISNOTSWAPPED(m))
+#define CArrayDataType_ISUNSIZED(dtype) ((dtype)->elsize == 0)
+#define CArrayTypeNum_ISUNSIGNED(type) (0)
 
 #define CARRAY_BYTE_ORDER __BYTE_ORDER
 #define CARRAY_LITTLE_ENDIAN __LITTLE_ENDIAN
@@ -343,6 +367,7 @@ typedef struct CArrayFlags
 #define CARRAY_OPPBYTE CARRAY_BIG
 #endif
 #define CArray_ISNBO(arg) ((arg) != CARRAY_OPPBYTE)
+
 
 static inline int
 CArray_TYPE(const CArray *arr)
@@ -506,6 +531,7 @@ int CArray_CompareLists(int *l1, int *l2, int n);
 int CArray_EquivTypes(CArrayDescriptor * a, CArrayDescriptor * b);
 int CArray_EquivArrTypes(CArray * a, CArray * b);
 int CArray_CopyInto(CArray * dest, CArray * src);
+int CArray_ElementStrides(CArray *obj);
 
 /**
  * Methods
@@ -514,5 +540,6 @@ CArray * CArray_Identity(int n, char * dtype, MemoryPointer * out);
 CArray * CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPointer * ptr);
 CArray * CArray_Arange(double start, double stop, double step, int type_num, MemoryPointer * ptr);
 CArray * CArray_Eye(int n, int m, int k, char * dtype, MemoryPointer * out);
-
+CArray * CArray_CheckFromAny(CArray *op, CArrayDescriptor *descr, int min_depth,
+                    int max_depth, int requires, CArray *context);
 #endif //PHPSCI_EXT_CARRAY_H

@@ -98,6 +98,39 @@ carray_uint_alignment(int itemsize)
     return alignment;
 }
 
+/*
+ * Returns -1 and sets an exception if *index is an invalid index for
+ * an array of size max_item, otherwise adjusts it in place to be
+ * 0 <= *index < max_item, and returns 0.
+ * 'axis' should be the array axis that is being indexed over, if known. If
+ * unknown, use -1.
+ * If _save is NULL it is assumed the GIL is taken
+ * If _save is not NULL it is assumed the GIL is not taken and it
+ * is acquired in the case of an error
+ */
+static inline int
+check_and_adjust_index(int *index, int max_item, int axis)
+{
+    /* Check that index is valid, taking into account negative indices */
+    if (CARRAY_UNLIKELY((*index < -max_item) || (*index >= max_item))) {
+        /* Try to be as clear as possible about what went wrong. */
+        if (axis >= 0) {
+            throw_indexerror_exception("index is out of bounds for axis");
+        } else {
+            throw_indexerror_exception("index is out of bounds for size");
+        }
+        return -1;
+    }
+    /* adjust negative indices */
+    if (*index < 0) {
+        *index += max_item;
+    }
+    return 0;
+}
+
+
+
+
 CArray * new_array_for_sum(CArray *ap1, CArray *ap2, CArray* out,
                            int nd, int dimensions[], int typenum, CArray **result);
 int _IsWriteable(CArray *ap);

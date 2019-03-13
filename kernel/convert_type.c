@@ -2,6 +2,39 @@
 #include "alloc.h"
 #include "carray.h"
 
+/* Converts a type number from unsigned to signed */
+static int
+type_num_unsigned_to_signed(int type_num)
+{
+    switch (type_num) {
+        default:
+            return type_num;
+    }
+}
+
+
+/*
+ * The is_small_unsigned output flag indicates whether it's an unsigned integer,
+ * and would fit in a signed integer of the same bit size.
+ */
+static int min_scalar_type_num(char *valueptr, int type_num,
+                                            int *is_small_unsigned)
+{
+     switch (type_num) {
+        case TYPE_INTEGER_INT: {
+            break;
+        }
+        case TYPE_DOUBLE_INT: {
+            double value = *(double *)valueptr;
+            if (value > -3.4e38 && value < 3.4e38) {
+                return TYPE_FLOAT_INT;
+            }
+            break;
+        }
+     }
+     return type_num;
+}
+
 /**
  * @param op
  * @param minimum_type
@@ -31,4 +64,77 @@ CArray_ObjectType(CArray * op, int minimum_type)
     CArrayDescriptor_DECREF(dtype);
 
     return ret;
+}
+
+/*
+ * Returns true if data of type 'from' may be cast to data of type
+ * 'to' according to the rule 'casting'.
+ */
+int
+CArray_CanCastTypeTo(CArrayDescriptor *from, CArrayDescriptor *to,
+                     CARRAY_CASTING casting)
+{
+    /* Fast path for unsafe casts or basic types */
+    if (casting == CARRAY_UNSAFE_CASTING ||
+            (CARRAY_LIKELY(from->type_num == to->type_num) &&
+             CARRAY_LIKELY(from->byteorder == to->byteorder))) {
+        return 1;
+    }
+    /* Equivalent types can be cast with any value of 'casting'  */
+    else if (CArray_EquivTypes(from, to)) {
+        switch (from->type_num) {
+            default:
+                switch (casting) {
+                    case CARRAY_NO_CASTING:
+                        return PyArray_EquivTypes(from, to);
+                    case CARRAY_EQUIV_CASTING:
+                        return (from->elsize == to->elsize);
+                    case CARRAY_SAFE_CASTING:
+                        return (from->elsize <= to->elsize);
+                    default:
+                        return 1;
+                }
+                break;
+        }
+    }
+    /* If safe or same-kind casts are allowed */
+    else if (casting == CARRAY_SAFE_CASTING || casting == CARRAY_SAME_KIND_CASTING) {
+        if (CArray_CanCastTo(from, to)) {
+            return 1;
+        }
+        else if(casting == CARRAY_SAME_KIND_CASTING) {
+            throw_notimplemented_exception();
+        }
+        else {
+            return 0;
+        }
+    }
+    /* NPY_NO_CASTING or NPY_EQUIV_CASTING was specified */
+    else {
+        return 0;
+    }
+    
+}
+
+
+
+/*
+ * Returns 1 if the array object may be cast to the given data type using
+ * the casting rule, 0 otherwise.  This differs from CArray_CanCastTo in
+ * that it handles scalar arrays (0 dimensions) specially, by checking
+ * their value.
+ */
+int
+CArray_CanCastArrayTo(CArray *arr, CArrayDescriptor *to,
+                      CARRAY_CASTING casting)
+{
+    CArrayDescriptor *from = CArray_DESCR(arr);
+
+    /* If it's a scalar, check the value */
+    if (CArray_NDIM(arr) == 0) {
+        return can_cast_scalar_to(from, CArray_DATA(arr), to, casting);
+    }
+
+    /* Otherwise, use the standard rules */
+    return CArray_CanCastTypeTo(from, to, casting);
 }

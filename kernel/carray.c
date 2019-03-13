@@ -21,6 +21,7 @@
 #include "casting.h"
 #include "getset.h"
 #include "matlib.h"
+#include "item_selection.h"
 
 
 /**
@@ -779,12 +780,14 @@ _select_carray_funcs(CArrayDescriptor *descr)
         descr->f->copyswap = &INT_copyswap;
         descr->f->setitem  = &INT_setitem;
         descr->f->fill = &INT_fill;
+        descr->f->fasttake = &INT_fasttake;
     }
 
     if(descr->type_num == TYPE_DOUBLE_INT) {
         descr->f->copyswap = &DOUBLE_copyswap;
         descr->f->setitem  = &DOUBLE_setitem;
         descr->f->fill = &DOUBLE_fill;
+        descr->f->fasttake = &DOUBLE_fasttake;
     }
 
     /**
@@ -964,7 +967,7 @@ CArray_CheckAxis(CArray * arr, int * axis, int flags)
     }
 
     if (flags) {
-        //temp2 = CArray_CheckFromAny(, NULL, 0, 0, flags, NULL);
+        temp2 = CArray_CheckFromAny(temp1, NULL, 0, 0, flags, NULL);
         //CArray_DECREF(temp1);
         if (temp2 == NULL) {
             return NULL;
@@ -979,6 +982,64 @@ CArray_CheckAxis(CArray * arr, int * axis, int flags)
         return NULL;
     }
     return temp2;
+}
+
+int
+CArray_ElementStrides(CArray *obj)
+{
+    CArray *arr;
+    int itemsize;
+    int i, ndim;
+    int *strides;
+
+    if (!CArray_Check(obj)) {
+        return 0;
+    }
+
+    arr = obj;
+
+    itemsize = CArray_ITEMSIZE(arr);
+    ndim = CArray_NDIM(arr);
+    strides = CArray_STRIDES(arr);
+
+    for (i = 0; i < ndim; i++) {
+        if ((strides[i] % itemsize) != 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+CArray *
+CArray_CheckFromAny(CArray *op, CArrayDescriptor *descr, int min_depth,
+                    int max_depth, int requires, CArray *context)
+{
+    CArray *obj;
+    if (requires & CARRAY_ARRAY_NOTSWAPPED) {
+        if (!descr && CArray_Check(op) &&
+                CArray_ISBYTESWAPPED(op)) {
+            descr = CArray_DescrNew(CArray_DESCR(op));
+        }
+        else if (descr && !CArray_ISNBO(descr->byteorder)) {
+            CArray_DESCR_REPLACE(descr);
+        }
+        if (descr && descr->byteorder != CARRAY_IGNORE) {
+            descr->byteorder = CARRAY_NATIVE;
+        }
+    }
+
+    obj = CArray_FromCArray(op, descr, CArray_FLAGS(op));
+    if (obj == NULL) {
+        return NULL;
+    }
+    if ((requires & CARRAY_ARRAY_ELEMENTSTRIDES) &&
+        !CArray_ElementStrides(obj)) {
+        CArray *ret;
+        ret = CArray_NewCopy(obj, CARRAY_ANYORDER);
+        CArray_DECREF(obj);
+        obj = ret;
+    }
+    return obj;
 }
 
 /**
@@ -1434,12 +1495,12 @@ CArray *
 CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
 {
     CArray *ret = NULL;
-    int itemsize;
     int copy = 0;
     int arrflags;
     CArrayDescriptor *oldtype;
     char *msg = "cannot copy back to a read-only array";
     int ensureArray = 0;
+    CARRAY_CASTING casting = CARRAY_SAFE_CASTING;
     
     assert(NULL != arr);
 
@@ -1447,27 +1508,21 @@ CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
     if (newtype == NULL) {
         newtype = oldtype;
         CArrayDescriptor_INCREF(oldtype);
-    }
-
-    itemsize = newtype->elsize;
-    if (itemsize == 0) {
+    } else if (CArrayDataType_ISUNSIZED(newtype)) {
         CArray_DESCR_REPLACE(newtype);
         if (newtype == NULL) {
             return NULL;
         }
         newtype->elsize = oldtype->elsize;
-        itemsize = newtype->elsize;
     }
 
-    /*
-     * Can't cast unless ndim-0 array, FORCECAST is specified
-     * or the cast is safe.
-     */
-    if (!(flags) && CArray_NDIM(arr) != 0 &&
-        !CArray_CanCastTo(oldtype, newtype)) {
-        CArrayDescriptor_DECREF(newtype);
-        throw_typeerror_exception("array cannot be safely cast to required type");
-        return NULL;
+    /* If the casting if forced, use the 'unsafe' casting rule */
+    if (flags & CARRAY_ARRAY_FORCECAST) {
+        casting = CARRAY_UNSAFE_CASTING;
+    }
+
+    if (!CArray_CanCastArrayTo(arr, newtype, casting)) {
+        throw_typeerror_exception("Cannot cast array data");
     }
 
     /* Don't copy if sizes are compatible */
@@ -1542,7 +1597,7 @@ CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
         if (ret == NULL) {
             return NULL;
         }
-
+        
         if (CArray_CastTo(ret, arr) < 0) {
             CArray_DECREF(ret);
             return NULL;

@@ -8,6 +8,7 @@ static zend_class_entry * phpsci_ce_CArrayTypeErrorException;
 static zend_class_entry * phpsci_ce_CArrayOverflowException;
 static zend_class_entry * phpsci_ce_CArrayMemoryException;
 static zend_class_entry * phpsci_ce_CArrayNotImplementedException;
+static zend_class_entry * phpsci_ce_CArrayIndexErrorException;
 
 static const zend_function_entry phpsci_ce_CArrayAxisException_methods[] = {
         PHP_FE_END
@@ -31,6 +32,10 @@ static const zend_function_entry phpsci_ce_CArrayNotImplementedException_methods
         PHP_FE_END
 };
 
+static const zend_function_entry phpsci_ce_CArrayIndexErrorException_methods[] = {
+        PHP_FE_END
+};
+
 /**
  * Initialize Exception Classes
  */
@@ -50,6 +55,8 @@ init_exception_objects()
     phpsci_ce_CArrayMemoryException = zend_register_internal_class_ex(&ce, zend_ce_exception);
     INIT_CLASS_ENTRY(ce, "CArrayNotImplementedException", phpsci_ce_CArrayNotImplementedException_methods);
     phpsci_ce_CArrayNotImplementedException = zend_register_internal_class_ex(&ce, zend_ce_exception);
+    INIT_CLASS_ENTRY(ce, "CArrayIndexErrorException", phpsci_ce_CArrayIndexErrorException_methods);
+    phpsci_ce_CArrayIndexErrorException = zend_register_internal_class_ex(&ce, zend_ce_exception);
 }
 
 /**
@@ -108,4 +115,13 @@ throw_overflow_exception(char * msg)
     zend_throw_exception_ex(phpsci_ce_CArrayOverflowException, OVERFLOW_EXCEPTION, "%s", msg);
 }
 
+/**
+ * Throw IndexErrorException
+ * @param msg
+ */
+void
+throw_indexerror_exception(char * msg)
+{
+    zend_throw_exception_ex(phpsci_ce_CArrayIndexErrorException, INDEXERROR_EXCEPTION, "%s", msg);
+}
 
