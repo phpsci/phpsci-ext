@@ -338,8 +338,6 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
     }
 
     CArrayDescriptor_INCREF(CArray_DESCR(self));
-
-    strides = CArray_Generate_Strides(newdims, ndim, self->descriptor->type);
     
     ret =   CArray_NewFromDescr_int(
             ret, CArray_DESCR(self),
@@ -347,11 +345,11 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
             flags, self, 0, 1);
      
             
-    CArray_DECREF(self);
+    CArrayDescriptor_INCREF(CArray_DESCR(self));
     if(ptr != NULL) {
         add_to_buffer(ptr, ret, sizeof(CArray));
     }
-    efree(strides);
+    CArray_DECREF(self);
     return ret;
 }
 
