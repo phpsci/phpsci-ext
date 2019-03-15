@@ -664,14 +664,18 @@ void
 CArray_FromZval(zval * php_obj, char type, MemoryPointer * ptr)
 {
     if(Z_TYPE_P(php_obj) == IS_LONG) {
-        php_printf("LONG");
+        throw_notimplemented_exception();
+        return;
     }
     if(Z_TYPE_P(php_obj) == IS_ARRAY) {
         CArray_FromZval_Hashtable(php_obj, type, ptr);
+        return;
     }
     if(Z_TYPE_P(php_obj) == IS_DOUBLE) {
-        php_printf("DOUBLE");
+        throw_notimplemented_exception();
+        return;
     }
+    throw_notimplemented_exception();
 }
 
 /**
@@ -822,10 +826,6 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
     int i, is_empty, num_elements = 0;
     uintptr_t nbytes;
 
-    if ((unsigned int)nd > (unsigned int)CARRAY_MAXDIMS) {
-        php_printf("number of dimensions must be within [0, %d]", CARRAY_MAXDIMS);
-        return NULL;
-    }
     self->refcount = 0;
     nbytes = descr->elsize;
     is_empty = 0;
@@ -839,7 +839,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
         }
 
         if (dim < 0) {
-            php_printf("negative dimensions are not allowed");
+            throw_valueerror_exception("negative dimensions are not allowed");
             return NULL;
         }
     }
@@ -871,7 +871,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
         self->strides = (int*)emalloc(nd * sizeof(int));
         
         if (self->dimensions == NULL) {
-            php_printf("MemoryError");
+            throw_memory_exception("MemoryError");
             goto fail;
         }        
         memcpy(self->dimensions, dims, sizeof(int)*nd);
@@ -892,6 +892,8 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
             memcpy(self->strides, strides, sizeof(int)*nd);
         }
     } else {
+        descr->numElements = 1;
+        num_elements = 1;
         self->dimensions = self->strides = NULL;
         self->flags |= CARRAY_ARRAY_F_CONTIGUOUS;
     }
@@ -906,7 +908,7 @@ CArray_NewFromDescr_int(CArray * self, CArrayDescriptor *descr, int nd,
             self->data = carray_data_alloc(num_elements, descr->elsize);
         }
         if (self->data == NULL) {
-            php_printf("MemoryError");
+            throw_memory_exception("MemoryError");
             goto fail;
         }
         self->flags |= CARRAY_ARRAY_OWNDATA;

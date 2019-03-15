@@ -20,7 +20,7 @@ CArray_Slice_Index(CArray * self, int index, MemoryPointer * out)
     int new_num_elements = 0;
     int nd, i, flags;
     ret = (CArray *)ecalloc(1, sizeof(CArray));
-
+   
     subarray_descr = (CArrayDescriptor *)ecalloc(1, sizeof(CArrayDescriptor));
     nd = CArray_NDIM(self) - 1;
     new_dimensions = (int*)emalloc(nd * sizeof(int));
@@ -45,14 +45,16 @@ CArray_Slice_Index(CArray * self, int index, MemoryPointer * out)
     }
     subarray_descr->numElements = new_num_elements;
     ret->descriptor = subarray_descr;
-
+    
     flags = CArray_FLAGS(self);
+   
     ret = (CArray *)CArray_NewFromDescr_int(
             ret, subarray_descr,
             nd, new_dimensions, new_strides,
             (CArray_DATA(self) + (index * self->strides[0])),
             flags, self,
             0, 1);
+            
     add_to_buffer(out, ret, sizeof(*ret));
     efree(new_dimensions);
     efree(new_strides);
@@ -67,7 +69,7 @@ CArray_Slice_Index(CArray * self, int index, MemoryPointer * out)
 CArray *
 CArray_View(CArray *self)
 {
-    CArray *ret = NULL;
+    CArray *ret = emalloc(sizeof(CArray));
     CArrayDescriptor *dtype;
     CArray *subtype;
     int flags;
@@ -76,14 +78,13 @@ CArray_View(CArray *self)
 
     flags = CArray_FLAGS(self);
 
-    CArray_INCREF(self);
     ret = (CArray *)CArray_NewFromDescr_int(
-            self, dtype,
+            ret, dtype,
             CArray_NDIM(self), CArray_DIMS(self), CArray_STRIDES(self),
             CArray_DATA(self),
             flags, self,
             0, 1);
-
+            
     return ret;
 }
 

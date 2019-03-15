@@ -297,6 +297,7 @@ typedef struct CArray_Dims {
  */
 typedef struct MemoryPointer {
     int uuid;
+    int free;
 } MemoryPointer;
 
 /**

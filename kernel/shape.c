@@ -275,7 +275,7 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
         order = CArray_ISFORTRAN(self);
     }
     else if (order == CARRAY_KEEPORDER) {
-        php_printf("order 'K' is not permitted for reshaping");
+        throw_valueerror_exception("order 'K' is not permitted for reshaping");
         return NULL;
     }
 
@@ -440,5 +440,48 @@ CArray_Ravel(CArray *arr, CARRAY_ORDER order)
     if (order == CARRAY_CORDER && CArray_IS_C_CONTIGUOUS(arr)) {
         return CArray_Newshape(arr, newdim.ptr, 1, CARRAY_CORDER, NULL);
     }
-   
+}
+
+CArray *
+CArray_atleast1d(CArray * self, MemoryPointer * out)
+{
+    int * dims;
+    CArray * rtn;
+    if (CArray_NDIM(self) >= 1) {
+        rtn = CArray_View(self);
+        if (out != NULL) {
+            add_to_buffer(out, rtn, sizeof(CArray));
+        }
+        return rtn;
+    }
+    dims = emalloc(sizeof(int));
+    dims[0] = 1;
+    rtn = CArray_Newshape(self, dims, 1, CARRAY_CORDER, out);
+    efree(dims);
+}
+
+CArray *
+CArray_atleast2d(CArray * self, MemoryPointer * out)
+{
+    CArray * rtn;
+    if (CArray_NDIM(self) >= 2) {
+        rtn = CArray_View(self);
+        if (out != NULL) {
+            add_to_buffer(out, rtn, sizeof(CArray));
+        }
+        return rtn;
+    }
+}
+
+CArray *
+CArray_atleast3d(CArray * self, MemoryPointer * out)
+{
+    CArray * rtn;
+    if (CArray_NDIM(self) >= 3) {
+        rtn = CArray_View(self);
+        if (out != NULL) {
+            add_to_buffer(out, rtn, sizeof(CArray));
+        }
+        return rtn;
+    }
 }

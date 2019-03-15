@@ -49,8 +49,30 @@
 static
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
 {
-    zval rv;
-    ptr->uuid = (int)zval_get_long(zend_read_property(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, 1, &rv));
+    ptr->free = 0;
+    if (Z_TYPE_P(obj) == IS_ARRAY) {
+        CArray_FromZval(obj, 'a', ptr);
+        ptr->free = 2;
+        return;
+    }
+    if (Z_TYPE_P(obj) == IS_OBJECT) {
+        zval rv;
+        ptr->uuid = (int)zval_get_long(zend_read_property(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, 1, &rv));
+        return;
+    }
+    if (Z_TYPE_P(obj) == IS_LONG) {
+        int * dims = emalloc(sizeof(int));
+        dims[0] = 1;
+        CArray * self = emalloc(sizeof(CArray));
+        CArrayDescriptor * descr;
+        descr = CArray_DescrFromType(TYPE_INTEGER_INT);
+        self = CArray_NewFromDescr(self, descr, 0, dims, NULL, NULL, 0, NULL);
+        convert_to_long(obj);
+        IDATA(self)[0] = (int)zval_get_long(obj);
+        add_to_buffer(ptr, self, sizeof(CArray));
+        efree(dims);
+        ptr->free = 1;
+    }
 }
 
 static
@@ -74,6 +96,17 @@ int * ZVAL_TO_TUPLE(zval * obj, int * size)
         *size = *size + 1;
     } ZEND_HASH_FOREACH_END();
     return data_int;
+}
+
+static
+zval * MEMORYPOINTER_TO_ZVAL(MemoryPointer * ptr)
+{
+    zval * a = emalloc(sizeof(zval));
+    object_init_ex(a, carray_sc_entry);
+    CArray * arr = CArray_FromMemoryPointer(ptr);
+    zend_update_property_long(carray_sc_entry, a, "uuid", sizeof("uuid") - 1, ptr->uuid);
+    zend_update_property_long(carray_sc_entry, a, "ndim", sizeof("ndim") - 1, arr->ndim);
+    return a;
 }
 
 static
@@ -173,7 +206,9 @@ PHP_METHOD(CArray, offsetGet)
     ZVAL_TO_MEMORYPOINTER(obj, &ptr);
     _this_ca = CArray_FromMemoryPointer(&ptr);
     ret_ca = (CArray *) CArray_Slice_Index(_this_ca, (int)zval_get_long(index), &target_ptr);
-    RETURN_MEMORYPOINTER(return_value, &target_ptr);
+    if(ret_ca != NULL) {
+        RETURN_MEMORYPOINTER(return_value, &target_ptr);
+    }
 }
 ZEND_BEGIN_ARG_INFO_EX(arginfo_array_offsetSet, 0, 0, 2)
     ZEND_ARG_INFO(0, index)
@@ -208,6 +243,9 @@ PHP_METHOD(CArray, shape)
     FREE_TUPLE(new_shape);
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
+
+
+
 PHP_METHOD(CArray, dump)
 {
     MemoryPointer ptr;
@@ -598,6 +636,51 @@ PHP_METHOD(CArray, take)
         RETURN_MEMORYPOINTER(return_value, &out_ptr);
     }
 }
+PHP_METHOD(CArray, atleast_1d)
+{
+    zval * temp_zval;
+    int i;
+    CArray * target, * out_carray;
+    MemoryPointer ptr, out;
+    zval * dict;
+    int dict_size;
+    ZEND_PARSE_PARAMETERS_START(1, -1)
+        Z_PARAM_VARIADIC('+', dict, dict_size)
+    ZEND_PARSE_PARAMETERS_END();
+    if (dict_size == 1) {
+        ZVAL_TO_MEMORYPOINTER(&(dict[0]), &ptr);
+        target = CArray_FromMemoryPointer(&ptr);
+        out_carray = CArray_atleast1d(target, &out);
+        RETURN_MEMORYPOINTER(return_value, &out);
+        if(ptr.free == 1) {
+            CArrayDescriptor_DECREF(CArray_DESCR(target));
+            CArray_Alloc_FreeFromMemoryPointer(&ptr);
+        }
+        if(ptr.free == 2) {
+            CArrayDescriptor_INCREF(CArray_DESCR(target));
+            CArray_Alloc_FreeFromMemoryPointer(&ptr);
+        }
+    } else {
+        array_init_size(return_value, dict_size);
+        for(i = 0; i < dict_size; i++) {
+            ZVAL_TO_MEMORYPOINTER(&(dict[i]), &ptr);
+            target = CArray_FromMemoryPointer(&ptr);
+            out_carray = CArray_atleast1d(target, &out);
+            temp_zval = MEMORYPOINTER_TO_ZVAL(&out);
+            zend_hash_next_index_insert_new(Z_ARRVAL_P(return_value), temp_zval);
+            if(ptr.free == 1) {
+                efree(temp_zval);
+                CArrayDescriptor_DECREF(CArray_DESCR(target));
+                CArray_Alloc_FreeFromMemoryPointer(&ptr);
+            }
+            if(ptr.free == 2) {
+                efree(temp_zval);
+                CArrayDescriptor_INCREF(CArray_DESCR(target));
+                CArray_Alloc_FreeFromMemoryPointer(&ptr);
+            }
+        }
+    }
+}
 
 /**
  * MANIPULATION ROUTINES
@@ -741,6 +824,7 @@ static zend_function_entry carray_class_methods[] =
         // INDEXING
         PHP_ME(CArray, diagonal, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, take, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, atleast_1d, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // INITIALIZERS
         PHP_ME(CArray, zeros, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
