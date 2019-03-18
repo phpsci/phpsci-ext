@@ -678,6 +678,99 @@ PHP_METHOD(CArray, atleast_1d)
                 CArrayDescriptor_INCREF(CArray_DESCR(target));
                 CArray_Alloc_FreeFromMemoryPointer(&ptr);
             }
+            if(!ptr.free) {
+                CArrayDescriptor_DECREF(CArray_DESCR(target));
+            }
+        }
+    }
+}
+PHP_METHOD(CArray, atleast_2d)
+{
+    zval * temp_zval;
+    int i;
+    CArray * target, * out_carray;
+    MemoryPointer ptr, out;
+    zval * dict;
+    int dict_size;
+    ZEND_PARSE_PARAMETERS_START(1, -1)
+        Z_PARAM_VARIADIC('+', dict, dict_size)
+    ZEND_PARSE_PARAMETERS_END();
+    if (dict_size == 1) {
+        ZVAL_TO_MEMORYPOINTER(&(dict[0]), &ptr);
+        target = CArray_FromMemoryPointer(&ptr);
+        out_carray = CArray_atleast2d(target, &out);
+        RETURN_MEMORYPOINTER(return_value, &out);
+        if(ptr.free == 1) {
+            CArrayDescriptor_DECREF(CArray_DESCR(target));
+            CArray_Alloc_FreeFromMemoryPointer(&ptr);
+        }
+        if(ptr.free == 2) {
+            CArrayDescriptor_DECREF(CArray_DESCR(target));
+            CArray_Alloc_FreeFromMemoryPointer(&ptr);
+        }
+        if(!ptr.free) {
+            CArrayDescriptor_DECREF(CArray_DESCR(target));
+        }
+    } else {
+        array_init_size(return_value, dict_size);
+        for(i = 0; i < dict_size; i++) {
+            ZVAL_TO_MEMORYPOINTER(&(dict[i]), &ptr);
+            target = CArray_FromMemoryPointer(&ptr);
+            out_carray = CArray_atleast2d(target, &out);
+            temp_zval = MEMORYPOINTER_TO_ZVAL(&out);
+            zend_hash_next_index_insert_new(Z_ARRVAL_P(return_value), temp_zval);
+            if(ptr.free) {
+                efree(temp_zval);
+                CArrayDescriptor_DECREF(CArray_DESCR(target));
+                CArray_Alloc_FreeFromMemoryPointer(&ptr);
+            }
+            if(!ptr.free) {
+                efree(temp_zval);
+                CArrayDescriptor_DECREF(CArray_DESCR(target));
+            }
+        }
+    }
+}
+PHP_METHOD(CArray, atleast_3d)
+{
+    zval * temp_zval;
+    int i;
+    CArray * target, * out_carray;
+    MemoryPointer ptr, out;
+    zval * dict;
+    int dict_size;
+    ZEND_PARSE_PARAMETERS_START(1, -1)
+        Z_PARAM_VARIADIC('+', dict, dict_size)
+    ZEND_PARSE_PARAMETERS_END();
+    if (dict_size == 1) {
+        ZVAL_TO_MEMORYPOINTER(&(dict[0]), &ptr);
+        target = CArray_FromMemoryPointer(&ptr);
+        out_carray = CArray_atleast3d(target, &out);
+        RETURN_MEMORYPOINTER(return_value, &out);
+        if(ptr.free) {
+            CArrayDescriptor_DECREF(CArray_DESCR(target));
+            CArray_Alloc_FreeFromMemoryPointer(&ptr);
+        }
+        if(!ptr.free) {
+            CArrayDescriptor_DECREF(CArray_DESCR(target));
+        }
+    } else {
+        array_init_size(return_value, dict_size);
+        for(i = 0; i < dict_size; i++) {
+            ZVAL_TO_MEMORYPOINTER(&(dict[i]), &ptr);
+            target = CArray_FromMemoryPointer(&ptr);
+            out_carray = CArray_atleast3d(target, &out);
+            temp_zval = MEMORYPOINTER_TO_ZVAL(&out);
+            zend_hash_next_index_insert_new(Z_ARRVAL_P(return_value), temp_zval);
+            if(ptr.free) {
+                efree(temp_zval);
+                CArrayDescriptor_DECREF(CArray_DESCR(target));
+                CArray_Alloc_FreeFromMemoryPointer(&ptr);
+            }
+            if(!ptr.free) {
+                efree(temp_zval);
+                CArrayDescriptor_DECREF(CArray_DESCR(target));
+            }
         }
     }
 }
@@ -825,6 +918,8 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, diagonal, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, take, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, atleast_1d, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, atleast_2d, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, atleast_3d, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // INITIALIZERS
         PHP_ME(CArray, zeros, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

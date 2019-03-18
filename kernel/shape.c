@@ -442,6 +442,9 @@ CArray_Ravel(CArray *arr, CARRAY_ORDER order)
     }
 }
 
+/**
+ * @todo FIX INCREF and DECREF weird behaviour
+ **/ 
 CArray *
 CArray_atleast1d(CArray * self, MemoryPointer * out)
 {
@@ -460,28 +463,64 @@ CArray_atleast1d(CArray * self, MemoryPointer * out)
     efree(dims);
 }
 
+/**
+ * @todo FIX INCREF and DECREF weird behaviour
+ **/ 
 CArray *
 CArray_atleast2d(CArray * self, MemoryPointer * out)
 {
+    int * dims;
     CArray * rtn;
     if (CArray_NDIM(self) >= 2) {
         rtn = CArray_View(self);
+        CArrayDescriptor_INCREF(CArray_DESCR(rtn));
         if (out != NULL) {
             add_to_buffer(out, rtn, sizeof(CArray));
         }
+        CArrayDescriptor_INCREF(CArray_DESCR(rtn));
         return rtn;
     }
+    dims = emalloc(sizeof(int) * 2);
+    dims[0] = 1;
+    if(CArray_NDIM(self) == 0) {
+        dims[1] = 1;
+    } else {
+        dims[1] = CArray_DIMS(self)[0];
+    }
+    
+    rtn = CArray_Newshape(self, dims, 2, CARRAY_CORDER, out);
+    efree(dims);
 }
 
 CArray *
 CArray_atleast3d(CArray * self, MemoryPointer * out)
 {
+    int * dims;
     CArray * rtn;
     if (CArray_NDIM(self) >= 3) {
         rtn = CArray_View(self);
+        CArrayDescriptor_INCREF(CArray_DESCR(rtn));
         if (out != NULL) {
             add_to_buffer(out, rtn, sizeof(CArray));
         }
+        CArrayDescriptor_INCREF(CArray_DESCR(rtn));
         return rtn;
     }
+    dims = emalloc(sizeof(int) * 3);
+    dims[0] = 1;
+    if(CArray_NDIM(self) == 0) {
+        dims[1] = 1;
+        dims[2] = 1;
+    } 
+    if(CArray_NDIM(self) == 1) {
+        dims[1] = 1;
+        dims[2] = CArray_DIMS(self)[0];
+    } 
+    if(CArray_NDIM(self) == 2) {
+        dims[1] = CArray_DIMS(self)[0];
+        dims[2] = CArray_DIMS(self)[1];
+    } 
+    
+    rtn = CArray_Newshape(self, dims, 3, CARRAY_CORDER, out);
+    efree(dims);
 }
