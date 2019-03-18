@@ -774,7 +774,27 @@ PHP_METHOD(CArray, atleast_3d)
         }
     }
 }
-
+PHP_METHOD(CArray, squeeze)
+{
+    MemoryPointer a_ptr, out_ptr;
+    CArray * target_array, * rtn_array;
+    zval * a;
+    long axis;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_ZVAL(a)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    if(ZEND_NUM_ARGS() == 1) {
+        axis = INT_MAX;
+    }
+    ZVAL_TO_MEMORYPOINTER(a, &a_ptr);
+    target_array = CArray_FromMemoryPointer(&a_ptr);
+    rtn_array = CArray_Squeeze(target_array, axis,&out_ptr);
+    if(rtn_array != NULL) {
+        RETURN_MEMORYPOINTER(return_value, &out_ptr);
+    }
+}
 /**
  * MANIPULATION ROUTINES
  */
@@ -920,6 +940,7 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, atleast_1d, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, atleast_2d, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, atleast_3d, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, squeeze, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // INITIALIZERS
         PHP_ME(CArray, zeros, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

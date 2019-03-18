@@ -5,6 +5,7 @@
 #include "alloc.h"
 #include "flagsobject.h"
 #include "buffer.h"
+#include "conversion_utils.h"
 
 /*
  * Sorts items so stride is descending, because C-order
@@ -174,6 +175,45 @@ _attempt_nocopy_reshape(CArray *self, int newnd, int* newdims,
     }
 
     return 1;
+}
+
+/*
+ *
+ * Removes the axes flagged as True from the array,
+ * modifying it in place. If an axis flagged for removal
+ * has a shape entry bigger than one, this effectively selects
+ * index zero for that axis.
+ *
+ * WARNING: If an axis flagged for removal has a shape equal to zero,
+ *          the array will point to invalid memory. The caller must
+ *          validate this!
+ *          If an axis flagged for removal has a shape larger than one,
+ *          the aligned flag (and in the future the contiguous flags),
+ *          may need explicit update.
+ *
+ * For example, this can be used to remove the reduction axes
+ * from a reduction result once its computation is complete.
+ */
+void
+CArray_RemoveAxesInPlace(CArray *arr, int *flags)
+{
+    int *shape = CArray_DIMS(arr), *strides = CArray_STRIDES(arr);
+    int idim, ndim = CArray_NDIM(arr), idim_out = 0;
+
+    /* Compress the dimensions and strides */
+    for (idim = 0; idim < ndim; ++idim) {
+        if (!flags[idim]) {
+            shape[idim_out] = shape[idim];
+            strides[idim_out] = strides[idim];
+            ++idim_out;
+        }
+    }
+
+    /* The final number of dimensions */
+
+    arr->ndim = idim_out;
+
+    CArray_UpdateFlags(arr, CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_F_CONTIGUOUS);
 }
 
 /**
@@ -523,4 +563,102 @@ CArray_atleast3d(CArray * self, MemoryPointer * out)
     
     rtn = CArray_Newshape(self, dims, 3, CARRAY_CORDER, out);
     efree(dims);
+}
+
+CArray *
+CArray_SqueezeSelected(CArray * self, int *axis_flags)
+{
+    CArray *ret;
+    int idim, ndim, any_ones;
+    int *shape;
+
+    ndim = CArray_NDIM(self);
+    shape = CArray_DIMS(self);
+ 
+    /* Verify that the axes requested are all of size one */
+    any_ones = 0;
+    for (idim = 0; idim < ndim; ++idim) {
+        if (axis_flags[idim] != 0) {
+            if (shape[idim] == 1) {
+                any_ones = 1;
+            }
+            else {
+                throw_valueerror_exception("cannot select an axis to squeeze out which has size not equal to one");
+                return NULL;
+            }
+        }
+    }
+
+    /* If there were no axes to squeeze out, return the same array */
+    if (!any_ones) {
+        CArray_INCREF(self);
+        return self;
+    }
+
+    
+    ret = CArray_View(self);
+    if (ret == NULL) {
+        return NULL;
+    }
+    CArrayDescriptor_INCREF(CArray_DESCR(ret));
+    CArray_RemoveAxesInPlace(ret, axis_flags);
+
+    return ret;
+}
+
+CArray *
+CArray_Squeeze(CArray * self, int axis, MemoryPointer * out)
+{
+    CArray *ret;
+    int *axis_in = NULL;
+    int * axis_flags =  ecalloc(sizeof(int), CArray_NDIM(self));
+    if (axis == INT_MAX) {
+        int * unit_dims = emalloc(sizeof(int) * CArray_NDIM(self));
+        int idim, ndim, any_ones;
+        int *shape;
+
+        ndim = CArray_NDIM(self);
+        shape = CArray_DIMS(self);
+
+        any_ones = 0;
+        for (idim = 0; idim < ndim; ++idim) {
+            if (shape[idim] == 1) {
+                unit_dims[idim] = 1;
+                any_ones = 1;
+            }
+            else {
+                unit_dims[idim] = 0;
+            }
+        }
+
+        /* If there were no ones to squeeze out, return the same array */
+        if (!any_ones) {
+            CArray_INCREF(self);
+            return self;
+        }
+
+        ret = CArray_View(self);
+        if (ret == NULL) {
+            return NULL;
+        }
+        
+        CArray_RemoveAxesInPlace(ret, unit_dims);
+        efree(unit_dims);
+        efree(axis_flags);
+    } else {
+        axis_in = emalloc(sizeof(int));
+        *axis_in = axis;
+        if (CArray_ConvertMultiAxis(axis_in, CArray_NDIM(self), axis_flags) != CARRAY_SUCCEED) {
+            return NULL;
+        }
+
+        ret = CArray_SqueezeSelected(self, axis_flags);
+        
+    }
+    
+    if(out != NULL && ret != NULL) {
+        add_to_buffer(out, ret, sizeof(CArray));
+    } else {
+        return NULL;
+    }
 }
