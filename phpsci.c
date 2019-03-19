@@ -843,9 +843,13 @@ PHP_METHOD(CArray, arange)
         Z_PARAM_ZVAL(step)
         Z_PARAM_STRING(dtype, type_len)
     ZEND_PARSE_PARAMETERS_END();
-
+    
     if(ZEND_NUM_ARGS() == 1) {
         convert_to_double(start_stop);
+        if (UNEXPECTED(EXPECTED(zval_get_double(start_stop) > 0x7fffffff))) {
+            throw_valueerror_exception("Too many elements.");
+            RETURN_FALSE;
+        }
         start = (double)0.00;
         stop  = (double)zval_get_double(start_stop);
         typenum = TYPE_DEFAULT_INT;
@@ -854,6 +858,11 @@ PHP_METHOD(CArray, arange)
     if(ZEND_NUM_ARGS() == 2) {
         convert_to_double(start_stop);
         convert_to_double(stop_start);
+        if (UNEXPECTED(EXPECTED(zval_get_double(start_stop) > 0x7fffffff)) ||
+            UNEXPECTED(EXPECTED(zval_get_double(stop_start) > 0x7fffffff))) {
+            throw_valueerror_exception("Too many elements.");
+            RETURN_FALSE;
+        }
         start = (double)zval_get_double(start_stop);
         stop  = (double)zval_get_double(stop_start);
         typenum = TYPE_DEFAULT_INT;
@@ -863,6 +872,12 @@ PHP_METHOD(CArray, arange)
         convert_to_double(start_stop);
         convert_to_double(stop_start);
         convert_to_double(step);
+        if (UNEXPECTED(EXPECTED(zval_get_double(start_stop) > 0x7fffffff)) ||
+            UNEXPECTED(EXPECTED(zval_get_double(stop_start) > 0x7fffffff)) ||
+            UNEXPECTED(EXPECTED(zval_get_double(step) > 0x7fffffff))) {
+            throw_valueerror_exception("Too many elements.");
+            RETURN_FALSE;
+        }
         start = (double)zval_get_double(start_stop);
         stop  = (double)zval_get_double(stop_start);
         step_d  = (double)zval_get_double(step);
@@ -872,6 +887,12 @@ PHP_METHOD(CArray, arange)
         convert_to_double(start_stop);
         convert_to_double(stop_start);
         convert_to_double(step);
+        if (UNEXPECTED(EXPECTED(zval_get_double(start_stop) > 0x7fffffff)) ||
+            UNEXPECTED(EXPECTED(zval_get_double(stop_start) > 0x7fffffff)) ||
+            UNEXPECTED(EXPECTED(zval_get_double(step) > 0x7fffffff))) {
+            throw_valueerror_exception("Too many elements.");
+            RETURN_FALSE;
+        }
         start = (double)zval_get_double(start_stop);
         stop  = (double)zval_get_double(stop_start);
         step_d  = (double)zval_get_double(step);
