@@ -546,4 +546,5 @@ CArray * CArray_Arange(double start, double stop, double step, int type_num, Mem
 CArray * CArray_Eye(int n, int m, int k, char * dtype, MemoryPointer * out);
 CArray * CArray_CheckFromAny(CArray *op, CArrayDescriptor *descr, int min_depth,
                     int max_depth, int requires, CArray *context);
+CArray * CArray_Linspace(double start, double stop, int num, int endpoint, int retstep, int axis, int type);
 #endif //PHPSCI_EXT_CARRAY_H

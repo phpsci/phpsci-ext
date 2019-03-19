@@ -1844,3 +1844,32 @@ CArray_Arange(double start, double stop, double step, int type_num, MemoryPointe
 fail:
     return NULL;
 }
+
+
+CArray *
+CArray_Linspace(double start, double stop, int num, int endpoint, int retstep, int axis, int type)
+{
+    CArray * y;
+    double _div, delta;
+    double step;
+    if(num < 0)  {
+        throw_valueerror_exception("Number of samples must be non-negative.");
+        return NULL;
+    }
+
+    if(endpoint) {
+        _div = (num -1);
+    } else {
+        _div = num;
+    }
+
+    delta = stop - start;
+    y = CArray_Arange(0.0, num, 1.0, type, NULL);
+
+    if(num > 1) {
+        step = delta / _div;
+        
+    }
+
+    return y;
+}

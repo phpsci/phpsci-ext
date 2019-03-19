@@ -205,6 +205,11 @@ PHP_METHOD(CArray, offsetGet)
     zval * obj = getThis();
     ZVAL_TO_MEMORYPOINTER(obj, &ptr);
     _this_ca = CArray_FromMemoryPointer(&ptr);
+    if(zval_get_long(index) > CArray_DIMS(_this_ca)[0]) {
+        throw_indexerror_exception("");
+        return;
+    }
+
     ret_ca = (CArray *) CArray_Slice_Index(_this_ca, (int)zval_get_long(index), &target_ptr);
     if(ret_ca != NULL) {
         RETURN_MEMORYPOINTER(return_value, &target_ptr);
@@ -216,6 +221,10 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_array_offsetSet, 0, 0, 2)
 ZEND_END_ARG_INFO()
 PHP_METHOD(CArray, offsetSet)
 {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
+        return;
+    }
+
 }
 PHP_METHOD(CArray, offsetUnset)
 {
@@ -871,6 +880,26 @@ PHP_METHOD(CArray, arange)
     target_array = CArray_Arange(start, stop, step_d, typenum , &a_ptr);
     RETURN_MEMORYPOINTER(return_value, &a_ptr);
 }
+PHP_METHOD(CArray, linspace)
+{
+    int num;
+    CArray * ret;
+    zval * start, * stop;
+    double start_d, stop_d;
+    ZEND_PARSE_PARAMETERS_START(2, 7)
+        Z_PARAM_ZVAL(start)
+        Z_PARAM_ZVAL(stop)
+    ZEND_PARSE_PARAMETERS_END();
+    if(ZEND_NUM_ARGS() == 2) {
+        convert_to_double(start);
+        convert_to_double(stop);
+        start_d = (double)zval_get_double(start);
+        stop_d = (double)zval_get_double(stop);
+        num = 50;
+    }
+    ret = CArray_Linspace(start_d, stop_d, num, 1, 1, 0, TYPE_DEFAULT_INT);
+    CArray_Dump(ret);
+}
 
 /**
  * RANDOM
@@ -948,6 +977,7 @@ static zend_function_entry carray_class_methods[] =
 
         // NUMERICAL RANGES
         PHP_ME(CArray, arange, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, linspace, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         //ARRAY MANIPULATION
         PHP_ME(CArray, swapaxes, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
