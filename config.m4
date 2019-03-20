@@ -95,6 +95,7 @@ PHP_NEW_EXTENSION(carray,
       kernel/assign_scalar.c \
       kernel/common/exceptions.c \
       kernel/item_selection.c \
+      kernel/reduction.c \
       kernel/random.c \
       kernel/conversion_utils.c \
 	  kernel/buffer.c ,

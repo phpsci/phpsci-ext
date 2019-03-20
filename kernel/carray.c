@@ -710,6 +710,10 @@ CArray_DescrFromType(int typenum)
         ret->elsize = sizeof(double);
         ret->type   = TYPE_DOUBLE;
     }
+    if(typenum == TYPE_BOOL_INT) {
+        ret->elsize = sizeof(int);
+        ret->type   = TYPE_BOOL;
+    }
     if(typenum == TYPE_INTEGER_INT) {
         ret->elsize = sizeof(int);
         ret->type   = TYPE_INTEGER;
