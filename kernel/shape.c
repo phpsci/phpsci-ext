@@ -452,6 +452,55 @@ CArray_SwapAxes(CArray * ap, int a1, int a2, MemoryPointer * out)
     return ret;
 }
 
+/**
+ * Roll the specified axis backwards, until it lies in a given position.
+ *
+ * @param arr
+ * @param axis
+ * @param start
+ * @param out
+ * @return
+ */
+CArray *
+CArray_Rollaxis(CArray * arr, int axis, int start, MemoryPointer * out)
+{
+    int i, tmp_val;
+    int n = CArray_NDIM(arr);
+    CArray * rtn = NULL;
+
+    if (check_and_adjust_axis_msg(&axis, n) < 0) {
+        return NULL;
+    }
+
+    if (start < 0) {
+        start += n;
+    }
+
+    if (!(0 <= start < n + 1)) {
+        throw_axis_exception("Invalid start option for Rollaxis");
+    }
+
+    if (axis < start) {
+        start -= 1;
+    }
+
+    if (axis == start) {
+        CArrayDescriptor * new_descr = CArray_DescrNew(CArray_DESCR(arr));
+        CArrayDescriptor_INCREF(CArray_DESCR(arr));
+        rtn = CArray_View(arr);
+    }
+
+    if (axis != start) {
+        int * axes = emalloc(sizeof(int) * n);
+    }
+
+    if (out != NULL) {
+        add_to_buffer(out, rtn, sizeof(CArray));
+    }
+
+    return rtn;
+}
+
 /*
  * Ravel
  * Returns a contiguous array

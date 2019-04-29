@@ -5,7 +5,10 @@
 #include "common/exceptions.h"
 #include "scalar.h"
 #include "assign_scalar.h"
+#include "zend_alloc.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-function-declaration"
 /**
  * Slice CArray
  * 
@@ -243,3 +246,4 @@ CArray_FillWithScalar(CArray * arr, CArrayScalar * sc)
 
     CArrayDescriptor_FREE(dtype);
 }
+#pragma clang diagnostic pop

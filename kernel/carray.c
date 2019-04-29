@@ -25,6 +25,9 @@
 #include "shape.h"
 
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wint-conversion"
+#pragma clang diagnostic ignored "-Wimplicit-function-declaration"
 /**
  * @param CHAR_TYPE
  */
@@ -71,6 +74,19 @@ MemoryPointer
 CArray_FromZval_Long(zval * php_obj, char * type)
 {
 
+}
+
+int
+CArray_CompareLists(int *l1, int *l2, int n)
+{
+    int i;
+
+    for (i = 0; i < n; i++) {
+        if (l1[i] != l2[i]) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 void
@@ -1298,19 +1314,6 @@ CArray_SetWritebackIfCopyBase(CArray *arr, CArray *base)
     return -1;
 }
 
-int
-CArray_CompareLists(int *l1, int *l2, int n)
-{
-    int i;
-
-    for (i = 0; i < n; i++) {
-        if (l1[i] != l2[i]) {
-            return 0;
-        }
-    }
-    return 1;
-}
-
 /**
  * @return
  */ 
@@ -1877,3 +1880,4 @@ CArray_Linspace(double start, double stop, int num, int endpoint, int retstep, i
 
     return y;
 }
+#pragma clang diagnostic pop

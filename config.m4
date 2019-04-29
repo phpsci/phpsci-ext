@@ -40,6 +40,22 @@ AC_CHECK_HEADERS(
     [[#include "/opt/OpenBLAS/include/cblas.h"]]
 )
 AC_CHECK_HEADERS(
+    [/usr/include/cblas.h],
+    [
+        PHP_ADD_INCLUDE(/usr/include/)
+    ],
+    ,
+    [[#include "/usr/include/cblas.h"]]
+)
+AC_CHECK_HEADERS(
+    [/usr/include/atlas/cblas.h],
+    [
+        PHP_ADD_INCLUDE(/usr/include/atlas/)
+    ],
+    ,
+    [[#include "/usr/include/atlas/cblas.h"]]
+)
+AC_CHECK_HEADERS(
     [/usr/include/openblas/cblas.h],
     [
         PHP_ADD_INCLUDE(/usr/include/openblas/)
@@ -48,13 +64,20 @@ AC_CHECK_HEADERS(
     [[#include "/usr/include/openblas/cblas.h"]]
 )
 
-PHP_CHECK_LIBRARY(openblas,cblas_sdot,
+PHP_CHECK_LIBRARY(blas,cblas_sdot,
 [
-  PHP_ADD_LIBRARY(openblas)
+  PHP_ADD_LIBRARY(blas)
 ],[
-  AC_MSG_ERROR([wrong openblas version or library not found])
+  PHP_CHECK_LIBRARY(openblas,cblas_sdot,
+  [
+    PHP_ADD_LIBRARY(openblas)
+  ],[
+    AC_MSG_ERROR([wrong openblas/blas version or library not found])
+  ],[
+    -lopenblas
+  ])
 ],[
-  -lopenblas
+  -lblas
 ])
 
 PHP_CHECK_LIBRARY(lapacke,LAPACKE_sgetrf,
@@ -66,7 +89,7 @@ PHP_CHECK_LIBRARY(lapacke,LAPACKE_sgetrf,
   -llapacke
 ])
 
-CFLAGS="$CFLAGS -lopenblas -llapacke"
+CFLAGS="$CFLAGS -lopenblas -llapacke -lblas -llapack"
 
 PHP_NEW_EXTENSION(carray,
 	  phpsci.c \
