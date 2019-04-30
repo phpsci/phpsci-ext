@@ -2,39 +2,6 @@
 #include "alloc.h"
 #include "carray.h"
 
-/* Converts a type number from unsigned to signed */
-static int
-type_num_unsigned_to_signed(int type_num)
-{
-    switch (type_num) {
-        default:
-            return type_num;
-    }
-}
-
-
-/*
- * The is_small_unsigned output flag indicates whether it's an unsigned integer,
- * and would fit in a signed integer of the same bit size.
- */
-static int min_scalar_type_num(char *valueptr, int type_num,
-                                            int *is_small_unsigned)
-{
-     switch (type_num) {
-        case TYPE_INTEGER_INT: {
-            break;
-        }
-        case TYPE_DOUBLE_INT: {
-            double value = *(double *)valueptr;
-            if (value > -3.4e38 && value < 3.4e38) {
-                return TYPE_FLOAT_INT;
-            }
-            break;
-        }
-     }
-     return type_num;
-}
-
 /**
  * @param op
  * @param minimum_type
@@ -86,7 +53,7 @@ CArray_CanCastTypeTo(CArrayDescriptor *from, CArrayDescriptor *to,
             default:
                 switch (casting) {
                     case CARRAY_NO_CASTING:
-                        return PyArray_EquivTypes(from, to);
+                        return CArray_EquivTypes(from, to);
                     case CARRAY_EQUIV_CASTING:
                         return (from->elsize == to->elsize);
                     case CARRAY_SAFE_CASTING:

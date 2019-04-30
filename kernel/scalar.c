@@ -1,6 +1,8 @@
 #include "carray.h"
 #include "scalar.h"
 #include "php.h"
+#include "alloc.h"
+#include "buffer.h"
 
 CArrayScalar *
 CArrayScalar_NewLong(long sc)

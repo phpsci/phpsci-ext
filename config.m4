@@ -120,6 +120,7 @@ PHP_NEW_EXTENSION(carray,
       kernel/item_selection.c \
       kernel/reduction.c \
       kernel/random.c \
+      kernel/range.c \
       kernel/conversion_utils.c \
 	  kernel/buffer.c ,
 	  $ext_shared,, )

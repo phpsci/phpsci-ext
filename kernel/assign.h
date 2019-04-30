@@ -17,5 +17,5 @@ carray_is_aligned(const void * p, const int alignment)
 }
 
 int IsAligned(CArray *array);
-
+int raw_array_is_aligned(int ndim, int *shape, char *data, int *strides, int alignment);
 #endif //PHPSCI_EXT_ASSIGN_H

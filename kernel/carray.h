@@ -282,7 +282,7 @@ struct CArray {
     int refcount;
 };
 
-typedef void (*strided_copy_func_t)(char *, int, char *, int, int, int, CArrayDescriptor*);  
+typedef void (*strided_copy_func_t)(char *, int, char *, int, int, int, CArrayDescriptor*);
 
 /**
  * CArray Dims
@@ -418,6 +418,19 @@ CArray_NDIM(const CArray *arr) {
 }
 
 static inline int
+CArray_CompareLists(int *l1, int *l2, int n)
+{
+    int i;
+
+    for (i = 0; i < n; i++) {
+        if (l1[i] != l2[i]) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+static inline int
 check_and_adjust_axis_msg(int *axis, int ndim)
 {
     /* Check that index is valid, taking into account negative indices */
@@ -542,9 +555,8 @@ int CArray_ElementStrides(CArray *obj);
  **/
 CArray * CArray_Identity(int n, char * dtype, MemoryPointer * out);
 CArray * CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPointer * ptr);
-CArray * CArray_Arange(double start, double stop, double step, int type_num, MemoryPointer * ptr);
 CArray * CArray_Eye(int n, int m, int k, char * dtype, MemoryPointer * out);
 CArray * CArray_CheckFromAny(CArray *op, CArrayDescriptor *descr, int min_depth,
                     int max_depth, int requires, CArray *context);
-CArray * CArray_Linspace(double start, double stop, int num, int endpoint, int retstep, int axis, int type);
+
 #endif //PHPSCI_EXT_CARRAY_H

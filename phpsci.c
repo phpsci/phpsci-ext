@@ -45,6 +45,7 @@
 #include "kernel/item_selection.h"
 #include "kernel/scalar.h"
 #include "kernel/random.h"
+#include "kernel/range.h"
 
 static
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
@@ -1024,6 +1025,7 @@ static zend_function_entry carray_class_methods[] =
         //ARRAY MANIPULATION
         PHP_ME(CArray, swapaxes, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, rollaxis, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
 
         // METHODS
         PHP_ME(CArray, identity, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

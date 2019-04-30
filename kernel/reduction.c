@@ -3,6 +3,8 @@
 #include "iterators.h"
 #include "common/mem_overlap.h"
 #include "scalar.h"
+#include "alloc.h"
+#include "buffer.h"
 #include "convert.h"
 
 /*

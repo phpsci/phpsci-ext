@@ -17,4 +17,10 @@ int CArray_GetDTypeTransferFunction(int aligned,
                          CArray_StridedUnaryOp **out_stransfer,
                          CArrayAuxData **out_transferdata,
                          int *out_needs_api);
+
+int
+CArray_PrepareOneRawArrayIter(int ndim, int *shape,
+                              char *data, int *strides,
+                              int *out_ndim, int *out_shape,
+                              char **out_data, int *out_strides);
 #endif //PHPSCI_EXT_DTYPE_TRANSFER_H

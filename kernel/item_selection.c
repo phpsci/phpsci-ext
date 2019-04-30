@@ -1,4 +1,5 @@
 #include "carray.h"
+#include "alloc.h"
 #include "buffer.h"
 #include "common/exceptions.h"
 #include "common/common.h"
