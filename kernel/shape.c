@@ -464,9 +464,10 @@ CArray_SwapAxes(CArray * ap, int a1, int a2, MemoryPointer * out)
 CArray *
 CArray_Rollaxis(CArray * arr, int axis, int start, MemoryPointer * out)
 {
-    int i, tmp_val;
+    int i, tmp_val, j = 0;
     int n = CArray_NDIM(arr);
     CArray * rtn = NULL;
+    CArray_Dims permute;
 
     if (check_and_adjust_axis_msg(&axis, n) < 0) {
         return NULL;
@@ -492,6 +493,22 @@ CArray_Rollaxis(CArray * arr, int axis, int start, MemoryPointer * out)
 
     if (axis != start) {
         int * axes = emalloc(sizeof(int) * n);
+        for (i = 0; i < n; i++) {
+            if (i != axis) {
+                axes[j] = i;
+                j++;
+            }
+        }
+
+        for (i = n-1; i > start; i--) {
+            axes[i] = axes[i - 1];
+        }
+
+        axes[start] = axis;
+
+        permute.ptr = axes;
+        permute.len = n;
+        return CArray_Transpose(arr, &permute, out);
     }
 
     if (out != NULL) {

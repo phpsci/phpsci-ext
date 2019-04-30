@@ -823,6 +823,27 @@ PHP_METHOD(CArray, swapaxes)
     CArray_SwapAxes(target_array, (int)axis1, (int)axis2, &a_ptr);
     RETURN_MEMORYPOINTER(return_value, &a_ptr);
 }
+PHP_METHOD(CArray, rollaxis)
+{
+    MemoryPointer a_ptr;
+    CArray * target_array;
+    zval * a;
+    long axis, start;
+    ZEND_PARSE_PARAMETERS_START(2, 3)
+            Z_PARAM_ZVAL(a)
+            Z_PARAM_LONG(axis)
+            Z_PARAM_OPTIONAL
+            Z_PARAM_LONG(start)
+    ZEND_PARSE_PARAMETERS_END();
+    if(ZEND_NUM_ARGS() == 2) {
+        start = 0;
+    }
+    ZVAL_TO_MEMORYPOINTER(a, &a_ptr);
+    target_array = CArray_FromMemoryPointer(&a_ptr);
+    CArray_Rollaxis(target_array, (int)axis, (int)start, &a_ptr);
+    RETURN_MEMORYPOINTER(return_value, &a_ptr);
+}
+
 
 /**
  * NUMERICAL RANGES
@@ -1002,6 +1023,7 @@ static zend_function_entry carray_class_methods[] =
 
         //ARRAY MANIPULATION
         PHP_ME(CArray, swapaxes, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, rollaxis, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // METHODS
         PHP_ME(CArray, identity, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
