@@ -44,11 +44,17 @@
    */
 /* #undef HAVE__OPT_OPENBLAS_INCLUDE_LAPACKE_H */
 
+/* Define to 1 if you have the </usr/include/atlas/cblas.h> header file. */
+#define HAVE__USR_INCLUDE_ATLAS_CBLAS_H 1
+
+/* Define to 1 if you have the </usr/include/cblas.h> header file. */
+#define HAVE__USR_INCLUDE_CBLAS_H 1
+
 /* Define to 1 if you have the </usr/include/lapacke.h> header file. */
 #define HAVE__USR_INCLUDE_LAPACKE_H 1
 
 /* Define to 1 if you have the </usr/include/openblas/cblas.h> header file. */
-/* #undef HAVE__USR_INCLUDE_OPENBLAS_CBLAS_H */
+#define HAVE__USR_INCLUDE_OPENBLAS_CBLAS_H 1
 
 /* Define to 1 if you have the </usr/include/openblas/lapacke.h> header file.
    */

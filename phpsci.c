@@ -82,6 +82,18 @@ void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
 }
 
 static
+void FREE_FROM_MEMORYPOINTER(MemoryPointer * ptr)
+{
+    if(ptr->free == 1) {
+        CArray_Alloc_FreeFromMemoryPointer(ptr);
+        return;
+    }
+    if(ptr->free == 2) {
+        CArray_Alloc_FreeFromMemoryPointer(ptr);
+    }
+}
+
+static
 void * FREE_TUPLE(int * tuple)
 {
     if(tuple != NULL)
@@ -867,8 +879,14 @@ PHP_METHOD(CArray, moveaxis)
     src_array = CArray_FromMemoryPointer(&src_ptr);
     dst_array = CArray_FromMemoryPointer(&dst_ptr);
 
-    CArray_Moveaxis(a_array, src_array, dst_array, &out_ptr);
-    RETURN_MEMORYPOINTER(return_value, &out_ptr);
+    a_array = CArray_Moveaxis(a_array, src_array, dst_array, &out_ptr);
+
+    FREE_FROM_MEMORYPOINTER(&src_ptr);
+    FREE_FROM_MEMORYPOINTER(&dst_ptr);
+
+    if (a_array != NULL) {
+        RETURN_MEMORYPOINTER(return_value, &out_ptr);
+    }
 }
 
 /**

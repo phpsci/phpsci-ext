@@ -242,6 +242,7 @@ CArray_Transpose(CArray * target, CArray_Dims * permute, MemoryPointer * ptr)
         axes = permute->ptr;
         permutation = (int *)emalloc(n * sizeof(int));
         reverse_permutation = (int *)emalloc(n * sizeof(int));
+
         if(n != CArray_NDIM(target)) {
             throw_axis_exception("axes don't match array");
             return NULL;
@@ -289,7 +290,10 @@ CArray_Transpose(CArray * target, CArray_Dims * permute, MemoryPointer * ptr)
         efree(reverse_permutation);
     }
 
-    add_to_buffer(ptr, ret, sizeof(CArray));
+    if (ptr != NULL) {
+        add_to_buffer(ptr, ret, sizeof(CArray));
+    }
+
     return ret;
 }
 
@@ -453,14 +457,87 @@ CArray_SwapAxes(CArray * ap, int a1, int a2, MemoryPointer * out)
 }
 
 CArray *
-CArray_Moveaxis(CArray * target, CArray * source, CArray * destination, MemoryPointer * out)
+normalize_axis_tuple(CArray * axis, int ndim, int allow_duplicate)
 {
-    CArray * transpose = CArray_Transpose(target, NULL, NULL);
-
-    if (out != NULL) {
-        add_to_buffer(out, transpose, sizeof(CArray));
+    int i, j;
+    int * axis_data = (int *)CArray_DATA(axis);
+    for (i = 0; i < CArray_DESCR(axis)->numElements; i++)
+    {
+        if (check_and_adjust_axis(&(axis_data[i]), ndim) < 0) {
+            return NULL;
+        }
     }
 
+    if (!allow_duplicate) {
+        for (i = 0; i < CArray_DESCR(axis)->numElements; i++) {
+            for (j = i + 1; j < CArray_DESCR(axis)->numElements; j++) {
+                if (axis_data[i] == axis_data[j]) {
+                    throw_valueerror_exception("repeated axis");
+                    return NULL;
+                }
+            }
+        }
+    }
+
+    return axis;
+}
+
+
+
+CArray *
+CArray_Moveaxis(CArray * target, CArray * source, CArray * destination, MemoryPointer * out)
+{
+    int i, j, in_source = 0;
+    int order_size = CArray_NDIM(target);
+    int * order = ecalloc(CArray_NDIM(target), sizeof(int));
+    CArray_Dims orderDim;
+    source = normalize_axis_tuple(source, CArray_NDIM(target), 0);
+    destination = normalize_axis_tuple(destination, CArray_NDIM(target), 0);
+
+    if (source == NULL || destination == NULL) {
+        return NULL;
+    }
+
+    if (CArray_DESCR(source)->numElements != CArray_DESCR(destination)->numElements)
+    {
+        throw_valueerror_exception("`source` and `destination` arguments must have the same number of elements");
+        return NULL;
+    }
+
+    int total_insrc = 0;
+    for (i = 0; i < CArray_NDIM(target); i++)
+    {
+        in_source = 0;
+        for (j = 0; j < CArray_DESCR(source)->numElements; j++) {
+            if (IDATA(source)[j] == i) {
+                in_source = 1;
+            }
+        }
+        if (!in_source) {
+            order[total_insrc] = i;
+            total_insrc++;
+        }
+    }
+
+    for (i = 0; i < CArray_DESCR(source)->numElements; i++)
+    {
+        int index = IDATA(destination)[i] + 1;
+
+        for (j = order_size; j >= index - 1; j--) {
+            if (j + 1 < order_size) {
+                order[j + 1] = order[j];
+            }
+        }
+
+        order[index-1] = IDATA(source)[i];
+    }
+
+    orderDim.ptr = order;
+    orderDim.len = order_size;
+
+    CArray * transpose = CArray_Transpose(target, &orderDim, out);
+
+    efree(order);
     return transpose;
 }
 
