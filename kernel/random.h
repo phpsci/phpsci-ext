@@ -52,4 +52,7 @@ unsigned long rk_random(rk_state *state);
  */
 double rk_double(rk_state *state);
 
+void rk_seed(unsigned long seed, rk_state *state);
+CArray * CArray_Rand(int * size, int nd, MemoryPointer * out);
+
 #endif //PHPSCI_EXT_RANDOM_H

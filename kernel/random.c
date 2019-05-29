@@ -117,6 +117,24 @@ rk_double(rk_state *state)
     return (a * 67108864.0 + b) / 9007199254740992.0;
 }
 
+void
+rk_seed(unsigned long seed, rk_state *state)
+{
+    int pos;
+    seed &= 0xffffffffUL;
+
+    /* Knuth's PRNG as used in the Mersenne Twister reference implementation */
+    for (pos = 0; pos < RK_STATE_LEN; pos++) {
+        state->key[pos] = seed;
+        seed = (1812433253UL * (seed ^ (seed >> 30)) + pos + 1) & 0xffffffffUL;
+    }
+    state->pos = RK_STATE_LEN;
+    state->gauss = 0;
+    state->has_gauss = 0;
+    state->has_binomial = 0;
+}
+
+
 rk_error
 rk_randomseed(rk_state *state)
 {

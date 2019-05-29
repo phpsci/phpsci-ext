@@ -36,11 +36,11 @@ DOUBLE_fill(void * buffer, int length, struct CArray * ap)
  * SETITEM INT
  */
 int
-INT_setitem (int * op, void * ov, struct CArray * ap)
+INT_setitem (void * op, void * ov, struct CArray * ap)
 {
     int temp;  /* ensures alignment */
 
-    temp = *op;
+    temp = *((int *)op);
     if (ap == NULL || CArray_ISBEHAVED(ap))
         *((int *)ov)=temp;
     else {

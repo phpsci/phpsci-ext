@@ -160,7 +160,7 @@ typedef void * (CArray_GetItemFunc) (void *, struct CArray *);
 typedef int (CArray_SetItemFunc)(void *, void *, struct CArray *);
 typedef void (CArray_CopySwapNFunc)(void *, int, void *, int,
                                     int, int, struct CArray *);
-typedef void (CArray_CopySwapFunc)(void *, void *, int, struct CArray *);
+typedef void (CArray_CopySwapFunc)(void *, void *, int, void *);
 typedef void (CArray_VectorUnaryFunc)(void *, void *, int, void *,
                                         void *);
 typedef int  (CArray_FastTakeFunc)(void *dest, void *src, int *indarray,

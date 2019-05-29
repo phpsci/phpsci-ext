@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-function-declaration"
 /*
   +----------------------------------------------------------------------+
   | PHPSci CArray                                                        |
@@ -46,6 +48,9 @@
 #include "kernel/scalar.h"
 #include "kernel/random.h"
 #include "kernel/range.h"
+#include "kernel/buffer.h"
+#include "kernel/getset.h"
+#include "kernel/matlib.h"
 
 static
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
@@ -844,7 +849,27 @@ PHP_METHOD(CArray, rollaxis)
     CArray_Rollaxis(target_array, (int)axis, (int)start, &a_ptr);
     RETURN_MEMORYPOINTER(return_value, &a_ptr);
 }
+PHP_METHOD(CArray, moveaxis)
+{
+    MemoryPointer a_ptr, src_ptr, dst_ptr, out_ptr;
+    zval * a, * source, * destination;
+    CArray * a_array, * src_array, * dst_array;
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+        Z_PARAM_ZVAL(a)
+        Z_PARAM_ZVAL(source)
+        Z_PARAM_ZVAL(destination)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(a, &a_ptr);
+    ZVAL_TO_MEMORYPOINTER(source, &src_ptr);
+    ZVAL_TO_MEMORYPOINTER(destination, &dst_ptr);
 
+    a_array = CArray_FromMemoryPointer(&a_ptr);
+    src_array = CArray_FromMemoryPointer(&src_ptr);
+    dst_array = CArray_FromMemoryPointer(&dst_ptr);
+
+    CArray_Moveaxis(a_array, src_array, dst_array, &out_ptr);
+    RETURN_MEMORYPOINTER(return_value, &out_ptr);
+}
 
 /**
  * NUMERICAL RANGES
@@ -1025,6 +1050,7 @@ static zend_function_entry carray_class_methods[] =
         //ARRAY MANIPULATION
         PHP_ME(CArray, swapaxes, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, rollaxis, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, moveaxis, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
 
         // METHODS
@@ -1115,3 +1141,5 @@ zend_module_entry carray_module_entry = {
 #ifdef COMPILE_DL_CARRAY
 ZEND_GET_MODULE(carray)
 #endif /* COMPILE_DL_CARRAY */
+
+#pragma clang diagnostic pop

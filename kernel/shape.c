@@ -452,6 +452,18 @@ CArray_SwapAxes(CArray * ap, int a1, int a2, MemoryPointer * out)
     return ret;
 }
 
+CArray *
+CArray_Moveaxis(CArray * target, CArray * source, CArray * destination, MemoryPointer * out)
+{
+    CArray * transpose = CArray_Transpose(target, NULL, NULL);
+
+    if (out != NULL) {
+        add_to_buffer(out, transpose, sizeof(CArray));
+    }
+
+    return transpose;
+}
+
 /**
  * Roll the specified axis backwards, until it lies in a given position.
  *

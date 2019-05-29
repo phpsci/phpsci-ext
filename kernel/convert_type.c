@@ -1,6 +1,8 @@
 #include "convert_type.h"
 #include "alloc.h"
 #include "carray.h"
+#include "convert.h"
+#include "convert_datatype.h"
 
 /**
  * @param op

@@ -23,6 +23,7 @@
 #include "matlib.h"
 #include "item_selection.h"
 #include "shape.h"
+#include "convert_type.h"
 
 
 #pragma clang diagnostic push
@@ -1005,10 +1006,6 @@ CArray_ElementStrides(CArray *obj)
     int i, ndim;
     int *strides;
 
-    if (!CArray_Check(obj)) {
-        return 0;
-    }
-
     arr = obj;
 
     itemsize = CArray_ITEMSIZE(arr);
@@ -1029,7 +1026,7 @@ CArray_CheckFromAny(CArray *op, CArrayDescriptor *descr, int min_depth,
 {
     CArray *obj;
     if (requires & CARRAY_ARRAY_NOTSWAPPED) {
-        if (!descr && CArray_Check(op) &&
+        if (!descr &&
                 CArray_ISBYTESWAPPED(op)) {
             descr = CArray_DescrNew(CArray_DESCR(op));
         }
@@ -1092,7 +1089,7 @@ _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int cur
             }
         }
         if(array->descriptor->type == TYPE_FLOAT) {
-            double * value;
+            float * value;
             for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
                 value = (float *)CArrayIterator_DATA(iterator);
                 php_printf(" %f ", *value);

@@ -37,4 +37,5 @@ static int min_scalar_type_num(char *valueptr, int type_num,
 
 int CArray_ObjectType(CArray * op, int minimum_type);
 int CArray_CanCastTypeTo(CArrayDescriptor *from, CArrayDescriptor *to, CARRAY_CASTING casting);
+int CArray_CanCastArrayTo(CArray *arr, CArrayDescriptor *to, CARRAY_CASTING casting);
 #endif //PHPSCI_EXT_CONVERT_TYPE_H

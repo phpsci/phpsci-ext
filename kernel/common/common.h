@@ -54,7 +54,7 @@ blas_stride(int stride, unsigned itemsize)
      * Should probably check pointer alignment also, but this may cause
      * problems if we require complex to be 16 byte aligned.
      */
-    if (stride > 0 && carray_is_aligned((void *)stride, itemsize)) {
+    if (stride > 0 && carray_is_aligned((const void *)&stride, itemsize)) {
         stride /= itemsize;
         if (stride <= INT_MAX) {
             return stride;
