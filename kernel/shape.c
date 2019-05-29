@@ -495,6 +495,13 @@ CArray_Moveaxis(CArray * target, CArray * source, CArray * destination, MemoryPo
     destination = normalize_axis_tuple(destination, CArray_NDIM(target), 0);
 
     if (source == NULL || destination == NULL) {
+        throw_typeerror_exception("Invalid `source` or `destination` arguments");
+        return NULL;
+    }
+
+    if (CArray_TYPE(source) != TYPE_INTEGER_INT || CArray_TYPE(destination) != TYPE_INTEGER_INT)
+    {
+        throw_typeerror_exception("integer argument expected");
         return NULL;
     }
 
