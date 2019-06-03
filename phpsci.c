@@ -51,6 +51,7 @@
 #include "kernel/buffer.h"
 #include "kernel/getset.h"
 #include "kernel/matlib.h"
+#include "kernel/join.h"
 
 static
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
@@ -835,6 +836,27 @@ PHP_METHOD(CArray, squeeze)
         RETURN_MEMORYPOINTER(return_value, &out_ptr);
     }
 }
+PHP_METHOD(CArray, expand_dims)
+{
+    zval * a;
+    long axis;
+    CArray * target, * rtn;
+    MemoryPointer target_ptr, out;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+            Z_PARAM_ZVAL(a)
+            Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(a, &target_ptr);
+    target = CArray_FromMemoryPointer(&target_ptr);
+
+    rtn = CArray_ExpandDims(target, (int)axis, &out);
+
+    if (rtn == NULL) {
+        return;
+    }
+    RETURN_MEMORYPOINTER(return_value, &out);
+}
+
 /**
  * MANIPULATION ROUTINES
  */
@@ -901,6 +923,65 @@ PHP_METHOD(CArray, moveaxis)
         RETURN_MEMORYPOINTER(return_value, &out_ptr);
     }
 }
+PHP_METHOD(CArray, concatenate)
+{
+    int i = 0;
+    zval * array_of_zvals, * element;
+    zval * axis;
+    int * axis_p = NULL;
+    MemoryPointer * ptrs, result_ptr;
+    CArray ** arrays, * rtn_array;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+            Z_PARAM_ARRAY(array_of_zvals)
+            Z_PARAM_OPTIONAL
+            Z_PARAM_ZVAL(axis)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if(ZEND_NUM_ARGS() == 2) {
+        axis_p = emalloc(sizeof(int));
+        if (Z_TYPE_P(axis) != IS_LONG && Z_TYPE_P(axis) != IS_NULL) {
+            throw_axis_exception("axis must be an integer");
+            return;
+        }
+        if (Z_TYPE_P(axis) == IS_LONG) {
+            convert_to_long(axis);
+            *axis_p = zval_get_long(axis);
+        }
+    } else {
+        axis_p = emalloc(sizeof(int));
+        *axis_p = 0;
+    }
+
+    int count_objects = zend_array_count(Z_ARRVAL_P(array_of_zvals));
+    ptrs = emalloc(count_objects * sizeof(MemoryPointer));
+
+    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(array_of_zvals), element) {
+                ZVAL_TO_MEMORYPOINTER(element, ptrs + i);
+                i++;
+            } ZEND_HASH_FOREACH_END();
+
+    arrays = emalloc(count_objects * sizeof(CArray *));
+    for (i = 0; i < count_objects; i++) {
+        arrays[i] = CArray_FromMemoryPointer(ptrs + i);
+    }
+
+    rtn_array = CArray_Concatenate(arrays, count_objects, axis_p, &result_ptr);
+
+    for (i = 0; i < count_objects; i++) {
+        FREE_FROM_MEMORYPOINTER(ptrs + i);
+    }
+    efree(ptrs);
+    efree(arrays);
+    if(ZEND_NUM_ARGS() == 2) {
+        efree(axis_p);
+    }
+
+    if (rtn_array == NULL) {
+        return;
+    }
+    RETURN_MEMORYPOINTER(return_value, &result_ptr);
+}
+
 
 /**
  * NUMERICAL RANGES
@@ -1069,6 +1150,7 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, atleast_2d, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, atleast_3d, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, squeeze, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, expand_dims, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // INITIALIZERS
         PHP_ME(CArray, zeros, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
@@ -1082,7 +1164,7 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, swapaxes, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, rollaxis, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, moveaxis, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-
+        PHP_ME(CArray, concatenate, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // METHODS
         PHP_ME(CArray, identity, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

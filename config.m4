@@ -110,6 +110,7 @@ PHP_NEW_EXTENSION(carray,
       kernel/convert_type.c \
       kernel/trigonometric.c \
       kernel/matlib.c \
+      kernel/join.c \
       kernel/scalar.c \
       kernel/getset.c \
       kernel/common/strided_loops.c \

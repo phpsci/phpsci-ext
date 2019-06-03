@@ -4,6 +4,8 @@
 #include "php.h"
 #include "common/exceptions.h"
 
+#define CArray_PRIORITY 0.0
+
 typedef struct CArray CArray;
 
 static const int CARRAY_ARRAY_WARN_ON_WRITE = (1 << 31);

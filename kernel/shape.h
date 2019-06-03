@@ -18,4 +18,5 @@ CArray * CArray_atleast3d(CArray * self, MemoryPointer * out);
 CArray * CArray_Squeeze(CArray * self, int axis, MemoryPointer * out);
 CArray * CArray_SqueezeSelected(CArray * self, int *axis_flags);
 void CArray_RemoveAxesInPlace(CArray *arr, int *flags);
+CArray * CArray_ExpandDims(CArray * target, int axis, MemoryPointer * out);
 #endif //PHPSCI_EXT_SHAPE_H

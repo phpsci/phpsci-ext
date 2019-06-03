@@ -381,8 +381,6 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
         ret = (CArray *)emalloc(sizeof(CArray));
     }
 
-    CArrayDescriptor_INCREF(CArray_DESCR(self));
-    
     ret =   CArray_NewFromDescr_int(
             ret, CArray_DESCR(self),
             ndim, newdims, strides, CArray_DATA(self),
@@ -823,4 +821,58 @@ CArray_Squeeze(CArray * self, int axis, MemoryPointer * out)
     } else {
         return NULL;
     }
+}
+
+CArray *
+CArray_ExpandDims(CArray * target, int axis, MemoryPointer * out)
+{
+    CArray * rtn;
+    int * t1, * t2, t1_s, t2_s, i, * new_shape, new_shape_s;
+
+    if ((int)axis > CArray_NDIM(target) || (int)axis < -(CArray_NDIM(target)) - 1) {
+        throw_axis_exception("Invalid axis");
+        return NULL;
+    }
+
+    if (check_and_adjust_axis_msg(&axis, CArray_NDIM(target)) < 0) {
+        return NULL;
+    }
+
+    t1_s = axis;
+    t1 = emalloc(t1_s * sizeof(int));
+
+    t2_s = CArray_NDIM(target) - axis;
+    t2 = emalloc(t2_s * sizeof(int));
+
+    new_shape_s = t1_s + t2_s + 1;
+
+    new_shape = emalloc(sizeof(int) * new_shape_s);
+
+    for (i = 0; i < t1_s; i++) {
+        t1[i] = CArray_DIMS(target)[i];
+    }
+
+    for (i = CArray_NDIM(target) - 1; i >= axis; i--) {
+        t2[i - axis] = CArray_DIMS(target)[i];
+    }
+
+    for (i = 0; i < axis; i++) {
+        new_shape[i] = t1[i];
+    }
+    for (i = 0; i < t2_s; i++) {
+        new_shape[i + axis + 1] = t2[i];
+    }
+    new_shape[axis] = 1;
+
+    rtn = CArray_Newshape(target, new_shape, CArray_NDIM(target) + 1, CARRAY_CORDER, out);
+
+    if (rtn == NULL) {
+        return NULL;
+    }
+
+    efree(new_shape);
+    efree(t2);
+    efree(t1);
+
+    return rtn;
 }
