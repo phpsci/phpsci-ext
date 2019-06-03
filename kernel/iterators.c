@@ -320,6 +320,8 @@ CArray_BroadcastToShape(CArray * target, int * dims, int nd)
         it->contiguous = 0;
     }
 
+    it->limits = NULL;
+    it->limits_sizes = NULL;
     it->array = ao;
     it->size = CArray_MultiplyList(dims, nd);
     it->ndims_m1 = nd - 1;
