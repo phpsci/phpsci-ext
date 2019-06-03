@@ -854,6 +854,8 @@ PHP_METHOD(CArray, expand_dims)
     if (rtn == NULL) {
         return;
     }
+
+    FREE_FROM_MEMORYPOINTER(&target_ptr);
     RETURN_MEMORYPOINTER(return_value, &out);
 }
 
