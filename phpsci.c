@@ -326,7 +326,7 @@ PHP_METHOD(CArray, sum)
     long axis;
     int * axis_p;
     CArray * ret, * target_ca;
-    MemoryPointer ptr;
+    MemoryPointer ptr, out_ptr;
     ZEND_PARSE_PARAMETERS_START(1, 2)
         Z_PARAM_ZVAL(target)
         Z_PARAM_OPTIONAL
@@ -341,9 +341,13 @@ PHP_METHOD(CArray, sum)
     }
     ZVAL_TO_MEMORYPOINTER(target, &ptr);
     target_ca = CArray_FromMemoryPointer(&ptr);
-    ret = CArray_Sum(target_ca, axis_p, target_ca->descriptor->type_num, &ptr);
-    efree(axis_p);
-    RETURN_MEMORYPOINTER(return_value, &ptr);
+    ret = CArray_Sum(target_ca, axis_p, target_ca->descriptor->type_num, &out_ptr);
+
+    if(ZEND_NUM_ARGS() > 1) {
+        efree(axis_p);
+    }
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &out_ptr);
 }
 
 PHP_METHOD(CArray, sin)

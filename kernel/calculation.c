@@ -251,7 +251,7 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
     ret = (CArray *)emalloc(sizeof(CArray));
     descr = (CArrayDescriptor*)ecalloc(1, sizeof(CArrayDescriptor));
     arr = CArray_CheckAxis(self, axis, 0);
-    
+
     if(axis != NULL) {
         index_jumps = self->strides[*axis]/self->descriptor->elsize;
     } else {
@@ -290,7 +290,6 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
     if(axis == NULL) {
         descr->numElements = 1;
         ret = CArray_NewFromDescr_int(ret, descr, 0, NULL, NULL, NULL, 0, NULL, 1, 0);
-        CArray_Data_alloc(ret);
         if(rtype == TYPE_INTEGER_INT) {
             for(i = 0; i < CArray_DESCR(self)->numElements; i++) {
                 *((int*)total) += IDATA(self)[i];
@@ -321,13 +320,8 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
         descr->numElements = num_elements;
         //descr->alignment = 0;
         ret->descriptor = descr;
-        CArray_Data_alloc(ret);
         
         if(rtype == TYPE_INTEGER_INT) {
-            for(i = 0; i < num_elements; i++) {
-                IDATA(ret)[i] = 0;
-            }
-
             ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, NULL, 0, NULL, 1, 0);   
             it = CArray_IterAllButAxis(self, axis);
             i = 0;
@@ -340,9 +334,6 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
             } while(CArrayIterator_NOTDONE(it));
         }
         if(rtype == TYPE_DOUBLE_INT) {
-            for(i = 0; i < num_elements; i++) {
-                DDATA(ret)[i] = 0.00;
-            }
             ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, NULL, 0, NULL, 1, 0);   
             it = CArray_IterAllButAxis(self, axis);
             i = 0;
@@ -354,8 +345,10 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
                 i++;
             } while(CArrayIterator_NOTDONE(it));
         }
+        CArray_DECREF(self);
         CArrayIterator_FREE(it);
         efree(strides);
+        efree(new_dimensions);
     }
     add_to_buffer(out_ptr, ret, sizeof(*ret));
     efree(total);
