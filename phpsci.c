@@ -547,7 +547,11 @@ PHP_METHOD(CArray, matmul)
     target_ca2 = CArray_FromMemoryPointer(&target2_ptr);
     output_ca = CArray_Matmul(target_ca1, target_ca2, NULL, &result_ptr);
 
-    RETURN_MEMORYPOINTER(return_value, &result_ptr);
+    FREE_FROM_MEMORYPOINTER(&target1_ptr);
+    FREE_FROM_MEMORYPOINTER(&target2_ptr);
+    if (output_ca != NULL) {
+        RETURN_MEMORYPOINTER(return_value, &result_ptr);
+    }
 }
 PHP_METHOD(CArray, zeros)
 {   

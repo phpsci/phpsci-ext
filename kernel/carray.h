@@ -20,12 +20,12 @@ static const int CARRAY_ARRAY_WARN_ON_WRITE = (1 << 31);
 #define TYPE_VOID        'v'
 #define TYPE_LONG        'l'
 #define TYPE_INTEGER_INT  0
-#define TYPE_DOUBLE_INT   2
-#define TYPE_FLOAT_INT    1
-#define TYPE_BOOL_INT     3
+#define TYPE_DOUBLE_INT   3
+#define TYPE_FLOAT_INT    2
+#define TYPE_BOOL_INT     5
 #define TYPE_STRING_INT   4
-#define TYPE_VOID_INT     5
-#define TYPE_LONG_INT     6
+#define TYPE_VOID_INT     6
+#define TYPE_LONG_INT     1
 #define TYPE_NOTYPE_INT   -1
 #define TYPE_DEFAULT_INT  0
 #define TYPE_DEFAULT      'd'

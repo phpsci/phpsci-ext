@@ -16,7 +16,12 @@ CArray_ObjectType(CArray * op, int minimum_type)
     int ret;
 
     if (minimum_type >= 0) {
-        dtype = CArray_DescrFromType(minimum_type);
+        if (CArray_TYPE(op) <= minimum_type) {
+            dtype = CArray_DescrFromType(minimum_type);
+        }
+        if (CArray_TYPE(op) > minimum_type) {
+            dtype = CArray_DescrFromType(CArray_TYPE(op));
+        }
 
         if (dtype == NULL) {
             return TYPE_NOTYPE_INT;
@@ -31,7 +36,7 @@ CArray_ObjectType(CArray * op, int minimum_type)
     }
 
     CArrayDescriptor_DECREF(dtype);
-
+    efree(dtype);
     return ret;
 }
 
