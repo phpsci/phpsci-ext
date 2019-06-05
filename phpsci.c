@@ -53,6 +53,7 @@
 #include "kernel/matlib.h"
 #include "kernel/join.h"
 #include "kernel/ctors.h"
+#include "kernel/search.h"
 
 static
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
@@ -552,6 +553,52 @@ PHP_METHOD(CArray, eye)
 
     output = CArray_Eye((int)n, (int)m, (int)k, dtype, &ptr);
     RETURN_MEMORYPOINTER(return_value, &ptr);
+}
+
+/**
+ * SEARCH
+ */
+PHP_METHOD(CArray, argmax)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, out_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+            Z_PARAM_ZVAL(target)
+            Z_PARAM_OPTIONAL
+            Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+
+    axis_p = (int*)emalloc(sizeof(int));
+
+    if(ZEND_NUM_ARGS() == 1) {
+        CArray_DECREF(target_ca);
+        target_ca = CArray_Ravel(target_ca, CARRAY_KEEPORDER);
+        CArrayDescriptor_DECREF(CArray_DESCR(target_ca));
+        *axis_p = 0;
+    }
+    if(ZEND_NUM_ARGS() > 1) {
+        *axis_p = axis;
+    }
+
+    ret = CArray_Argmax(target_ca, axis_p, &out_ptr);
+
+    efree(axis_p);
+    if (ret == NULL) {
+        return;
+    }
+
+    if(ZEND_NUM_ARGS() == 1) {
+        CArray_INCREF(target_ca);
+        CArray_Free(target_ca);
+    }
+
+    FREE_FROM_MEMORYPOINTER(&out_ptr);
+    RETURN_MEMORYPOINTER(return_value, &out_ptr);
 }
 
 /**
@@ -1369,6 +1416,9 @@ static zend_function_entry carray_class_methods[] =
         // METHODS
         PHP_ME(CArray, identity, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, eye, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
+        // SEARCH
+        PHP_ME(CArray, argmax, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // SHAPE
         PHP_ME(CArray, transpose, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

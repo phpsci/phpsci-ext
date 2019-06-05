@@ -121,3 +121,11 @@ INT_TO_DOUBLE(int *ip, double *op, int n,
         *(op++) = (double)*(ip++);
     }                
 }
+
+void
+INT_TO_INT(int *ip, int *op, int n,
+           CArray *aip, CArray *aop) {
+    while (n--) {
+        *op++ = (int)*ip++;
+    }
+}

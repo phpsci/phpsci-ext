@@ -24,7 +24,7 @@
 #include "item_selection.h"
 #include "shape.h"
 #include "convert_type.h"
-
+#include "search.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wint-conversion"
@@ -794,6 +794,7 @@ _select_carray_funcs(CArrayDescriptor *descr)
         descr->f->setitem  = &INT_setitem;
         descr->f->fill = &INT_fill;
         descr->f->fasttake = &INT_fasttake;
+        descr->f->argmax = &INT_argmax;
     }
 
     if(descr->type_num == TYPE_DOUBLE_INT) {
@@ -801,6 +802,7 @@ _select_carray_funcs(CArrayDescriptor *descr)
         descr->f->setitem  = &DOUBLE_setitem;
         descr->f->fill = &DOUBLE_fill;
         descr->f->fasttake = &DOUBLE_fasttake;
+        descr->f->argmax = &DOUBLE_argmax;
     }
 
     /**
@@ -816,6 +818,9 @@ _select_carray_funcs(CArrayDescriptor *descr)
             case TYPE_INTEGER_INT:
                 if(descr->type_num == TYPE_DOUBLE_INT) {
                     descr->f->cast[i] = (void (*)(CArray_VectorUnaryFunc))DOUBLE_TO_INT;
+                }
+                if(descr->type_num == TYPE_INTEGER_INT) {
+                    descr->f->cast[i] = (void (*)(CArray_VectorUnaryFunc))INT_TO_INT;
                 }
                 break;    
         }
@@ -989,6 +994,7 @@ CArray_CheckAxis(CArray * arr, int * axis, int flags)
         CArray_INCREF(temp1);
         temp2 = temp1;
     }
+
     CArray_DECREF(temp1);
     n = CArray_NDIM(temp2);
     if (check_and_adjust_axis(axis, n) < 0) {
@@ -1136,7 +1142,7 @@ CArray_Print(CArray *array)
 CArray *
 CArray_NewLikeArray(CArray *prototype, CARRAY_ORDER order, CArrayDescriptor *dtype, int subok)
 {
-    CArray *ret = NULL;
+    CArray *ret = emalloc(sizeof(CArray));
     int ndim = CArray_NDIM(prototype);
 
     /* If no override data type, use the one from the prototype */
@@ -1166,7 +1172,7 @@ CArray_NewLikeArray(CArray *prototype, CARRAY_ORDER order, CArrayDescriptor *dty
     }
 
     if (order != CARRAY_KEEPORDER) {
-        ret = CArray_NewFromDescr(prototype,
+        ret = CArray_NewFromDescr(ret,
                                    dtype,
                                    ndim,
                                    CArray_DIMS(prototype),
@@ -1194,7 +1200,7 @@ CArray_NewLikeArray(CArray *prototype, CARRAY_ORDER order, CArrayDescriptor *dty
         }
 
         /* Finally, allocate the array */
-        ret = CArray_NewFromDescr(prototype,
+        ret = CArray_NewFromDescr(ret,
                                   dtype,
                                   ndim,
                                   shape,
@@ -1438,7 +1444,6 @@ _array_copy_into(CArray *dest, CArray *src, int usecopy)
     int swap;
     int simple;
     int same;
-
     if (!CArray_EquivArrTypes(dest, src)) {
         return CArray_CastTo(dest, src);
     }
@@ -1746,5 +1751,92 @@ CArray_Identity(int n, char * dtype, MemoryPointer * out)
     return ret;
 }
 
+CArray *
+CArray_FromAny(CArray *op, CArrayDescriptor *newtype, int min_depth,
+               int max_depth, int flags)
+{
+    /*
+     * This is the main code to make a NumPy array from a Python
+     * Object.  It is called from many different places.
+     */
+    CArray *arr = NULL, *ret = NULL;
+    CArrayDescriptor *dtype = NULL;
+    int ndim = 0;
+    int dims[CARRAY_MAXDIMS];
+
+    arr = op;
+
+    /* If we got dimensions and dtype instead of an array */
+    if (arr == NULL) {
+        if (flags & CARRAY_ARRAY_UPDATEIFCOPY) {
+            CArrayDescriptor_DECREF(newtype);
+            throw_typeerror_exception("UPDATEIFCOPY used for non-array input.");
+            return NULL;
+        }
+        else if (min_depth != 0 && ndim < min_depth) {
+            CArrayDescriptor_DECREF(dtype);
+            CArrayDescriptor_DECREF(newtype);
+            throw_valueerror_exception("object of too small depth for desired array");
+            ret = NULL;
+        }
+        else if (max_depth != 0 && ndim > max_depth) {
+            CArrayDescriptor_DECREF(dtype);
+            CArrayDescriptor_DECREF(newtype);
+            throw_valueerror_exception("object too deep for desired array");
+            ret = NULL;
+        }
+            //else if (ndim == 0) {
+            //throw_notimplemented_exception();
+            //ret = CArray_FromScalar(op, newtype);
+            //CArrayDescriptor_DECREF(dtype);
+            //}
+        else {
+            if (newtype == NULL) {
+                newtype = dtype;
+            }
+            else {
+                CArrayDescriptor_DECREF(dtype);
+            }
+
+            /* Create an array and copy the data */
+            ret = CArray_NewFromDescr(ret, newtype, ndim, dims, NULL, NULL,
+                                      flags&CARRAY_ARRAY_F_CONTIGUOUS, NULL);
+            if (ret == NULL) {
+                return NULL;
+            }
+
+            if (ndim > 0) {
+                if (CArray_AssignFromSequence(ret, op) < 0) {
+                    CArray_DECREF(ret);
+                    ret = NULL;
+                }
+            }
+            else {
+                if (CArray_DESCR(ret)->f->setitem(op,CArray_DATA(ret), ret) < 0) {
+                    CArray_DECREF(ret);
+                    ret = NULL;
+                }
+            }
+        }
+    }
+    else {
+        if (min_depth != 0 && CArray_NDIM(arr) < min_depth) {
+            throw_valueerror_exception("object of too small depth for desired array");
+            CArray_DECREF(arr);
+            ret = NULL;
+        }
+        else if (max_depth != 0 && CArray_NDIM(arr) > max_depth) {
+            throw_valueerror_exception("object too deep for desired array");
+            CArray_DECREF(arr);
+            ret = NULL;
+        }
+        else {
+            ret = CArray_FromArray(arr, newtype, flags);
+            CArray_DECREF(arr);
+        }
+    }
+
+    return ret;
+}
 
 #pragma clang diagnostic pop

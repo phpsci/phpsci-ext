@@ -151,9 +151,7 @@ typedef enum {
 #define CArray_GETPTR2(obj, i, j) ((void *)(CArray_BYTES(obj) + \
                                             (i)*CArray_STRIDES(obj)[0] + \
                                             (j)*CArray_STRIDES(obj)[1]))
-#define CArray_ContiguousFromAny(op, type, min_depth, max_depth) \
-        CArray_FromAny(op, CArray_DescrFromType(type), min_depth, \
-                              max_depth, CARRAY_ARRAY_DEFAULT, NULL)
+
 /**
  * Array Functions
  */
@@ -168,8 +166,8 @@ typedef void (CArray_VectorUnaryFunc)(void *, void *, int, void *,
 typedef int  (CArray_FastTakeFunc)(void *dest, void *src, int *indarray,
                                        int nindarray, int n_outer,
                                        int m_middle, int nelem,
-                                       CARRAY_CLIPMODE clipmode);                                        
-
+                                       CARRAY_CLIPMODE clipmode);
+typedef int (CArray_ArgFunc)(void*, int, int*, void *);
 
 typedef struct CArray_ArrFuncs {
     /* The next four functions *cannot* be NULL */
@@ -188,6 +186,8 @@ typedef struct CArray_ArrFuncs {
      */
     CArray_CopySwapNFunc *copyswapn;
     CArray_CopySwapFunc *copyswap;
+
+    CArray_ArgFunc *argmax;
 
     /*
      * Array of CArray_CastFuncsItem given cast functions to
@@ -496,6 +496,7 @@ static int _safe_ceil_to_int(double value, int* ret)
 #define CArray_SAFEALIGNEDCOPY(obj) (CArray_ISALIGNED(obj) &&      \
                                        !CArray_ISVARIABLE(obj))
 
+#define CArray_CheckExact(op) 1
 
 #ifndef __COMP_CARRAY_UNUSED
         #if defined(__GNUC__)
@@ -564,5 +565,10 @@ CArray * CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, Me
 CArray * CArray_Eye(int n, int m, int k, char * dtype, MemoryPointer * out);
 CArray * CArray_CheckFromAny(CArray *op, CArrayDescriptor *descr, int min_depth,
                     int max_depth, int requires, CArray *context);
+CArray * CArray_FromAny(CArray *op, CArrayDescriptor *newtype, int min_depth, int max_depth, int flags);
+CArray * CArray_FromArray(CArray *arr, CArrayDescriptor *newtype, int flags);
 
+#define CArray_ContiguousFromAny(op, type, min_depth, max_depth) \
+        CArray_FromAny(op, type, min_depth, \
+                              max_depth, CARRAY_ARRAY_DEFAULT)
 #endif //PHPSCI_EXT_CARRAY_H
