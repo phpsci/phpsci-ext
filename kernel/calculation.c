@@ -12,51 +12,95 @@
 CArray *
 CArray_CumSum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
 {
-    int i, j = 0, z, tmp_index;
+    int i, j = 0;
     CArray * arr, * ret = NULL;
     CArrayDescriptor * descr;
     ret = (CArray *)emalloc(sizeof(CArray));
-    descr = (CArrayDescriptor*)emalloc(sizeof(CArrayDescriptor));
     arr = CArray_CheckAxis(self, axis, 0);
-    int index_jumps = self->strides[*axis]/self->descriptor->elsize;
-    
-    if(axis != NULL) {
-        throw_axis_exception("Axis option not available for CArray::cumprod.");  
+    int * ret_dims;
+
+    if (check_and_adjust_axis_msg(axis, CArray_NDIM(self)) < 0) {
+        efree(ret);
         return NULL;
     }
 
-    if (arr == NULL) {
-        return NULL;
+    switch (rtype) {
+        case TYPE_INTEGER_INT:
+            descr = CArray_DescrFromType(TYPE_INTEGER_INT);
+            break;
+        case TYPE_DOUBLE_INT:
+            descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
+            break;
+        default:
+            throw_typeerror_exception("Invalid type for cumsum");
+            return NULL;
     }
-
-    descr->type_num = self->descriptor->type_num;
-    descr->type = self->descriptor->type;
-    descr->elsize = self->descriptor->elsize;
 
     if(axis == NULL) {
-        descr->numElements = self->descriptor->numElements;
-        int * new_dims = (int *)emalloc(sizeof(int));
-        new_dims[0] = descr->numElements;
-        int * new_strides = CArray_Generate_Strides(new_dims, 1, CArray_DESCR(self)->type);
-
-        ret = CArray_NewFromDescr_int(ret, descr, 1, 
-                                      new_dims, new_strides, 
-                                      NULL, 0, NULL, 1, 0);
-        CArray_Data_alloc(ret);
+        descr->numElements = CArray_DESCR(self)->numElements;
+        ret_dims = emalloc(sizeof(int));
+        ret_dims[0] = descr->numElements;
+        ret = CArray_NewFromDescr_int(ret, descr, 1, ret_dims, NULL, NULL, 0, NULL, 1, 0);
         if(rtype == TYPE_INTEGER_INT) {
-            IDATA(ret)[0] = IDATA(self)[0];
-            for(i = 1; i < (CArray_DESCR(self)->numElements); i++) {
-                IDATA(ret)[i] = IDATA(ret)[i-1] + IDATA(self)[i];
+            int accumulator = 0;
+            for(i = 0; i < CArray_DESCR(self)->numElements; i++) {
+                accumulator += IDATA(self)[i];
+                IDATA(ret)[i] = accumulator;
             }
         }
         if(rtype == TYPE_DOUBLE_INT) {
-            DDATA(ret)[0] = DDATA(self)[0];
-            for(i = 1; i < (CArray_DESCR(self)->numElements); i++) {
-                DDATA(ret)[i] = DDATA(ret)[i-1] + DDATA(self)[i];
+            double accumulator = 0;
+            for(i = 0; i < CArray_DESCR(self)->numElements; i++) {
+                accumulator += DDATA(self)[i];
+                DDATA(ret)[i] = accumulator;
             }
         }
+        efree(ret_dims);
     }
-    add_to_buffer(out_ptr, ret, sizeof(*ret));
+    else
+    {
+        ret = CArray_NewFromDescr_int(ret, descr, CArray_NDIM(self), CArray_DIMS(self), NULL, NULL, 0, NULL, 1, 0);
+        descr->numElements = CArray_DESCR(self)->numElements;
+
+        CArrayIterator * it = CArray_IterAllButAxis(self, axis);
+        CArrayIterator * retit = CArray_IterAllButAxis(ret, axis);
+        if(rtype == TYPE_INTEGER_INT) {
+            int * accumulator = ecalloc(CArray_DIMS(self)[*axis], sizeof(int));
+            i = 0;
+            do {
+                for(j = 0; j < self->dimensions[*axis]; j++) {
+                    accumulator[i] += ((int*)CArrayIterator_DATA(it))[j * (self->strides[*axis]/self->descriptor->elsize)];
+                    IT_IDATA(retit)[j * (self->strides[*axis]/self->descriptor->elsize)] = accumulator[i];
+                }
+                CArrayIterator_NEXT(it);
+                CArrayIterator_NEXT(retit);
+                i++;
+            } while(CArrayIterator_NOTDONE(it));
+            efree(accumulator);
+        }
+        if(rtype == TYPE_DOUBLE_INT) {
+            double * accumulator = ecalloc(CArray_DIMS(self)[*axis], sizeof(double));
+            i = 0;
+            do {
+                for(j = 0; j < self->dimensions[*axis]; j++) {
+                    accumulator[i] += ((double*)CArrayIterator_DATA(it))[j * (self->strides[*axis]/self->descriptor->elsize)];
+                    IT_DDATA(retit)[j * (self->strides[*axis]/self->descriptor->elsize)] = accumulator[i];
+                }
+                CArrayIterator_NEXT(it);
+                CArrayIterator_NEXT(retit);
+                i++;
+            } while(CArrayIterator_NOTDONE(it));
+            efree(accumulator);
+        }
+        CArray_DECREF(self);
+        CArrayIterator_FREE(it);
+        CArrayIterator_FREE(retit);
+    }
+
+    if (out_ptr != NULL) {
+        add_to_buffer(out_ptr, ret, sizeof(CArray));
+    }
+
     return ret;
 }
 
@@ -245,24 +289,14 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
 {
     int i, j = 0, z;
     void * total;
-    int index_jumps;
     CArray * arr, * ret = NULL;
     CArrayDescriptor * descr;
     ret = (CArray *)emalloc(sizeof(CArray));
     descr = (CArrayDescriptor*)ecalloc(1, sizeof(CArrayDescriptor));
     arr = CArray_CheckAxis(self, axis, 0);
-
-    if(axis != NULL) {
-        index_jumps = self->strides[*axis]/self->descriptor->elsize;
-    } else {
-        index_jumps = 1;
-    }
     
-    if(axis != NULL) {
-        if(*axis >= CArray_NDIM(self)) {
-            throw_axis_exception("Invalid axis for current matrix shape.");
-            return NULL;
-        }
+    if(check_and_adjust_axis_msg(axis, CArray_NDIM(self)) < 0) {
+        return NULL;
     }
 
     if (arr == NULL) {

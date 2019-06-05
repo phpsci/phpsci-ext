@@ -52,6 +52,7 @@
 #include "kernel/getset.h"
 #include "kernel/matlib.h"
 #include "kernel/join.h"
+#include "kernel/ctors.h"
 
 static
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
@@ -247,16 +248,36 @@ PHP_METHOD(CArray, offsetGet)
         RETURN_MEMORYPOINTER(return_value, &target_ptr);
     }
 }
-ZEND_BEGIN_ARG_INFO_EX(arginfo_array_offsetSet, 0, 0, 2)
-    ZEND_ARG_INFO(0, index)
-    ZEND_ARG_INFO(0, newval)
-ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_offsetSet, 0)
+                ZEND_ARG_INFO(0, index)
+                ZEND_ARG_INFO(0, newval)
+ZEND_END_ARG_INFO();
 PHP_METHOD(CArray, offsetSet)
 {
-    if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
+    CArray * target, * value;
+    MemoryPointer target_ptr, value_ptr;
+    long indexl;
+    zval *index, *val;
+    zval * obj = getThis();
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "zz", &index, &val) == FAILURE) {
+        return;
+    }
+    convert_to_long(index);
+    indexl = zval_get_double(index);
+    ZVAL_TO_MEMORYPOINTER(val, &value_ptr);
+    ZVAL_TO_MEMORYPOINTER(obj, &target_ptr);
+    target = CArray_FromMemoryPointer(&target_ptr);
+    value = CArray_FromMemoryPointer(&value_ptr);
+
+    if ((int)indexl  >= CArray_DIMS(target)[0]) {
+        throw_indexerror_exception("");
         return;
     }
 
+    setArrayFromSequence(target, value, CArray_NDIM(value), ((int)indexl * CArray_STRIDES(target)[0]));
+    FREE_FROM_MEMORYPOINTER(&target_ptr);
+    FREE_FROM_MEMORYPOINTER(&value_ptr);
 }
 PHP_METHOD(CArray, offsetUnset)
 {
@@ -264,6 +285,7 @@ PHP_METHOD(CArray, offsetUnset)
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
         return;
     }
+
 }
 
 
@@ -442,6 +464,10 @@ PHP_METHOD(CArray, cumsum)
     target_ca = CArray_FromMemoryPointer(&ptr);
     ret = CArray_CumSum(target_ca, axis_p, target_ca->descriptor->type_num, &ptr);
     efree(axis_p);
+
+    if (ret == NULL) {
+        return;
+    }
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
 
@@ -1372,7 +1398,7 @@ static zend_function_entry carray_class_methods[] =
 
         // CARRAY ITERATOR
         PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
-        PHP_ME(CArray, offsetSet, arginfo_array_offsetSet, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, offsetSet, arginfo_offsetSet, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, offsetGet, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, offsetExists, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
         { NULL, NULL, NULL }

@@ -39,7 +39,6 @@ int
 INT_setitem (void * op, void * ov, struct CArray * ap)
 {
     int temp;  /* ensures alignment */
-
     temp = *((int *)op);
     if (ap == NULL || CArray_ISBEHAVED(ap))
         *((int *)ov)=temp;

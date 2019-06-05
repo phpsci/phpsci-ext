@@ -9,6 +9,7 @@
 void
 CArrayDescriptor_FREE(CArrayDescriptor * descr)
 {
+    efree(descr->f);
     efree(descr);
 }
 

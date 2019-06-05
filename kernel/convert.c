@@ -57,8 +57,11 @@ CArray_Slice_Index(CArray * self, int index, MemoryPointer * out)
             (CArray_DATA(self) + (index * self->strides[0])),
             flags, self,
             0, 1);
-            
-    add_to_buffer(out, ret, sizeof(*ret));
+
+    if (out != NULL) {
+        add_to_buffer(out, ret, sizeof(*ret));
+    }
+
     efree(new_dimensions);
     efree(new_strides);
     return ret;        
