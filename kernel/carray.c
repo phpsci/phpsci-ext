@@ -795,6 +795,7 @@ _select_carray_funcs(CArrayDescriptor *descr)
         descr->f->fill = &INT_fill;
         descr->f->fasttake = &INT_fasttake;
         descr->f->argmax = &INT_argmax;
+        descr->f->argmin = &INT_argmin;
     }
 
     if(descr->type_num == TYPE_DOUBLE_INT) {
@@ -803,6 +804,7 @@ _select_carray_funcs(CArrayDescriptor *descr)
         descr->f->fill = &DOUBLE_fill;
         descr->f->fasttake = &DOUBLE_fasttake;
         descr->f->argmax = &DOUBLE_argmax;
+        descr->f->argmin = &DOUBLE_argmin;
     }
 
     /**

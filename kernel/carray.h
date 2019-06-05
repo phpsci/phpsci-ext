@@ -188,6 +188,7 @@ typedef struct CArray_ArrFuncs {
     CArray_CopySwapFunc *copyswap;
 
     CArray_ArgFunc *argmax;
+    CArray_ArgFunc *argmin;
 
     /*
      * Array of CArray_CastFuncsItem given cast functions to

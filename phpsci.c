@@ -600,6 +600,48 @@ PHP_METHOD(CArray, argmax)
     FREE_FROM_MEMORYPOINTER(&out_ptr);
     RETURN_MEMORYPOINTER(return_value, &out_ptr);
 }
+PHP_METHOD(CArray, argmin)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, out_ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+            Z_PARAM_ZVAL(target)
+            Z_PARAM_OPTIONAL
+            Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+
+    axis_p = (int*)emalloc(sizeof(int));
+
+    if(ZEND_NUM_ARGS() == 1) {
+        CArray_DECREF(target_ca);
+        target_ca = CArray_Ravel(target_ca, CARRAY_KEEPORDER);
+        CArrayDescriptor_DECREF(CArray_DESCR(target_ca));
+        *axis_p = 0;
+    }
+    if(ZEND_NUM_ARGS() > 1) {
+        *axis_p = axis;
+    }
+
+    ret = CArray_Argmin(target_ca, axis_p, &out_ptr);
+
+    efree(axis_p);
+    if (ret == NULL) {
+        return;
+    }
+
+    if(ZEND_NUM_ARGS() == 1) {
+        CArray_INCREF(target_ca);
+        CArray_Free(target_ca);
+    }
+
+    FREE_FROM_MEMORYPOINTER(&out_ptr);
+    RETURN_MEMORYPOINTER(return_value, &out_ptr);
+}
 
 /**
  * LINEAR ALGEBRA 
@@ -1419,6 +1461,7 @@ static zend_function_entry carray_class_methods[] =
 
         // SEARCH
         PHP_ME(CArray, argmax, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, argmin, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // SHAPE
         PHP_ME(CArray, transpose, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
