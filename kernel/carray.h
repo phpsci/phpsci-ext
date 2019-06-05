@@ -435,6 +435,10 @@ CArray_CompareLists(int *l1, int *l2, int n)
 static inline int
 check_and_adjust_axis_msg(int *axis, int ndim)
 {
+    if (axis == NULL) {
+        return 0;
+    }
+
     /* Check that index is valid, taking into account negative indices */
     if (CARRAY_UNLIKELY((*axis < -ndim) || (*axis >= ndim))) {
         throw_axis_exception("Axis is out of bounds for array dimension");
