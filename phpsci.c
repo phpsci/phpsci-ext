@@ -343,7 +343,7 @@ PHP_METHOD(CArray, print)
     MemoryPointer ptr;
     ZVAL_TO_MEMORYPOINTER(obj, &ptr);
     array = CArray_FromMemoryPointer(&ptr);
-    CArray_Print(array);
+    CArray_Print(array, 0);
 }
 
 /**
@@ -1717,7 +1717,7 @@ static PHP_MINIT_FUNCTION(carray)
     carray_object_handlers.do_operation = carray_do_operation;
 
 
-    //zend_class_implements(carray_sc_entry, 1, zend_ce_arrayaccess);
+    zend_class_implements(carray_sc_entry, 1, zend_ce_arrayaccess);
 
     init_exception_objects();
     return SUCCESS;

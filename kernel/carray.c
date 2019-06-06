@@ -1092,55 +1092,105 @@ CArray_CheckFromAny(CArray *op, CArrayDescriptor *descr, int min_depth,
  * @param index
  * @param current_dim
  */
-void
-_print_recursive(CArray * array, CArrayIterator * iterator, int * index, int current_dim)
+static void
+_print_recursive(CArray * array, CArrayIterator * iterator, int * index, int current_dim,
+        int summarized, int x_summarized, int y_summarized, int notated, int has_digits)
 {
-    int i, index_jumps;
+    int i, index_jumps, j;
     index_jumps = ((int *)CArray_STRIDES(array))[current_dim] / CArray_ITEMSIZE(array);
-    php_printf("[");
 
     if(current_dim < array->ndim-1) {
         *index = 0;
         for (i = *index; i < array->dimensions[current_dim]; i++) {
-            _print_recursive(array, iterator, index, current_dim + 1);
+            if (iterator->index >= CArray_DIMS(array)[current_dim] && !current_dim) {
+                for (j = 0; j < current_dim + 1; j++) {
+                    php_printf(" ");
+                }
+            } else if(current_dim &&
+            (iterator->index % (CArray_DIMS(array)[CArray_NDIM(array)-1]*CArray_DIMS(array)[CArray_NDIM(array)-2]))) {
+                for (j = 0; j < current_dim + 1; j++) {
+                    php_printf(" ");
+                }
+            }
+            php_printf("[");
+            _print_recursive(array, iterator, index, current_dim + 1, summarized,
+                    x_summarized, y_summarized, notated, has_digits);
         }
     }
     if(current_dim >= array->ndim-1) {
         *index = *index + 1;
         if(array->descriptor->type == TYPE_INTEGER) {
             int * value;
-            for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
-                value = (int *)CArrayIterator_DATA(iterator);
-                php_printf(" %d ", *value);
-                CArrayIterator_NEXT(iterator);
+            if (notated) {
+                for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
+                    value = (int *) CArrayIterator_DATA(iterator);
+                    php_printf(" %.10e ", (double)*value);
+                    CArrayIterator_NEXT(iterator);
+                }
+            } else {
+                for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
+                    value = (int *) CArrayIterator_DATA(iterator);
+                    php_printf(" %d ", *value);
+                    CArrayIterator_NEXT(iterator);
+                }
             }
         }
         if(array->descriptor->type == TYPE_DOUBLE) {
             double * value;
-            for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
-                value = (double *)CArrayIterator_DATA(iterator);
-                php_printf(" %f ", *value);
-                CArrayIterator_NEXT(iterator);
-            }
-        }
-        if(array->descriptor->type == TYPE_FLOAT) {
-            float * value;
-            for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
-                value = (float *)CArrayIterator_DATA(iterator);
-                php_printf(" %f ", *value);
-                CArrayIterator_NEXT(iterator);
+            if (notated) {
+                for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
+                    value = (double *) CArrayIterator_DATA(iterator);
+                    php_printf(" %e ", (double)*value);
+                    CArrayIterator_NEXT(iterator);
+                }
+            } else {
+                if (has_digits) {
+                    for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
+                        value = (double *) CArrayIterator_DATA(iterator);
+                        php_printf(" %.8f ", *value);
+                        CArrayIterator_NEXT(iterator);
+                    }
+                } else {
+                    for (i = 0; i < CArray_DIMS(array)[current_dim]; i++) {
+                        value = IT_DDATA(iterator);
+                        php_printf(" %.0f. ", *value);
+                        CArrayIterator_NEXT(iterator);
+                    }
+                }
             }
         }
     }
-    php_printf("]");
+    if (iterator->index == (CArray_SIZE(array)) && current_dim < CArray_NDIM(array)) {
+        php_printf("]");
+        return;
+    } else if (current_dim == CArray_NDIM(array) - 1) {
+        if (!(iterator->index % (CArray_DIMS(array)[CArray_NDIM(array)-1]*CArray_DIMS(array)[CArray_NDIM(array)-2])) )
+        {
+            php_printf("]");
+            return;
+        } else {
+            php_printf("]\n");
+            return;
+        }
+    } else {
+        php_printf("]\n");
+        return;
+    }
 }
+
 
 /**
  * @param array
  */
 void
-CArray_Print(CArray *array)
+CArray_Print(CArray *array, int force_summary)
 {
+    int i;
+    int has_digits = 0;
+    int summarized = 0;
+    int x_summarized = 0;
+    int y_summarized = 0;
+    int notated = 0;
     int start_index = 0;
     if(array->ndim == 0) {
         if(CArray_TYPE(array) == TYPE_DOUBLE_INT) {
@@ -1156,9 +1206,59 @@ CArray_Print(CArray *array)
             return;
         }
     }
+
+    if (!force_summary && CArray_SIZE(array) > 1200) {
+        summarized = 1;
+    } else if (force_summary) {
+        summarized = 1;
+    }
+
+    if (CArray_DIMS(array)[CArray_NDIM(array)-1] > 6 && CArray_NDIM(array) > 1 && summarized) {
+        x_summarized = 1;
+    }
+
+    if (CArray_NDIM(array) > 1 && CArray_DIMS(array)[CArray_NDIM(array) - 1] > 200 && summarized) {
+        x_summarized = 1;
+    }
+
+    if (CArray_NDIM(array) >= 2 && summarized) {
+        for (i = 0; i < CArray_NDIM(array)-1; i++) {
+            if (CArray_DIMS(array)[i] > 12 && summarized) {
+                y_summarized = 1;
+            }
+        }
+    }
+    php_printf("[");
     CArrayIterator * it = CArray_NewIter(array);
-    _print_recursive(array, it, &start_index, 0);
+
+    if(CArray_TYPE(array) == TYPE_DOUBLE_INT) {
+        do {
+            if ((int)IT_DDATA(it)[0] != IT_DDATA(it)[0]) {
+                has_digits = 1;
+            }
+            if (IT_DDATA(it)[0] > 99999999) {
+                notated = 1;
+            }
+            if (notated && has_digits) {
+                break;
+            }
+            CArrayIterator_NEXT(it);
+        } while (CArrayIterator_NOTDONE(it));
+    }
+    if(CArray_TYPE(array) == TYPE_INTEGER_INT) {
+        do {
+            if (IT_IDATA(it)[0] > 99999999 || IT_IDATA(it)[0] < 99999999) {
+                notated = 1;
+                break;
+            }
+            CArrayIterator_NEXT(it);
+        } while (CArrayIterator_NOTDONE(it));
+    }
+
+    CArrayIterator_RESET(it);
+    _print_recursive(array, it, &start_index, 0, summarized, x_summarized, y_summarized, notated, has_digits);
     CArrayIterator_FREE(it);
+    php_printf("\n");
 }
 
 /**

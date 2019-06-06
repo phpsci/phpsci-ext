@@ -557,7 +557,7 @@ void CArray_Hashtable_Data_Copy(CArray * target_carray, zval * target_zval, int 
 void CArray_FromZval(zval * php_obj, char type, MemoryPointer * ptr);
 void CArray_Dump(CArray * ca);
 int * CArray_Generate_Strides(int * dims, int ndims, char type);
-void CArray_Print(CArray *array);
+void CArray_Print(CArray *array, int force_summary);
 
 CArray * CArray_FromMemoryPointer(MemoryPointer * ptr);
 CArray * CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags);
