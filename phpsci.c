@@ -55,6 +55,22 @@
 #include "kernel/ctors.h"
 #include "kernel/search.h"
 
+typedef struct _zend_carray_cdata {
+    zend_object std;
+} end_carray_cdata;
+
+static inline zend_object *carray_create_object(zend_class_entry *ce) /* {{{ */
+{
+    end_carray_cdata * intern = emalloc(sizeof(end_carray_cdata) + zend_object_properties_size(ce));
+
+    zend_object_std_init(&intern->std, ce);
+    object_properties_init(&intern->std, ce);
+
+    intern->std.handlers = &carray_object_handlers;
+
+    return &intern->std;
+}
+
 static
 void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
 {
@@ -1504,16 +1520,119 @@ zend_function_entry carray_functions[] = {
         {NULL, NULL, NULL}
 };
 
+static int carray_do_operation_ex(zend_uchar opcode, zval *result, zval *op1, zval *op2) /* {{{ */
+{
+    MemoryPointer rtn_ptr, op1_ptr, op2_ptr;
+    CArray * result_ca, * op1_ca, * op2_ca;
+
+    ZVAL_TO_MEMORYPOINTER(op1, &op1_ptr);
+    ZVAL_TO_MEMORYPOINTER(op2, &op2_ptr);
+
+    op1_ca = CArray_FromMemoryPointer(&op1_ptr);
+    op2_ca = CArray_FromMemoryPointer(&op2_ptr);
+
+    switch (opcode) {
+        case ZEND_ADD:
+            result_ca = CArray_Add(op1_ca, op2_ca, &rtn_ptr);
+            if (result_ca == NULL) {
+                return FAILURE;
+            }
+            RETURN_MEMORYPOINTER(result, &rtn_ptr);
+            FREE_FROM_MEMORYPOINTER(&op1_ptr);
+            FREE_FROM_MEMORYPOINTER(&op2_ptr);
+            return SUCCESS;
+        case ZEND_SUB:
+            result_ca = CArray_Subtract(op1_ca, op2_ca, &rtn_ptr);
+            if (result_ca == NULL) {
+                return FAILURE;
+            }
+            RETURN_MEMORYPOINTER(result, &rtn_ptr);
+            FREE_FROM_MEMORYPOINTER(&op1_ptr);
+            FREE_FROM_MEMORYPOINTER(&op2_ptr);
+            return SUCCESS;
+        case ZEND_MUL:
+            result_ca = CArray_Multiply(op1_ca, op2_ca, &rtn_ptr);
+            if (result_ca == NULL) {
+                return FAILURE;
+            }
+            RETURN_MEMORYPOINTER(result, &rtn_ptr);
+            FREE_FROM_MEMORYPOINTER(&op1_ptr);
+            FREE_FROM_MEMORYPOINTER(&op2_ptr);
+            return SUCCESS;
+        case ZEND_POW:
+            result_ca = CArray_Power(op1_ca, op2_ca, &rtn_ptr);
+            if (result_ca == NULL) {
+                return FAILURE;
+            }
+            RETURN_MEMORYPOINTER(result, &rtn_ptr);
+            FREE_FROM_MEMORYPOINTER(&op1_ptr);
+            FREE_FROM_MEMORYPOINTER(&op2_ptr);
+            return SUCCESS;
+        case ZEND_DIV:
+            result_ca = CArray_Divide(op1_ca, op2_ca, &rtn_ptr);
+            if (result_ca == NULL) {
+                return FAILURE;
+            }
+            RETURN_MEMORYPOINTER(result, &rtn_ptr);
+            FREE_FROM_MEMORYPOINTER(&op1_ptr);
+            FREE_FROM_MEMORYPOINTER(&op2_ptr);
+            return SUCCESS;
+        case ZEND_MOD:
+            result_ca = CArray_Mod(op1_ca, op2_ca, &rtn_ptr);
+            if (result_ca == NULL) {
+                return FAILURE;
+            }
+            RETURN_MEMORYPOINTER(result, &rtn_ptr);
+            FREE_FROM_MEMORYPOINTER(&op1_ptr);
+            FREE_FROM_MEMORYPOINTER(&op2_ptr);
+            return SUCCESS;
+        case ZEND_SL:
+        case ZEND_SR:
+        case ZEND_BW_OR:
+        case ZEND_BW_AND:
+        case ZEND_BW_XOR:
+        case ZEND_BW_NOT:
+        default:
+            return FAILURE;
+    }
+}
+
+static int carray_do_operation(zend_uchar opcode, zval *result, zval *op1, zval *op2) /* {{{ */
+{
+    zval op1_copy;
+    int retval;
+
+    if (result == op1) {
+        ZVAL_COPY_VALUE(&op1_copy, op1);
+        op1 = &op1_copy;
+    }
+
+    retval = carray_do_operation_ex(opcode, result, op1, op2);
+
+    if (retval == SUCCESS && op1 == &op1_copy) {
+        zval_ptr_dtor(op1);
+    }
+
+    return retval;
+}
+
 /**
  * MINIT
  */
 static PHP_MINIT_FUNCTION(carray)
 {
     zend_class_entry ce;
-    memcpy(&carray_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     INIT_CLASS_ENTRY(ce, "CArray", carray_class_methods);
     carray_sc_entry = zend_register_internal_class(&ce);
-    zend_class_implements(carray_sc_entry, 1, zend_ce_arrayaccess);
+    carray_sc_entry->create_object = carray_create_object;
+
+
+    memcpy(&carray_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    carray_object_handlers.do_operation = carray_do_operation;
+
+
+    //zend_class_implements(carray_sc_entry, 1, zend_ce_arrayaccess);
+
     init_exception_objects();
     return SUCCESS;
 }

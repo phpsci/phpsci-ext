@@ -231,6 +231,7 @@ CArray_Subtract(CArray *m1, CArray *m2, MemoryPointer * ptr)
     int * dimensions, i = 0, prior2_dimension = 0, dim_diff;
     int typenum;
     CArrayDescriptor * type;
+    int inverted = 0;
 
     if(CArray_NDIM(m1) > CArray_NDIM(m2)) {
         prior1 = m1;
@@ -242,11 +243,13 @@ CArray_Subtract(CArray *m1, CArray *m2, MemoryPointer * ptr)
         } else {
             prior1 = m2;
             prior2 = m1;
+            inverted = 1;
         }
     }
     else {
         prior1 = m2;
         prior2 = m1;
+        inverted = 1;
     }
 
     dim_diff = CArray_NDIM(prior1) - CArray_NDIM(prior2);
@@ -290,6 +293,14 @@ CArray_Subtract(CArray *m1, CArray *m2, MemoryPointer * ptr)
 
     CArrayIterator * it1 = CArray_BroadcastToShape(prior1, dimensions, CArray_NDIM(prior1));
     CArrayIterator * it2 = CArray_BroadcastToShape(prior2, dimensions, CArray_NDIM(prior1));
+    CArrayIterator * tmp_it;
+
+    if (inverted) {
+        tmp_it = it1;
+        it1 = it2;
+        it2 = tmp_it;
+    }
+
 
     if (it1 == NULL || it2 == NULL) {
         return NULL;
