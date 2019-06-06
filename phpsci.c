@@ -1520,19 +1520,16 @@ PHP_METHOD(CArray, fill)
 
 PHP_METHOD(CArray, __toString)
 {
-    zend_string buf[1] = {};
     CArray * target_ca;
     MemoryPointer ptr;
     zval * obj = getThis();
-
-    ZEND_PARSE_PARAMETERS_START(0, 0)
-    ZEND_PARSE_PARAMETERS_END();
+    zend_string *str = zend_string_init(" ", 1, 0);
 
     ZVAL_TO_MEMORYPOINTER(obj, &ptr);
     target_ca = CArray_FromMemoryPointer(&ptr);
     CArray_Print(target_ca, 0);
 
-    RETURN_STR(buf);
+    ZVAL_STR(return_value, str);
 }
 
 /**
