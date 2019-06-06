@@ -57,6 +57,13 @@ typedef enum {
     CARRAY_KEEPORDER=2
 } CARRAY_ORDER;
 
+typedef enum {
+    CARRAY_QUICKSORT=0,
+    CARRAY_HEAPSORT=1,
+    CARRAY_MERGESORT=2
+} CARRAY_SORTKIND;
+#define CARRAY_NSORTS (CARRAY_MERGESORT + 1)
+
 /*
  * Means c-style contiguous (last index varies the fastest). The data
  * elements right after each other.
@@ -168,6 +175,11 @@ typedef int  (CArray_FastTakeFunc)(void *dest, void *src, int *indarray,
                                        int m_middle, int nelem,
                                        CARRAY_CLIPMODE clipmode);
 typedef int (CArray_ArgFunc)(void*, int, int*, void *);
+typedef int (CArray_SortFunc)(void *, int, void *);
+typedef int (CArray_CompareFunc)(const void *, const void *, void *);
+typedef int (CArray_PartitionFunc)(void *, int, int,
+                                   int *, int *,
+                                    void *);
 
 typedef struct CArray_ArrFuncs {
     /* The next four functions *cannot* be NULL */
@@ -189,6 +201,18 @@ typedef struct CArray_ArrFuncs {
 
     CArray_ArgFunc *argmax;
     CArray_ArgFunc *argmin;
+
+    /*
+     * Function to compare items
+     * Can be NULL
+     */
+    CArray_CompareFunc *compare;
+
+    /*
+    * Sorting functions
+    * Can be NULL
+    */
+    CArray_SortFunc * sort[CARRAY_NSORTS];
 
     /*
      * Array of CArray_CastFuncsItem given cast functions to
@@ -511,6 +535,12 @@ static int _safe_ceil_to_int(double value, int* ret)
         #endif
 #endif
 #define CARRAY_UNUSED(x) (__CARRAY_UNUSED_TAGGED ## x) __COMP_CARRAY_UNUSED
+
+void _unaligned_strided_byte_copy(char *dst, int outstrides, char *src,
+                                  int instrides, int N, int elsize,
+                                  CArrayDescriptor* ignore);
+void _strided_byte_swap(void *p, int stride, int n, int size);
+
 
 int CHAR_TYPE_INT(char CHAR_TYPE);
 int CArray_MultiplyList(const int * list, unsigned int size);

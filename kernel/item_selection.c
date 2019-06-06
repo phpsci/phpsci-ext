@@ -3,6 +3,9 @@
 #include "buffer.h"
 #include "common/exceptions.h"
 #include "common/common.h"
+#include "common/sort.h"
+#include "iterators.h"
+#include "common/partition.h"
 
 /**
  * FAST TAKE
@@ -414,4 +417,197 @@ CArray_TakeFrom(CArray * target, CArray * indices0, int axis,
 fail:
 
     return NULL;
+}
+
+/*
+ * These algorithms use special sorting.  They are not called unless the
+ * underlying sort function for the type is available.  Note that axis is
+ * already valid. The sort functions require 1-d contiguous and well-behaved
+ * data.  Therefore, a copy will be made of the data if needed before handing
+ * it to the sorting routine.  An iterator is constructed and adjusted to walk
+ * over all but the desired sorting axis.
+ */
+static int
+_new_sortlike(CArray *op, int axis, CArray_SortFunc *sort,
+              CArray_PartitionFunc *part, int *kth, int nkth)
+{
+    int N = CArray_DIM(op, axis);
+    int elsize = (int)CArray_ITEMSIZE(op);
+    int astride = CArray_STRIDE(op, axis);
+    int swap = CArray_ISBYTESWAPPED(op);
+    int needcopy = !CArray_ISALIGNED(op) || swap || astride != elsize;
+    int hasrefs = CArrayDataType_REFCHK(CArray_DESCR(op));
+
+    CArray_CopySwapNFunc *copyswapn = CArray_DESCR(op)->f->copyswapn;
+    char *buffer = NULL;
+
+    CArrayIterator *it;
+    int size;
+
+    int ret = 0;
+
+    /* Check if there is any sorting to do */
+    if (N <= 1 || CArray_SIZE(op) == 0) {
+        return 0;
+    }
+
+    it = (CArrayIterator *)CArray_IterAllButAxis(op, &axis);
+    if (it == NULL) {
+        return -1;
+    }
+    size = it->size;
+
+    if (needcopy) {
+        buffer = emalloc(N * elsize);
+        if (buffer == NULL) {
+            ret = -1;
+            goto fail;
+        }
+    }
+
+    while (size--) {
+        char *bufptr = it->data_pointer;
+
+        if (needcopy) {
+            if (hasrefs) {
+                /*
+                 * For dtype's with objects, copyswapn Py_XINCREF's src
+                 * and Py_XDECREF's dst. This would crash if called on
+                 * an uninitialized buffer, or leak a reference to each
+                 * object if initialized.
+                 *
+                 * So, first do the copy with no refcounting...
+                 */
+                _unaligned_strided_byte_copy(buffer, elsize, it->data_pointer, astride, N, elsize, CArray_DESCR(op));
+                /* ...then swap in-place if needed */
+                if (swap) {
+                    copyswapn(buffer, elsize, NULL, 0, N, swap, op);
+                }
+            }
+            else {
+                copyswapn(buffer, elsize, it->data_pointer, astride, N, swap, op);
+            }
+            bufptr = buffer;
+        }
+        /*
+         * TODO: If the input array is byte-swapped but contiguous and
+         * aligned, it could be swapped (and later unswapped) in-place
+         * rather than after copying to the buffer. Care would have to
+         * be taken to ensure that, if there is an error in the call to
+         * sort or part, the unswapping is still done before returning.
+         */
+
+        if (part == NULL) {
+            ret = sort(bufptr, N, op);
+            if (hasrefs) {
+                ret = -1;
+            }
+            if (ret < 0) {
+                goto fail;
+            }
+        }
+        else {
+            int pivots[CARRAY_MAX_PIVOT_STACK];
+            int npiv = 0;
+            int i;
+            for (i = 0; i < nkth; ++i) {
+                ret = part(bufptr, N, kth[i], pivots, &npiv, op);
+                if (hasrefs) {
+                    ret = -1;
+                }
+                if (ret < 0) {
+                    goto fail;
+                }
+            }
+        }
+
+        if (needcopy) {
+            if (hasrefs) {
+                if (swap) {
+                    copyswapn(buffer, elsize, NULL, 0, N, swap, op);
+                }
+                _unaligned_strided_byte_copy(it->data_pointer, astride,
+                                             buffer, elsize, N, elsize, CArray_DESCR(op));
+            }
+            else {
+                copyswapn(it->data_pointer, astride, buffer, elsize, N, swap, op);
+            }
+        }
+
+        CArrayIterator_NEXT(it);
+    }
+
+fail:
+    efree(buffer);
+    if (ret < 0) {
+        /* Out of memory during sorting or buffer creation */
+        throw_memory_exception("Out of memory");
+    }
+    CArrayIterator_FREE(it);
+    return ret;
+}
+
+
+CArray *
+CArray_Sort(CArray * target, int * axis, CARRAY_SORTKIND which, int inplace, MemoryPointer * out)
+{
+    CArray_SortFunc * sort;
+    CArray * op;
+    int result;
+
+    if (!inplace) {
+        op = CArray_NewLikeArray(target, CARRAY_KEEPORDER, CArray_DESCR(target), 0);
+        CArray_CopyInto(op, target);
+    } else {
+        op = target;
+    }
+
+    int n = CArray_NDIM(op);
+
+    if (check_and_adjust_axis(axis, n) < 0) {
+        return NULL;
+    }
+
+    if (CArray_FailUnlessWriteable(op, "sort array") < 0) {
+        return NULL;
+    }
+
+    if (which < 0 || which >= CARRAY_NSORTS) {
+        throw_valueerror_exception("not a valid sort kind");
+        return NULL;
+    }
+
+    sort = CArray_DESCR(op)->f->sort[which];
+    if (sort == NULL) {
+        if (CArray_DESCR(op)->f->compare) {
+            switch (which) {
+                default:
+                case CARRAY_QUICKSORT:
+                    sort = carray_quicksort;
+                    break;
+                case CARRAY_HEAPSORT:
+                    sort = carray_heapsort;
+                    break;
+                case CARRAY_MERGESORT:
+                    sort = carray_mergesort;
+                    break;
+            }
+        }
+        else {
+            throw_typeerror_exception("type does not have compare function");
+            return NULL;
+        }
+    }
+
+    result = _new_sortlike(op, *axis, sort, NULL, NULL, 0);
+
+    if (out != NULL) {
+        add_to_buffer(out, op, sizeof(CArray));
+    }
+
+    if (result < 0) {
+        return NULL;
+    }
+
+    return op;
 }

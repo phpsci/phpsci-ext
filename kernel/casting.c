@@ -1,6 +1,25 @@
 #include "carray.h"
 
 /**
+ * COPYSWAPN
+ */
+static inline void
+_basic_copyn(void *dst, int dstride, void *src, int sstride,
+             int n, int elsize) {
+    if (src == NULL) {
+        return;
+    }
+    if (sstride == elsize && dstride == elsize) {
+        memcpy(dst, src, n*elsize);
+    }
+    else {
+        _unaligned_strided_byte_copy(dst, dstride, src, sstride,
+                                     n, elsize, NULL);
+    }
+}
+
+
+/**
  * FILL INT
  */
 int
@@ -70,9 +89,6 @@ DOUBLE_setitem (double * op, void * ov, struct CArray * ap)
     return 0;
 }
 
-/**
- * GETITEM DOUBLE
- */
 
 /**
  * COPYSWAP DOUBLE
@@ -127,5 +143,35 @@ INT_TO_INT(int *ip, int *op, int n,
            CArray *aip, CArray *aop) {
     while (n--) {
         *op++ = (int)*ip++;
+    }
+}
+
+
+/**
+ * COPYSWAPN INT
+ */
+
+void
+INT_copyswapn (void *dst, int dstride, void *src, int sstride,
+               int n, int swap, void *CARRAY_UNUSED(arr))
+{
+    /* copy first if needed */
+    _basic_copyn(dst, dstride, src, sstride, n, sizeof(int));
+    if (swap) {
+        _strided_byte_swap(dst, dstride, n, sizeof(int));
+    }
+}
+
+/**
+ * COPYSWAPN DOUBLE
+ */
+void
+DOUBLE_copyswapn (void *dst, int dstride, void *src, int sstride,
+                  int n, int swap, void *CARRAY_UNUSED(arr))
+{
+    /* copy first if needed */
+    _basic_copyn(dst, dstride, src, sstride, n, sizeof(double));
+    if (swap) {
+        _strided_byte_swap(dst, dstride, n, sizeof(double));
     }
 }

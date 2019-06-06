@@ -660,6 +660,89 @@ PHP_METHOD(CArray, argmin)
 }
 
 /**
+ * SORTING
+ */
+PHP_METHOD(CArray, sort)
+{
+    zval * target;
+    char * kind;
+    long axis;
+    int * axis_p, decref = 0;
+    zend_bool is_null = 0;
+    size_t s_kind;
+    CArray * ret, * target_ca, * tmp_ca = NULL;
+    MemoryPointer ptr, out_ptr, tmp_ptr;
+    CARRAY_SORTKIND sortkind;
+    ZEND_PARSE_PARAMETERS_START(1, 3)
+            Z_PARAM_ZVAL(target)
+            Z_PARAM_OPTIONAL
+            Z_PARAM_LONG_EX(axis, is_null, 0, 0)
+            Z_PARAM_STRING(kind, s_kind)
+    ZEND_PARSE_PARAMETERS_END();
+    axis_p = (int*)emalloc(sizeof(int));
+
+    if(ZEND_NUM_ARGS() == 1) {
+        ZVAL_TO_MEMORYPOINTER(target, &ptr);
+        target_ca = CArray_FromMemoryPointer(&ptr);
+        *axis_p = -1;
+        sortkind = CARRAY_QUICKSORT;
+    }
+    if(ZEND_NUM_ARGS() == 2) {
+        if (!is_null) {
+            ZVAL_TO_MEMORYPOINTER(target, &ptr);
+            target_ca = CArray_FromMemoryPointer(&ptr);
+            *axis_p = axis;
+        } else {
+            decref = 1;
+            *axis_p = 0;
+            ZVAL_TO_MEMORYPOINTER(target, &ptr);
+            tmp_ca = CArray_FromMemoryPointer(&ptr);
+            target_ca = CArray_Ravel(tmp_ca, CARRAY_KEEPORDER);
+        }
+        sortkind = CARRAY_QUICKSORT;
+    }
+    if(ZEND_NUM_ARGS() > 2) {
+        if (!is_null) {
+            ZVAL_TO_MEMORYPOINTER(target, &ptr);
+            target_ca = CArray_FromMemoryPointer(&ptr);
+            *axis_p = axis;
+        } else {
+            decref = 1;
+            *axis_p = 0;
+            ZVAL_TO_MEMORYPOINTER(target, &ptr);
+            tmp_ca = CArray_FromMemoryPointer(&ptr);
+            target_ca = CArray_Ravel(tmp_ca, CARRAY_KEEPORDER);
+        }
+        if(strcmp(kind, "quicksort") == 0) {
+            sortkind = CARRAY_QUICKSORT;
+        }
+        if(strcmp(kind, "mergesort") == 0) {
+            sortkind = CARRAY_MERGESORT;
+        }
+        if(strcmp(kind, "heapsort") == 0) {
+            CArray_INCREF(target_ca);
+            sortkind = CARRAY_HEAPSORT;
+        }
+        if(strcmp(kind, "stable") == 0) {
+            sortkind = CARRAY_MERGESORT;
+        }
+    }
+
+    ret = CArray_Sort(target_ca, axis_p, sortkind, 0, &out_ptr);
+
+    efree(axis_p);
+    if (ret == NULL) {
+        return;
+    }
+    CArrayDescriptor_INCREF(CArray_DESCR(ret));
+    if(decref) {
+        CArray_DECREF(target_ca);
+    }
+    FREE_FROM_MEMORYPOINTER(&out_ptr);
+    RETURN_MEMORYPOINTER(return_value, &out_ptr);
+}
+
+/**
  * LINEAR ALGEBRA 
  */ 
 PHP_METHOD(CArray, matmul)
@@ -1470,6 +1553,9 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, rollaxis, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, moveaxis, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, concatenate, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
+        // SORTING
+        PHP_ME(CArray, sort, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // METHODS
         PHP_ME(CArray, identity, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

@@ -17,4 +17,5 @@ DOUBLE_fasttake(double *dest, double *src, int *indarray,
                     
 CArray * CArray_Diagonal(CArray *self, int offset, int axis1, int axis2, MemoryPointer * rtn);
 CArray * CArray_TakeFrom(CArray * target, CArray * indices0, int axis, MemoryPointer * out, CARRAY_CLIPMODE clipmode);
+CArray * CArray_Sort(CArray * target, int * axis, CARRAY_SORTKIND which, int inplace, MemoryPointer * out);
 #endif //PHPSCI_EXT_ITEM_SELECTION_H

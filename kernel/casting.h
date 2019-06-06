@@ -3,6 +3,13 @@
 
 #include "carray.h"
 
+void
+INT_copyswapn (void *dst, int dstride, void *src, int sstride,
+               int n, int swap, void *CARRAY_UNUSED(arr));
+void
+DOUBLE_copyswapn (void *dst, int dstride, void *src, int sstride,
+                  int n, int swap, void *CARRAY_UNUSED(arr));
+
 void DOUBLE_copyswap (void *dst, void *src, int swap, void * arr);
 void INT_copyswap (void *dst, void *src, int swap, void * arr);
 

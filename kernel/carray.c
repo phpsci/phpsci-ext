@@ -25,6 +25,8 @@
 #include "shape.h"
 #include "convert_type.h"
 #include "search.h"
+#include "common/sort.h"
+#include "common/compare.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wint-conversion"
@@ -214,7 +216,7 @@ _strided_byte_copy(char *dst, int outstrides, char *src, int instrides,
 
 }
 
-static void
+void
 _unaligned_strided_byte_copy(char *dst, int outstrides, char *src,
                              int instrides, int N, int elsize,
                              CArrayDescriptor* ignore)
@@ -229,7 +231,22 @@ _unaligned_strided_byte_copy(char *dst, int outstrides, char *src,
         tin += instrides;                       \
         tout += outstrides;                     \
         }                                       \
-        return _COPY_N_SIZE(elsize);
+        return;
+
+        switch(elsize) {
+            case 8:
+                _COPY_N_SIZE(8);
+            case 4:
+                _COPY_N_SIZE(4);
+            case 1:
+                _COPY_N_SIZE(1);
+            case 2:
+                _COPY_N_SIZE(2);
+            case 16:
+                _COPY_N_SIZE(16);
+            default:
+                _COPY_N_SIZE(elsize);
+        }
 #undef _COPY_N_SIZE
 }
 
@@ -792,19 +809,29 @@ _select_carray_funcs(CArrayDescriptor *descr)
     if(descr->type_num == TYPE_INTEGER_INT) {
         descr->f->copyswap = &INT_copyswap;
         descr->f->setitem  = &INT_setitem;
+        descr->f->copyswapn = &INT_copyswapn;
         descr->f->fill = &INT_fill;
         descr->f->fasttake = &INT_fasttake;
         descr->f->argmax = &INT_argmax;
         descr->f->argmin = &INT_argmin;
+        descr->f->sort[0] = &carray_quicksort;
+        descr->f->sort[1] = &carray_heapsort;
+        descr->f->sort[2] = &carray_mergesort;
+        descr->f->compare = &INT_compare;
     }
 
     if(descr->type_num == TYPE_DOUBLE_INT) {
         descr->f->copyswap = &DOUBLE_copyswap;
+        descr->f->copyswapn = &DOUBLE_copyswapn;
         descr->f->setitem  = &DOUBLE_setitem;
         descr->f->fill = &DOUBLE_fill;
         descr->f->fasttake = &DOUBLE_fasttake;
         descr->f->argmax = &DOUBLE_argmax;
         descr->f->argmin = &DOUBLE_argmin;
+        descr->f->sort[0] = &carray_quicksort;
+        descr->f->sort[1] = &carray_heapsort;
+        descr->f->sort[2] = &carray_mergesort;
+        descr->f->compare = &DOUBLE_compare;
     }
 
     /**

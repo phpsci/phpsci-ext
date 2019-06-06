@@ -122,6 +122,8 @@ PHP_NEW_EXTENSION(carray,
       kernel/item_selection.c \
       kernel/reduction.c \
       kernel/search.c \
+      kernel/common/sort.c \
+      kernel/common/compare.c \
       kernel/random.c \
       kernel/range.c \
       kernel/conversion_utils.c \
