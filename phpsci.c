@@ -93,20 +93,25 @@ void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
         descr = CArray_DescrFromType(TYPE_INTEGER_INT);
         self = CArray_NewFromDescr(self, descr, 0, dims, NULL, NULL, 0, NULL);
         convert_to_long(obj);
+
+        if (zval_get_long(obj) > INT_MAX) {
+            throw_overflow_exception("CArrays only works with int32 and float64 values, LONG INT detected.");
+        }
+
         IDATA(self)[0] = (int)zval_get_long(obj);
         add_to_buffer(ptr, self, sizeof(CArray));
         efree(dims);
         ptr->free = 1;
     }
     if (Z_TYPE_P(obj) == IS_DOUBLE) {
-        int * dims = emalloc(sizeof(double));
+        int * dims = emalloc(sizeof(int));
         dims[0] = 1;
         CArray * self = emalloc(sizeof(CArray));
         CArrayDescriptor * descr;
         descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
         self = CArray_NewFromDescr(self, descr, 0, dims, NULL, NULL, 0, NULL);
         convert_to_double(obj);
-        IDATA(self)[0] = (int)zval_get_double(obj);
+        DDATA(self)[0] = (double)zval_get_double(obj);
         add_to_buffer(ptr, self, sizeof(CArray));
         efree(dims);
         ptr->free = 1;

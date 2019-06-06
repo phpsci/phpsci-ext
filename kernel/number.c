@@ -46,7 +46,7 @@ _carray_sub_int_int(CArrayIterator * a, CArrayIterator * b, CArray * out, int ou
 
 void *
 _carray_mult_double_double(CArrayIterator * a, CArrayIterator * b, CArray * out, int out_index) {
-    DDATA(out)[out_index] = *(IT_DDATA(a)) * *(IT_DDATA(b));
+    DDATA(out)[out_index] = (double)*(IT_DDATA(a)) * (double)*(IT_DDATA(b));
 }
 
 void *
@@ -369,7 +369,6 @@ CArray_Multiply(CArray *m1, CArray *m2, MemoryPointer * ptr)
                     data_op = &_carray_mult_double_double;
                     break;
                 case TYPE_INTEGER_INT:
-                    php_printf("%d", INT_MAX);
                     data_op = &_carray_mult_double_int;
                     break;
             }
