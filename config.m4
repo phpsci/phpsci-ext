@@ -40,6 +40,22 @@ AC_CHECK_HEADERS(
     [[#include "/opt/OpenBLAS/include/cblas.h"]]
 )
 AC_CHECK_HEADERS(
+    [/usr/include/cblas.h],
+    [
+        PHP_ADD_INCLUDE(/usr/include/)
+    ],
+    ,
+    [[#include "/usr/include/cblas.h"]]
+)
+AC_CHECK_HEADERS(
+    [/usr/include/atlas/cblas.h],
+    [
+        PHP_ADD_INCLUDE(/usr/include/atlas/)
+    ],
+    ,
+    [[#include "/usr/include/atlas/cblas.h"]]
+)
+AC_CHECK_HEADERS(
     [/usr/include/openblas/cblas.h],
     [
         PHP_ADD_INCLUDE(/usr/include/openblas/)
@@ -48,13 +64,20 @@ AC_CHECK_HEADERS(
     [[#include "/usr/include/openblas/cblas.h"]]
 )
 
-PHP_CHECK_LIBRARY(openblas,cblas_sdot,
+PHP_CHECK_LIBRARY(blas,cblas_sdot,
 [
-  PHP_ADD_LIBRARY(openblas)
+  PHP_ADD_LIBRARY(blas)
 ],[
-  AC_MSG_ERROR([wrong openblas version or library not found])
+  PHP_CHECK_LIBRARY(openblas,cblas_sdot,
+  [
+    PHP_ADD_LIBRARY(openblas)
+  ],[
+    AC_MSG_ERROR([wrong openblas/blas version or library not found])
+  ],[
+    -lopenblas
+  ])
 ],[
-  -lopenblas
+  -lblas
 ])
 
 PHP_CHECK_LIBRARY(lapacke,LAPACKE_sgetrf,
@@ -66,40 +89,47 @@ PHP_CHECK_LIBRARY(lapacke,LAPACKE_sgetrf,
   -llapacke
 ])
 
-CFLAGS="$CFLAGS -lopenblas -llapacke"
+CFLAGS="$CFLAGS -lopenblas -llapacke -lblas -llapack"
 
 PHP_NEW_EXTENSION(carray,
 	  phpsci.c \
-	  kernel/carray/carray.c \
-	  kernel/carray/tuple.c \
-	  kernel/exceptions.c \
-	  kernel/memory_pointer/memory_pointer.c \
-	  kernel/memory_pointer/utils.c \
-	  kernel/buffer/memory_manager.c \
-	  operations/initializers.c \
-	  operations/linalg.c \
-	  operations/ranges.c \
-	  operations/basic_operations.c \
-	  operations/random.c \
-	  operations/arithmetic.c \
-	  operations/exponents.c \
-	  operations/statistics.c \
-	  operations/manipulation.c \
-	  operations/set_routines.c \
-	  operations/search.c \
-	  operations/logarithms.c \
-	  operations/trigonometric.c \
-	  operations/hyperbolic.c \
-	  operations/transformations.c \
-	  operations/magic_properties.c \
-	  operations/linalg/norms.c \
-	  operations/linalg/others.c \
-	  operations/linalg/eigenvalues.c \
-	  operations/linalg/equations.c \
-	  kernel/carray/utils/carray_printer.c \
-	  kernel/php/php_array.c ,
+	  kernel/alloc.c \
+	  kernel/carray.c \
+      kernel/iterators.c \
+      kernel/flagsobject.c \
+      kernel/assign.c \
+      kernel/convert.c \
+      kernel/casting.c \
+      kernel/linalg.c \
+      kernel/calculation.c \
+      kernel/shape.c \
+      kernel/common/common.c \
+      kernel/common/cblas_funcs.c \
+      kernel/common/mem_overlap.c \
+      kernel/number.c \
+      kernel/convert_type.c \
+      kernel/trigonometric.c \
+      kernel/matlib.c \
+      kernel/join.c \
+      kernel/ctors.c \
+      kernel/scalar.c \
+      kernel/getset.c \
+      kernel/common/strided_loops.c \
+      kernel/convert_datatype.c \
+      kernel/dtype_transfer.c \
+      kernel/assign_scalar.c \
+      kernel/common/exceptions.c \
+      kernel/item_selection.c \
+      kernel/reduction.c \
+      kernel/search.c \
+      kernel/common/sort.c \
+      kernel/common/compare.c \
+      kernel/random.c \
+      kernel/range.c \
+      kernel/conversion_utils.c \
+	  kernel/buffer.c ,
 	  $ext_shared,, )
-  PHP_INSTALL_HEADERS([ext/carray], [phpsci.h])
+  PHP_INSTALL_HEADERS([ext/carray], [phpsci.h, kernel/carray.h, kernel/types.h])
   PHP_SUBST(CARRAY_SHARED_LIBADD)
 fi
 

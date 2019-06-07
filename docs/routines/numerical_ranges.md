@@ -1,0 +1,6 @@
+## arange
+
+## linspace
+
+## logspace
+
