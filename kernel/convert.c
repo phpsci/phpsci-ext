@@ -126,30 +126,19 @@ CArray_CanCastSafely(int fromtype, int totype)
     }
 
     from = CArray_DescrFromType(fromtype);
-    /*
-     * cancastto is a NPY_NOTYPE terminated C-int-array of types that
-     * the data-type can be cast to safely.
-     */
-    /**if (from->f->cancastto) {
-        int *curtype;
-        curtype = from->f->cancastto;
-        while (*curtype != NPY_NOTYPE) {
+
+    if (from->f->cancastto) {
+
+        int *curtype = from->f->cancastto;
+        while (*curtype != CARRAY_NTYPES) {
             if (*curtype++ == totype) {
+                php_printf("OI");
                 return 1;
             }
         }
-    }**/
-    
-    to = CArray_DescrFromType(totype);
-    telsize = to->elsize;
-    felsize = from->elsize;
-    CArrayDescriptor_DECREF(from);
-    CArrayDescriptor_DECREF(to);
-
-    switch(fromtype) {
-        default:
-            return 0;
     }
+
+    return 0;
 }
 
 int

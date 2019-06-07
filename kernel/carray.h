@@ -10,6 +10,15 @@ typedef struct CArray CArray;
 
 static const int CARRAY_ARRAY_WARN_ON_WRITE = (1 << 31);
 
+#define TYPE_INT_STRING     "int"
+#define TYPE_INT32_STRING   "int32"
+#define TYPE_INT64_STRING   "int64"
+#define TYPE_LONG_STRING    "long"
+#define TYPE_FLOAT_STRING   "float"
+#define TYPE_FLOAT32_STRING "float32"
+#define TYPE_FLOAT64_STRING "float64"
+#define TYPE_DOUBLE_STRING  "double"
+
 #define CARRAY_NTYPES     7
 #define CARRAY_MAXDIMS   100
 #define TYPE_INTEGER     'i'
@@ -232,6 +241,8 @@ typedef struct CArray_ArrFuncs {
      * Can be NULL.
      */
     CArray_FillFunc *fill;
+
+    int cancastto[CARRAY_NTYPES];
 } CArray_ArrFuncs;
 
 

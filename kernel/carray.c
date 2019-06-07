@@ -711,6 +711,71 @@ CArray_SetBaseCArray(CArray * target, CArray * base)
     return 0;
 }
 
+static void
+_select_carray_funcs(CArrayDescriptor *descr)
+{
+    int i;
+    CArray_VectorUnaryFunc * castfunc;
+    CArray_ArrFuncs * functions = emalloc(sizeof(CArray_ArrFuncs));
+
+    if(descr->f == NULL) {
+        descr->f = functions;
+    }
+
+    if(descr->type_num == TYPE_INTEGER_INT) {
+        descr->f->copyswap = &INT_copyswap;
+        descr->f->setitem  = &INT_setitem;
+        descr->f->copyswapn = &INT_copyswapn;
+        descr->f->fill = &INT_fill;
+        descr->f->fasttake = &INT_fasttake;
+        descr->f->argmax = &INT_argmax;
+        descr->f->argmin = &INT_argmin;
+        descr->f->sort[0] = &carray_quicksort;
+        descr->f->sort[1] = &carray_heapsort;
+        descr->f->sort[2] = &carray_mergesort;
+        descr->f->compare = &INT_compare;
+        descr->f->cancastto[0] = TYPE_DOUBLE_INT;
+        descr->f->cancastto[1] = TYPE_INTEGER_INT;
+    }
+
+    if(descr->type_num == TYPE_DOUBLE_INT) {
+        descr->f->copyswap = &DOUBLE_copyswap;
+        descr->f->copyswapn = &DOUBLE_copyswapn;
+        descr->f->setitem  = &DOUBLE_setitem;
+        descr->f->fill = &DOUBLE_fill;
+        descr->f->fasttake = &DOUBLE_fasttake;
+        descr->f->argmax = &DOUBLE_argmax;
+        descr->f->argmin = &DOUBLE_argmin;
+        descr->f->sort[0] = &carray_quicksort;
+        descr->f->sort[1] = &carray_heapsort;
+        descr->f->sort[2] = &carray_mergesort;
+        descr->f->compare = &DOUBLE_compare;
+        descr->f->cancastto[0] = TYPE_DOUBLE_INT;
+        descr->f->cancastto[1] = TYPE_INTEGER_INT;
+    }
+
+    /**
+     * SELECT CASTING FUNCTIONS
+     **/
+    for(i = 0; i < CARRAY_NTYPES; i++) {
+        switch(i) {
+            case TYPE_DOUBLE_INT:
+                if(descr->type_num == TYPE_INTEGER_INT) {
+                    descr->f->cast[i] = (void (*)(CArray_VectorUnaryFunc))INT_TO_DOUBLE;
+                }
+                break;
+            case TYPE_INTEGER_INT:
+                if(descr->type_num == TYPE_DOUBLE_INT) {
+                    descr->f->cast[i] = (void (*)(CArray_VectorUnaryFunc))DOUBLE_TO_INT;
+                }
+                if(descr->type_num == TYPE_INTEGER_INT) {
+                    descr->f->cast[i] = (void (*)(CArray_VectorUnaryFunc))INT_TO_INT;
+                }
+                break;
+        }
+    }
+}
+
 /**
  * @return
  */ 
@@ -747,6 +812,7 @@ CArray_DescrFromType(int typenum)
         ret->elsize = sizeof(long);
         ret->type   = TYPE_LONG;
     }
+    _select_carray_funcs(ret);
     return ret;
 }
 
@@ -795,66 +861,7 @@ CArray_NewFromDescrAndBase(CArray * subtype, CArrayDescriptor * descr, int nd,
     return CArray_NewFromDescr_int(subtype, descr, nd, dims, strides, data, flags, base, 0, 0);
 }
 
-static void
-_select_carray_funcs(CArrayDescriptor *descr)
-{
-    int i;
-    CArray_VectorUnaryFunc * castfunc;
-    CArray_ArrFuncs * functions = emalloc(sizeof(CArray_ArrFuncs));
-    
-    if(descr->f == NULL) {
-        descr->f = functions;
-    }
 
-    if(descr->type_num == TYPE_INTEGER_INT) {
-        descr->f->copyswap = &INT_copyswap;
-        descr->f->setitem  = &INT_setitem;
-        descr->f->copyswapn = &INT_copyswapn;
-        descr->f->fill = &INT_fill;
-        descr->f->fasttake = &INT_fasttake;
-        descr->f->argmax = &INT_argmax;
-        descr->f->argmin = &INT_argmin;
-        descr->f->sort[0] = &carray_quicksort;
-        descr->f->sort[1] = &carray_heapsort;
-        descr->f->sort[2] = &carray_mergesort;
-        descr->f->compare = &INT_compare;
-    }
-
-    if(descr->type_num == TYPE_DOUBLE_INT) {
-        descr->f->copyswap = &DOUBLE_copyswap;
-        descr->f->copyswapn = &DOUBLE_copyswapn;
-        descr->f->setitem  = &DOUBLE_setitem;
-        descr->f->fill = &DOUBLE_fill;
-        descr->f->fasttake = &DOUBLE_fasttake;
-        descr->f->argmax = &DOUBLE_argmax;
-        descr->f->argmin = &DOUBLE_argmin;
-        descr->f->sort[0] = &carray_quicksort;
-        descr->f->sort[1] = &carray_heapsort;
-        descr->f->sort[2] = &carray_mergesort;
-        descr->f->compare = &DOUBLE_compare;
-    }
-
-    /**
-     * SELECT CASTING FUNCTIONS
-     **/ 
-    for(i = 0; i < CARRAY_NTYPES; i++) {
-        switch(i) {
-            case TYPE_DOUBLE_INT:
-                if(descr->type_num == TYPE_INTEGER_INT) {
-                    descr->f->cast[i] = (void (*)(CArray_VectorUnaryFunc))INT_TO_DOUBLE;
-                }
-                break;
-            case TYPE_INTEGER_INT:
-                if(descr->type_num == TYPE_DOUBLE_INT) {
-                    descr->f->cast[i] = (void (*)(CArray_VectorUnaryFunc))DOUBLE_TO_INT;
-                }
-                if(descr->type_num == TYPE_INTEGER_INT) {
-                    descr->f->cast[i] = (void (*)(CArray_VectorUnaryFunc))INT_TO_INT;
-                }
-                break;    
-        }
-    }
-}
 
 /**
  * @return
@@ -1632,7 +1639,7 @@ CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
     char *msg = "cannot copy back to a read-only array";
     int ensureArray = 0;
     CARRAY_CASTING casting = CARRAY_SAFE_CASTING;
-    
+
     assert(NULL != arr);
 
     oldtype = CArray_DESCR(arr);
@@ -1710,7 +1717,7 @@ CArray_FromCArray(CArray * arr, CArrayDescriptor *newtype, int flags)
                 ret = arr;
                 CArray_INCREF(arr);
             }
-        }            
+        }
     } else {
         if ((flags & CARRAY_ARRAY_UPDATEIFCOPY) &&
             (!CArray_ISWRITEABLE(arr))) {
@@ -1839,6 +1846,8 @@ CArray_Eye(int n, int m, int k, char * dtype, MemoryPointer * out)
             IDATA(target)[aux] = 1;
         }
     }
+
+    return target;
 }
 
 /**
@@ -1873,7 +1882,7 @@ CArray_Identity(int n, char * dtype, MemoryPointer * out)
     }
 
     array_flat_set(ret, mask);
-
+    CArray_DECREF(mask);
     CArray_Free(mask);
     efree(dimensions);
     efree(mask_dimensions);

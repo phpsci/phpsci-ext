@@ -8,10 +8,28 @@
 #include "alloc.h"
 #include "buffer.h"
 #include "cblas.h"
+#include "lapacke.h"
+#include "matlib.h"
+#include "convert.h"
 
+static float s_one;
+static float s_zero;
+static float s_minus_one;
+static float s_ninf;
+static float s_nan;
+static double d_one;
+static double d_zero;
+static double d_minus_one;
+static double d_ninf;
+static double d_nan;
+
+/**
+ * DOT
+ */
 void
 FLOAT_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n)
 {
+
 }
 
 void
@@ -194,5 +212,37 @@ fail:
  **/ 
 CArray *
 CArray_Inv(CArray * a, MemoryPointer * out) {
-    
+    int status, casted = 0;
+    int * ipiv = emalloc(sizeof(int) * CArray_DIMS(a)[0]);
+    CArray * identity = CArray_Eye(CArray_DIMS(a)[0], CArray_DIMS(a)[0], 0, NULL, out);
+    CArray * target;
+    int order;
+    double * data = emalloc(sizeof(double) * CArray_SIZE(a));
+
+    if (CArray_DESCR(a)->type_num != TYPE_DOUBLE_INT) {
+        CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
+        target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        if(CArray_CastTo(target, a) < 0) {
+            return NULL;
+        }
+        casted = 1;
+    } else {
+        target = a;
+    }
+
+    memcpy(data, DDATA(target), sizeof(double) * CArray_SIZE(target));
+    status = LAPACKE_dgesv(LAPACK_ROW_MAJOR,
+            CArray_DIMS(target)[0],
+            CArray_DIMS(target)[0],
+            data,
+            CArray_DIMS(target)[0],
+            ipiv,
+            DDATA(identity),
+            CArray_DIMS(target)[0]);
+
+    if (casted) {
+        CArray_Free(target);
+    }
+    efree(ipiv);
+    return identity;
 }

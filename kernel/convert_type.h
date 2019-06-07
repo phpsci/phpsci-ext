@@ -17,7 +17,8 @@ type_num_unsigned_to_signed(int type_num)
  * The is_small_unsigned output flag indicates whether it's an unsigned integer,
  * and would fit in a signed integer of the same bit size.
  */
-static int min_scalar_type_num(char *valueptr, int type_num,
+static
+int min_scalar_type_num(char *valueptr, int type_num,
                                int *is_small_unsigned)
 {
     switch (type_num) {

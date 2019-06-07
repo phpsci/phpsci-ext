@@ -38,8 +38,7 @@ CArray_Zeros(int * shape, int nd, char type, char * order, MemoryPointer * rtn_p
     if(type == TYPE_FLOAT){
         *((float *)sc->obval) = (float)0;
     }
-    
-    
+
     CArray_FillWithScalar(rtn, sc);
 
     efree(sc->obval);

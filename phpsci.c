@@ -173,6 +173,23 @@ void RETURN_MEMORYPOINTER(zval * return_value, MemoryPointer * ptr)
     zend_update_property_long(carray_sc_entry, return_value, "ndim", sizeof("ndim") - 1, arr->ndim);
 }
 
+static int
+TYPESTR_TO_INT(char * str)
+{
+    if (!strcmp(str, TYPE_INT32_STRING) || !strcmp(str, TYPE_INT_STRING)) {
+        return TYPE_INTEGER_INT;
+    }
+    if (!strcmp(str, TYPE_INT64_STRING) || !strcmp(str, TYPE_LONG_STRING)) {
+        return TYPE_LONG_INT;
+    }
+    if (!strcmp(str, TYPE_FLOAT32_STRING) || !strcmp(str, TYPE_FLOAT_STRING)) {
+        return TYPE_FLOAT_INT;
+    }
+    if (!strcmp(str, TYPE_FLOAT64_STRING) || !strcmp(str, TYPE_DOUBLE_STRING)) {
+        return TYPE_DOUBLE_INT;
+    }
+}
+
 PHP_METHOD(CArray, __construct)
 {
     MemoryPointer ptr;
@@ -541,8 +558,11 @@ PHP_METHOD(CArray, identity)
         dtype = NULL;
     }
 
-    output = CArray_Identity((int)size, dtype, &ptr);
-    RETURN_MEMORYPOINTER(return_value, &ptr);
+    output = CArray_Eye((int)size, (int)size, 0, dtype, &ptr);
+
+    if (output != NULL) {
+        RETURN_MEMORYPOINTER(return_value, &ptr);
+    }
 }
 PHP_METHOD(CArray, eye)
 {
@@ -747,6 +767,7 @@ PHP_METHOD(CArray, sort)
     RETURN_MEMORYPOINTER(return_value, &out_ptr);
 }
 
+
 /**
  * LINEAR ALGEBRA 
  */ 
@@ -772,6 +793,29 @@ PHP_METHOD(CArray, matmul)
         RETURN_MEMORYPOINTER(return_value, &result_ptr);
     }
 }
+PHP_METHOD(CArray, inv)
+{
+    MemoryPointer target, rtn_ptr;
+    zval * target_z;
+    CArray * target_ca, * rtn_ca = NULL;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_ZVAL(target_z)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target_z, &target);
+    target_ca = CArray_FromMemoryPointer(&target);
+    rtn_ca = CArray_Inv(target_ca, &rtn_ptr);
+
+    FREE_FROM_MEMORYPOINTER(&target);
+    if (rtn_ca != NULL) {
+        RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
+    }
+}
+
+
+
+
+
+
 PHP_METHOD(CArray, zeros)
 {   
     zval * zshape;
@@ -1590,6 +1634,7 @@ static zend_function_entry carray_class_methods[] =
         
         // LINEAR ALGEBRA
         PHP_ME(CArray, matmul, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, inv, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // ARITHMETIC
         PHP_ME(CArray, add, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

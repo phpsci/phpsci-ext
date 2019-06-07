@@ -17,8 +17,9 @@ array_flat_set(CArray * self, CArray * val)
     memcpy(typecode, CArray_DESCR(self), sizeof(CArrayDescriptor));
     CArrayDescriptor_INCREF(typecode);
 
+    CArrayDescriptor_INCREF(CArray_DESCR(val));
     arr = CArray_FromAnyUnwrap(val, typecode, 0, 0, CARRAY_ARRAY_FORCECAST, NULL);
-    
+
     if(arr == NULL) {
         return -1;
     }
@@ -67,7 +68,6 @@ array_flat_set(CArray * self, CArray * val)
         }
     }
     retval = 0;
-    CArray_DECREF(val);
     CArrayIterator_FREE(arr_it);
     CArrayIterator_FREE(self_it);
     efree(typecode);

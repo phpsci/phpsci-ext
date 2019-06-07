@@ -82,7 +82,7 @@ CArrayDescriptor_DECREF(CArrayDescriptor * descriptor)
 void
 CArray_Free(CArray * self)
 {
-    if(!self->refcount) {
+    if(self->refcount <= 0) {
         efree(self->dimensions);
         efree(self->strides);
         efree(self->descriptor->f);
