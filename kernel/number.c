@@ -211,8 +211,10 @@ CArray_Add(CArray *m1, CArray *m2, MemoryPointer * ptr)
         CArrayIterator_NEXT(it2);
         i++;
     } while(CArrayIterator_NOTDONE(it1));
+
     CArrayIterator_FREE(it1);
     CArrayIterator_FREE(it2);
+
     efree(dimensions);
     result->flags = (CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_OWNDATA | CARRAY_ARRAY_WRITEABLE | CARRAY_ARRAY_ALIGNED);
     if(ptr != NULL) {

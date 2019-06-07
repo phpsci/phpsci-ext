@@ -320,6 +320,7 @@ CArray_BroadcastToShape(CArray * target, int * dims, int nd)
         it->contiguous = 0;
     }
 
+    it->bounds = NULL;
     it->limits = NULL;
     it->limits_sizes = NULL;
     it->array = ao;
@@ -360,29 +361,31 @@ void
 CArrayIterator_FREE(CArrayIterator * it)
 {
     int i;
-    if(it->factors != NULL)
-        efree(it->factors);
-    if(it->strides != NULL)
-        efree(it->strides);
-    if(it->backstrides != NULL)
-        efree(it->backstrides);
-    if(it->dims_m1 != NULL)
-        efree(it->dims_m1);
-    if(it->coordinates != NULL)
-        efree(it->coordinates);
-    if(it->limits_sizes != NULL)
-        efree(it->limits_sizes);
-    if(it->bounds != NULL) {
-        for(i = 0; i < (it->ndims_m1+1); i++) {
-            efree(it->bounds[i]);
+    if (it != NULL) {
+        if (it->factors != NULL)
+            efree(it->factors);
+        if (it->strides != NULL)
+            efree(it->strides);
+        if (it->backstrides != NULL)
+            efree(it->backstrides);
+        if (it->dims_m1 != NULL)
+            efree(it->dims_m1);
+        if (it->coordinates != NULL)
+            efree(it->coordinates);
+        if (it->limits_sizes != NULL)
+            efree(it->limits_sizes);
+        if (it->bounds != NULL) {
+            for (i = 0; i < (it->ndims_m1 + 1); i++) {
+                efree(it->bounds[i]);
+            }
+            efree(it->bounds);
         }
-        efree(it->bounds);
-    }
-    if(it->limits != NULL) {
-        for(i = 0; i < (it->ndims_m1+1); i++) {
-            efree(it->limits[i]);
+        if (it->limits != NULL) {
+            for (i = 0; i < (it->ndims_m1 + 1); i++) {
+                efree(it->limits[i]);
+            }
+            efree(it->limits);
         }
-        efree(it->limits);
+        efree(it);
     }
-    efree(it);
 }
