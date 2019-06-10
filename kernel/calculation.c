@@ -7,7 +7,6 @@
 
 /**
  * CArray Cumulative Sum
- * @todo Implement axis option
  **/ 
 CArray *
 CArray_CumSum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
@@ -110,7 +109,6 @@ CArray_CumSum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
 
 /**
  * CArray Cumulative Prod
- * @todo Implement axis option
  **/ 
 CArray *
 CArray_CumProd(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)

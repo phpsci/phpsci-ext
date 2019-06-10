@@ -9,6 +9,7 @@
  * @param step
  * @param type_num
  * @param ptr
+ * @todo Fix leak
  * @return
  */
 CArray *
@@ -89,7 +90,7 @@ CArray_Arange(double start, double stop, double step, int type_num, MemoryPointe
 
     funcs->fill(CArray_BYTES(range), length, range);
     return range;
-    fail:
+fail:
     return NULL;
 }
 

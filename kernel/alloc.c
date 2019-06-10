@@ -1,7 +1,3 @@
-//
-// Created by Henrique Borba on 19/11/2018.
-//
-
 #include "alloc.h"
 #include "carray.h"
 #include "buffer.h"
@@ -105,10 +101,7 @@ _free_data_owner(MemoryPointer * ptr)
     CArray * array = CArray_FromMemoryPointer(ptr);
     CArrayDescriptor_DECREF(array->descriptor);
     if(array->descriptor->refcount < 0) {
-        efree(array->descriptor->f);
-        if(array->descriptor != NULL) {
-            efree(array->descriptor);
-        }
+        CArrayDescriptor_FREE(CArray_DESCR(array));
     }
     
     CArray_DECREF(array);
@@ -134,8 +127,7 @@ _free_data_ref(MemoryPointer * ptr)
     CArray_DECREF(array->base);
     CArrayDescriptor_DECREF(array->descriptor);
     if(array->descriptor->refcount < 0) {
-        efree(array->descriptor->f);
-        efree(array->descriptor);
+        CArrayDescriptor_FREE(CArray_DESCR(array));
     }
     efree(array->dimensions);
     efree(array->strides);
