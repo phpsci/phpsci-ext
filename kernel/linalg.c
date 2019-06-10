@@ -23,6 +23,52 @@ static double d_minus_one;
 static double d_ninf;
 static double d_nan;
 
+static inline void *
+linearize_DOUBLE_matrix(double *dst_in,
+                        double *src_in,
+                        CArray * a)
+{
+    double *src = (double *) src_in;
+    double *dst = (double *) dst_in;
+
+    if (dst) {
+        int i, j;
+        double* rv = dst;
+        int columns = (int)CArray_DIMS(a)[1];
+        int column_strides = CArray_STRIDES(a)[1]/sizeof(double);
+        int one = 1;
+        for (i = 0; i < CArray_DIMS(a)[0]; i++) {
+            if (column_strides > 0) {
+                cblas_dcopy(columns,
+                             (double*)src, column_strides,
+                             (double*)dst, one);
+            }
+            else if (column_strides < 0) {
+                cblas_dcopy(columns,
+                             (double*)((double*)src + (columns-1)*column_strides),
+                             column_strides,
+                             (double*)dst, one);
+            }
+            else {
+                /*
+                 * Zero stride has undefined behavior in some BLAS
+                 * implementations (e.g. OSX Accelerate), so do it
+                 * manually
+                 */
+                for (j = 0; j < columns; ++j) {
+                    memcpy((double*)dst + j, (double*)src, sizeof(double));
+                }
+            }
+
+            src += CArray_STRIDES(a)[0]/sizeof(double);
+            dst += CArray_DIMS(a)[1];
+        }
+        return rv;
+    } else {
+        return src;
+    }
+}
+
 /**
  * DOT
  */
@@ -235,7 +281,12 @@ CArray_Inv(CArray * a, MemoryPointer * out) {
         target = a;
     }
 
-    memcpy(data, DDATA(target), sizeof(double) * CArray_SIZE(target));
+    if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+        linearize_DOUBLE_matrix(data, DDATA(target), a);
+    } else {
+        memcpy(data, DDATA(target), sizeof(double) * CArray_SIZE(target));
+    }
+
     status = LAPACKE_dgesv(LAPACK_ROW_MAJOR,
             CArray_DIMS(target)[0],
             CArray_DIMS(target)[0],
@@ -267,6 +318,7 @@ CArray_Norm(CArray * a, int norm, MemoryPointer * out)
     CArray * target, * rtn;
     CArrayDescriptor * rtn_descr;
     int casted = 0;
+    double * data;
 
     switch(norm) {
         case 0:
@@ -301,6 +353,15 @@ CArray_Norm(CArray * a, int norm, MemoryPointer * out)
     } else {
         target = a;
     }
+
+    if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+        data = emalloc(sizeof(double) * CArray_SIZE(target));
+        linearize_DOUBLE_matrix(data, DDATA(target), a);
+    } else {
+        data = DDATA(target);
+    }
+
+
     rtn = emalloc(sizeof(CArray));
     rtn_descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
     rtn = CArray_NewFromDescr_int(rtn, rtn_descr, 0, NULL, NULL, NULL, 0, NULL, 0, 0);
@@ -308,7 +369,7 @@ CArray_Norm(CArray * a, int norm, MemoryPointer * out)
             norm_c,
             CArray_DIMS(target)[0],
             CArray_DIMS(target)[1],
-            DDATA(target),
+            data,
             CArray_DIMS(target)[0]);
 
     if (casted) {
@@ -334,6 +395,7 @@ CArray_Det(CArray * a, MemoryPointer * out)
     CArray * target, * rtn;
     CArrayDescriptor * rtn_descr;
     int casted = 0;
+    double * data;
 
     if (CArray_NDIM(a) != 2) {
         throw_valueerror_exception("Expected matrix with 2 dimensions");
@@ -355,11 +417,19 @@ CArray_Det(CArray * a, MemoryPointer * out)
         target = a;
     }
 
+    if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+        data = emalloc(sizeof(double) * CArray_SIZE(target));
+        linearize_DOUBLE_matrix(data, DDATA(target), a);
+    } else {
+        data = DDATA(target);
+    }
+
+
     status = LAPACKE_dgetrf(
             LAPACK_ROW_MAJOR,
             CArray_DIMS(a)[0],
             CArray_DIMS(a)[1],
-            DDATA(target),
+            data,
             CArray_DIMS(a)[0],
             ipiv
             );
@@ -375,7 +445,7 @@ CArray_Det(CArray * a, MemoryPointer * out)
 
     double acc_sign = sign;
     double acc_logdet = 0.0;
-    double * src = DDATA(a);
+    double * src = data;
 
     for (i = 0; i < CArray_DIMS(a)[0]; i++) {
         double abs_element = *src;
@@ -399,6 +469,10 @@ CArray_Det(CArray * a, MemoryPointer * out)
 
     if(out != NULL) {
         add_to_buffer(out, rtn, sizeof(CArray));
+    }
+
+    if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+        efree(data);
     }
 
     return rtn;

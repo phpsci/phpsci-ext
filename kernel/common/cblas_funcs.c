@@ -149,7 +149,6 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
     int * dimensions = NULL;
     int numbytes;
     MatrixShape ap1shape, ap2shape;
-    out_buffer = (CArray *)emalloc(sizeof(CArray));
 
     if(_bad_strides(ap1)) {
         CArray * op1 = CArray_NewCopy(ap1, CARRAY_ANYORDER);
@@ -389,9 +388,6 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
                  out_buffer);
         }
     }
-    
-    CArray_DECREF(ap1);
-    CArray_DECREF(ap2);
 
     /* Trigger possible copyback into `result` */
     CArray_ResolveWritebackIfCopy(out_buffer);
