@@ -322,3 +322,86 @@ CArray_Norm(CArray * a, int norm, MemoryPointer * out)
 fail:
     return NULL;
 }
+
+CArray *
+CArray_Det(CArray * a, MemoryPointer * out)
+{
+    double result;
+    int * ipiv = emalloc(sizeof(int) * CArray_DIMS(a)[0]);
+    lapack_int status;
+    double sign;
+    int i;
+    CArray * target, * rtn;
+    CArrayDescriptor * rtn_descr;
+    int casted = 0;
+
+    if (CArray_NDIM(a) != 2) {
+        throw_valueerror_exception("Expected matrix with 2 dimensions");
+        goto fail;
+    }
+
+    if (CArray_DIMS(a)[0] != CArray_DIMS(a)[1]) {
+        throw_valueerror_exception("Expected square matrix");
+        goto fail;
+    }
+    if (CArray_DESCR(a)->type_num != TYPE_DOUBLE_INT) {
+        CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
+        target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        if(CArray_CastTo(target, a) < 0) {
+            goto fail;
+        }
+        casted = 1;
+    } else {
+        target = a;
+    }
+
+    status = LAPACKE_dgetrf(
+            LAPACK_ROW_MAJOR,
+            CArray_DIMS(a)[0],
+            CArray_DIMS(a)[1],
+            DDATA(target),
+            CArray_DIMS(a)[0],
+            ipiv
+            );
+
+    int change_sign = 0;
+
+    for (i = 0; i < CArray_DIMS(a)[0]; i++)
+    {
+        change_sign += (ipiv[i] != (i+1));
+    }
+
+    sign = (change_sign % 2)? -1.0 : 1.0;
+
+    double acc_sign = sign;
+    double acc_logdet = 0.0;
+    double * src = DDATA(a);
+
+    for (i = 0; i < CArray_DIMS(a)[0]; i++) {
+        double abs_element = *src;
+        if (abs_element < 0.0) {
+            acc_sign = -acc_sign;
+            abs_element = -abs_element;
+        }
+        acc_logdet += log(abs_element);
+        src += CArray_DIMS(a)[0]+1;
+    }
+
+    rtn = emalloc(sizeof(CArray));
+    rtn_descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
+    rtn = CArray_NewFromDescr_int(rtn, rtn_descr, 0, NULL, NULL, NULL, 0, NULL, 0, 0);
+
+    DDATA(rtn)[0] = sign * exp(acc_logdet);
+
+    if (casted) {
+        CArray_Free(target);
+    }
+
+    if(out != NULL) {
+        add_to_buffer(out, rtn, sizeof(CArray));
+    }
+
+    return rtn;
+fail:
+    return NULL;
+}
