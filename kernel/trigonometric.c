@@ -42,16 +42,15 @@ CArray_Sin(CArray * target, MemoryPointer * out)
     result = emalloc(sizeof(CArray));
 
     descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
-    new_strides = CArray_Generate_Strides(CArray_DIMS(target), CArray_NDIM(target), descr->type);
 
     result = CArray_NewFromDescr_int(result, descr, CArray_NDIM(target),
-            CArray_DIMS(target), new_strides, NULL,
+            CArray_DIMS(target), NULL, NULL,
             CArray_FLAGS(target), NULL, 1, 0);
     result->flags = ~CARRAY_ARRAY_F_CONTIGUOUS;
+
     CArray_ElementWise_CFunc(target, result, &sin);
 
     if(out != NULL) {
         add_to_buffer(out, result, sizeof(CArray *));
     }
-    efree(new_strides);
 }
