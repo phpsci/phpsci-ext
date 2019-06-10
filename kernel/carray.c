@@ -1850,45 +1850,6 @@ CArray_Eye(int n, int m, int k, char * dtype, MemoryPointer * out)
     return target;
 }
 
-/**
- * ca::identity
- **/ 
-CArray *
-CArray_Identity(int n, char * dtype, MemoryPointer * out)
-{
-    CArray * ret, * mask;
-    int * dimensions, * mask_dimensions;
-    int i;
-    CArrayDescriptor *descr = NULL;
-
-    if(dtype != NULL) {
-        descr = CArray_DescrFromType(CHAR_TYPE_INT(*dtype));
-    }
-
-    dimensions = emalloc(2 * sizeof(int));
-    mask_dimensions = emalloc(sizeof(int));
-
-    dimensions[0] = n;
-    dimensions[1] = n;
-    mask_dimensions[0] = n + 1;
-
-    ret = CArray_Empty(2, dimensions, descr, 0, out);
-    mask = CArray_Empty(1, mask_dimensions, NULL, 0, NULL);
-
-    IDATA(mask)[0] = 1;
-
-    for(i = 0; i < n; i++) {
-        IDATA(mask)[i+1] = 0;
-    }
-
-    array_flat_set(ret, mask);
-    CArray_DECREF(mask);
-    CArray_Free(mask);
-    efree(dimensions);
-    efree(mask_dimensions);
-    return ret;
-}
-
 CArray *
 CArray_FromAny(CArray *op, CArrayDescriptor *newtype, int min_depth,
                int max_depth, int flags)

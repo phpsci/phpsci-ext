@@ -54,6 +54,7 @@
 #include "kernel/join.h"
 #include "kernel/ctors.h"
 #include "kernel/search.h"
+#include "kernel/exp_logs.h"
 
 typedef struct _zend_carray_cdata {
     zend_object std;
@@ -411,104 +412,287 @@ PHP_METHOD(CArray, sum)
     RETURN_MEMORYPOINTER(return_value, &out_ptr);
 }
 
+/**
+ * TRIGONOMETRIC
+ */
 PHP_METHOD(CArray, sin)
 {
     zval * target;
     long axis;
     int * axis_p;
     CArray * ret, * target_ca;
-    MemoryPointer ptr;
+    MemoryPointer ptr, rtn_tr;
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_ZVAL(target)
     ZEND_PARSE_PARAMETERS_END();
     ZVAL_TO_MEMORYPOINTER(target, &ptr);
     target_ca = CArray_FromMemoryPointer(&ptr);
-    ret = CArray_Sin(target_ca, &ptr);
-    RETURN_MEMORYPOINTER(return_value, &ptr);
+    ret = CArray_Sin(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
 }
-
-
-PHP_METHOD(CArray, prod)
+PHP_METHOD(CArray, cos)
 {
     zval * target;
     long axis;
     int * axis_p;
     CArray * ret, * target_ca;
-    MemoryPointer ptr;
-    ZEND_PARSE_PARAMETERS_START(1, 2)
-        Z_PARAM_ZVAL(target)
-        Z_PARAM_OPTIONAL
-        Z_PARAM_LONG(axis)
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
     ZEND_PARSE_PARAMETERS_END();
-    if(ZEND_NUM_ARGS() == 1) {
-        axis_p = NULL;
-    }
-    if(ZEND_NUM_ARGS() > 1) {
-        axis_p = (int*)emalloc(sizeof(int));
-        *axis_p = axis;
-    }
     ZVAL_TO_MEMORYPOINTER(target, &ptr);
     target_ca = CArray_FromMemoryPointer(&ptr);
-    ret = CArray_Prod(target_ca, axis_p, target_ca->descriptor->type_num, &ptr);
-    efree(axis_p);
-    RETURN_MEMORYPOINTER(return_value, &ptr);
-}
+    ret = CArray_Cos(target_ca, &rtn_tr);
 
-PHP_METHOD(CArray, cumprod)
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, tan)
 {
     zval * target;
     long axis;
     int * axis_p;
     CArray * ret, * target_ca;
-    MemoryPointer ptr;
-    ZEND_PARSE_PARAMETERS_START(1, 2)
-        Z_PARAM_ZVAL(target)
-        Z_PARAM_OPTIONAL
-        Z_PARAM_LONG(axis)
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
     ZEND_PARSE_PARAMETERS_END();
-    if(ZEND_NUM_ARGS() == 1) {
-        axis_p = NULL;
-    }
-    if(ZEND_NUM_ARGS() > 1) {
-        axis_p = (int*)emalloc(sizeof(int));
-        *axis_p = axis;
-    }
     ZVAL_TO_MEMORYPOINTER(target, &ptr);
     target_ca = CArray_FromMemoryPointer(&ptr);
-    ret = CArray_CumProd(target_ca, axis_p, target_ca->descriptor->type_num, &ptr);
-    efree(axis_p);
-    RETURN_MEMORYPOINTER(return_value, &ptr);
-}
+    ret = CArray_Tan(target_ca, &rtn_tr);
 
-PHP_METHOD(CArray, cumsum)
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, arcsin)
 {
     zval * target;
     long axis;
     int * axis_p;
     CArray * ret, * target_ca;
-    MemoryPointer ptr;
-    ZEND_PARSE_PARAMETERS_START(1, 2)
-        Z_PARAM_ZVAL(target)
-        Z_PARAM_OPTIONAL
-        Z_PARAM_LONG(axis)
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
     ZEND_PARSE_PARAMETERS_END();
-    if(ZEND_NUM_ARGS() == 1) {
-        axis_p = NULL;
-    }
-    if(ZEND_NUM_ARGS() > 1) {
-        axis_p = (int*)emalloc(sizeof(int));
-        *axis_p = axis;
-    }
     ZVAL_TO_MEMORYPOINTER(target, &ptr);
     target_ca = CArray_FromMemoryPointer(&ptr);
-    ret = CArray_CumSum(target_ca, axis_p, target_ca->descriptor->type_num, &ptr);
-    efree(axis_p);
+    ret = CArray_Tan(target_ca, &rtn_tr);
 
-    if (ret == NULL) {
-        return;
-    }
-    RETURN_MEMORYPOINTER(return_value, &ptr);
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
 }
+PHP_METHOD(CArray, arccos)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Tan(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, arctan)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Tan(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, sinh)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Sinh(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, cosh)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Cosh(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, tanh)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Tanh(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+
+/**
+ * EXPONENTS AND LOGARITHMS
+ */
+PHP_METHOD(CArray, exp)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Exp(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, expm1)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Expm1(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, exp2)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Exp2(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, log)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Log(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, log10)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Log10(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, log2)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Log2(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, log1p)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Log1p(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+
+
 
 PHP_METHOD(CArray, transpose)
 {
@@ -1047,6 +1231,89 @@ PHP_METHOD(CArray, remainder)
         RETURN_MEMORYPOINTER(return_value, &result_ptr);
     }
 }
+
+PHP_METHOD(CArray, prod)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+            Z_PARAM_ZVAL(target)
+            Z_PARAM_OPTIONAL
+            Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    if(ZEND_NUM_ARGS() == 1) {
+        axis_p = NULL;
+    }
+    if(ZEND_NUM_ARGS() > 1) {
+        axis_p = (int*)emalloc(sizeof(int));
+        *axis_p = axis;
+    }
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Prod(target_ca, axis_p, target_ca->descriptor->type_num, &ptr);
+    efree(axis_p);
+    RETURN_MEMORYPOINTER(return_value, &ptr);
+}
+
+PHP_METHOD(CArray, cumprod)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+            Z_PARAM_ZVAL(target)
+            Z_PARAM_OPTIONAL
+            Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    if(ZEND_NUM_ARGS() == 1) {
+        axis_p = NULL;
+    }
+    if(ZEND_NUM_ARGS() > 1) {
+        axis_p = (int*)emalloc(sizeof(int));
+        *axis_p = axis;
+    }
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_CumProd(target_ca, axis_p, target_ca->descriptor->type_num, &ptr);
+    efree(axis_p);
+    RETURN_MEMORYPOINTER(return_value, &ptr);
+}
+
+PHP_METHOD(CArray, cumsum)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+            Z_PARAM_ZVAL(target)
+            Z_PARAM_OPTIONAL
+            Z_PARAM_LONG(axis)
+    ZEND_PARSE_PARAMETERS_END();
+    if(ZEND_NUM_ARGS() == 1) {
+        axis_p = NULL;
+    }
+    if(ZEND_NUM_ARGS() > 1) {
+        axis_p = (int*)emalloc(sizeof(int));
+        *axis_p = axis;
+    }
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_CumSum(target_ca, axis_p, target_ca->descriptor->type_num, &ptr);
+    efree(axis_p);
+
+    if (ret == NULL) {
+        return;
+    }
+    RETURN_MEMORYPOINTER(return_value, &ptr);
+}
+
 
 /**
  * INDEXING ROUTINES
@@ -1646,6 +1913,15 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, fmod, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, remainder, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
+        // EXPONENTS AND LOGARITHMS
+        PHP_ME(CArray, exp, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, expm1, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, exp2, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, log, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, log10, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, log2, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, log1p, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
         // CALCULATION
         PHP_ME(CArray, sum, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, prod, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
@@ -1654,6 +1930,20 @@ static zend_function_entry carray_class_methods[] =
 
         // TRIGONOMETRIC
         PHP_ME(CArray, sin, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, cos, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, tan, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, arcsin, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, arccos, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, arctan, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, sinh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, cosh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, tanh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, hypot, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, arctan2, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, degrees, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, radians, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, deg2rad, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, rad2deg, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // CARRAY ITERATOR
         PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
