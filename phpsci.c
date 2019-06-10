@@ -417,14 +417,16 @@ PHP_METHOD(CArray, sin)
     long axis;
     int * axis_p;
     CArray * ret, * target_ca;
-    MemoryPointer ptr;
+    MemoryPointer ptr, rtn_tr;
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_ZVAL(target)
     ZEND_PARSE_PARAMETERS_END();
     ZVAL_TO_MEMORYPOINTER(target, &ptr);
     target_ca = CArray_FromMemoryPointer(&ptr);
-    ret = CArray_Sin(target_ca, &ptr);
-    RETURN_MEMORYPOINTER(return_value, &ptr);
+    ret = CArray_Sin(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
 }
 
 
@@ -1654,6 +1656,17 @@ static zend_function_entry carray_class_methods[] =
 
         // TRIGONOMETRIC
         PHP_ME(CArray, sin, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, cos, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, tan, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, arcsin, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, arccos, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, arctan, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, hypot, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, arctan2, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, degrees, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, radians, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, deg2rad, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        //PHP_ME(CArray, rad2deg, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // CARRAY ITERATOR
         PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
