@@ -602,7 +602,6 @@ int CArray_ElementStrides(CArray *obj);
 /**
  * Methods
  **/
-CArray * CArray_Identity(int n, char * dtype, MemoryPointer * out);
 CArray * CArray_Empty(int nd, int *dims, CArrayDescriptor *type, int fortran, MemoryPointer * ptr);
 CArray * CArray_Eye(int n, int m, int k, char * dtype, MemoryPointer * out);
 CArray * CArray_CheckFromAny(CArray *op, CArrayDescriptor *descr, int min_depth,
