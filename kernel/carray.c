@@ -716,9 +716,9 @@ _select_carray_funcs(CArrayDescriptor *descr)
 {
     int i;
     CArray_VectorUnaryFunc * castfunc;
-    CArray_ArrFuncs * functions = emalloc(sizeof(CArray_ArrFuncs));
-
+    CArray_ArrFuncs * functions;
     if(descr->f == NULL) {
+        functions = emalloc(sizeof(CArray_ArrFuncs));
         descr->f = functions;
     }
 
@@ -812,7 +812,9 @@ CArray_DescrFromType(int typenum)
         ret->elsize = sizeof(long);
         ret->type   = TYPE_LONG;
     }
-    _select_carray_funcs(ret);
+    if (ret->f == NULL) {
+        _select_carray_funcs(ret);
+    }
     return ret;
 }
 

@@ -994,6 +994,37 @@ PHP_METHOD(CArray, inv)
         RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
     }
 }
+/**
+ * @todo Implement more norm types
+ * @param execute_data
+ * @param return_value
+ */
+PHP_METHOD(CArray, norm)
+{
+    MemoryPointer target, rtn_ptr;
+    zval * target_z;
+    CArray * target_ca, * rtn_ca = NULL;
+    size_t type_len;
+    char * dtype;
+    int norm;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_ZVAL(target_z)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_STRING(dtype, type_len)
+    ZEND_PARSE_PARAMETERS_END();
+    if(ZEND_NUM_ARGS() >= 1) {
+        norm = 1;
+    }
+    ZVAL_TO_MEMORYPOINTER(target_z, &target);
+    target_ca = CArray_FromMemoryPointer(&target);
+    rtn_ca = CArray_Norm(target_ca, norm, &rtn_ptr);
+
+    FREE_FROM_MEMORYPOINTER(&target);
+    if (rtn_ca != NULL) {
+        RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
+    }
+}
+
 
 
 
@@ -1902,6 +1933,7 @@ static zend_function_entry carray_class_methods[] =
         // LINEAR ALGEBRA
         PHP_ME(CArray, matmul, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, inv, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, norm, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // ARITHMETIC
         PHP_ME(CArray, add, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

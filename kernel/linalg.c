@@ -219,6 +219,11 @@ CArray_Inv(CArray * a, MemoryPointer * out) {
     int order;
     double * data = emalloc(sizeof(double) * CArray_SIZE(a));
 
+    if (CArray_NDIM(a) != 2) {
+        throw_valueerror_exception("Matrix must have 2 dimensions");
+        return NULL;
+    }
+
     if (CArray_DESCR(a)->type_num != TYPE_DOUBLE_INT) {
         CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
         target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
@@ -245,4 +250,75 @@ CArray_Inv(CArray * a, MemoryPointer * out) {
     }
     efree(ipiv);
     return identity;
+}
+
+/**
+ *
+ * @param a
+ * @param norm 0 =  largest absolute value, 1 = Frobenius norm, 2 = infinity norm, 3 = 1-norm
+ * @param out
+ * @return
+ */
+CArray *
+CArray_Norm(CArray * a, int norm, MemoryPointer * out)
+{
+    double result;
+    char norm_c;
+    CArray * target, * rtn;
+    CArrayDescriptor * rtn_descr;
+    int casted = 0;
+
+    switch(norm) {
+        case 0:
+            norm_c = 'M';
+            break;
+        case 1:
+            norm_c = 'F';
+            break;
+        case 2:
+            norm_c = 'I';
+            break;
+        case 3:
+            norm_c = '1';
+            break;
+        default:
+            throw_valueerror_exception("Can't find a NORM algorithm with the provided name.");
+            goto fail;
+    }
+
+    if (CArray_NDIM(a) != 2) {
+        throw_valueerror_exception("Matrix must have 2 dimensions");
+        goto fail;
+    }
+
+    if (CArray_DESCR(a)->type_num != TYPE_DOUBLE_INT) {
+        CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
+        target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        if(CArray_CastTo(target, a) < 0) {
+            goto fail;
+        }
+        casted = 1;
+    } else {
+        target = a;
+    }
+    rtn = emalloc(sizeof(CArray));
+    rtn_descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
+    rtn = CArray_NewFromDescr_int(rtn, rtn_descr, 0, NULL, NULL, NULL, 0, NULL, 0, 0);
+    DDATA(rtn)[0] = LAPACKE_dlange(LAPACK_ROW_MAJOR,
+            norm_c,
+            CArray_DIMS(target)[0],
+            CArray_DIMS(target)[1],
+            DDATA(target),
+            CArray_DIMS(target)[0]);
+
+    if (casted) {
+        CArray_Free(target);
+    }
+
+    if(out != NULL) {
+        add_to_buffer(out, rtn, sizeof(CArray));
+    }
+    return rtn;
+fail:
+    return NULL;
 }
