@@ -516,6 +516,59 @@ PHP_METHOD(CArray, arctan)
     FREE_FROM_MEMORYPOINTER(&ptr);
     RETURN_MEMORYPOINTER(return_value, &rtn_tr);
 }
+PHP_METHOD(CArray, sinh)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Sinh(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, cosh)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Cosh(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+PHP_METHOD(CArray, tanh)
+{
+    zval * target;
+    long axis;
+    int * axis_p;
+    CArray * ret, * target_ca;
+    MemoryPointer ptr, rtn_tr;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    ret = CArray_Tanh(target_ca, &rtn_tr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_tr);
+}
+
+
 
 
 PHP_METHOD(CArray, prod)
@@ -1749,6 +1802,9 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, arcsin, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, arccos, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, arctan, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, sinh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, cosh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, tanh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         //PHP_ME(CArray, hypot, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         //PHP_ME(CArray, arctan2, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         //PHP_ME(CArray, degrees, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
