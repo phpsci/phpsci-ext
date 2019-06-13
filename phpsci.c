@@ -1890,6 +1890,16 @@ PHP_METHOD(CArray, __toString)
 
     ZVAL_STR(return_value, str);
 }
+PHP_METHOD(CArray, toArray)
+{
+    CArray * target_ca;
+    MemoryPointer ptr;
+    zval * obj = getThis();
+
+    ZVAL_TO_MEMORYPOINTER(obj, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+    CArray_ToArray(target_ca, return_value);
+}
 
 /**
  * CLASS METHODS
@@ -1902,6 +1912,7 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, print, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, __set, arginfo_array_set, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, __toString, NULL, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, toArray, NULL, ZEND_ACC_PUBLIC)
 
         // RANDOM
         PHP_ME(CArray, rand, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
