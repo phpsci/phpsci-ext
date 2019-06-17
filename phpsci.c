@@ -1940,6 +1940,44 @@ PHP_METHOD(CArray, toArray)
     target_ca = CArray_FromMemoryPointer(&ptr);
     CArray_ToArray(target_ca, return_value);
 }
+PHP_METHOD(CArray, map)
+{
+    int i;
+    zval result;
+    CArray * target_ca, * ret_ca;
+    zend_fcall_info fci = empty_fcall_info;
+    zend_fcall_info_cache fci_cache = empty_fcall_info_cache;
+    zval * obj = getThis();
+    zval * tmp;
+    MemoryPointer ptr, target_ptr;
+
+    array_init_size(return_value, CArray_DIMS(target_ca)[0]);
+
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_FUNC_EX(fci, fci_cache, 1, 0)
+    ZEND_PARSE_PARAMETERS_END();
+
+    ZVAL_TO_MEMORYPOINTER(obj, &ptr);
+    target_ca = CArray_FromMemoryPointer(&ptr);
+
+    zval *params = (zval *)safe_emalloc(CArray_DIMS(target_ca)[0], sizeof(zval), 0);
+    for (i = 0; i < CArray_DIMS(target_ca)[0]; i++) {
+        ret_ca = (CArray *) CArray_Slice_Index(target_ca, i, &target_ptr);
+        tmp = MEMORYPOINTER_TO_ZVAL(&target_ptr);
+        ZVAL_COPY(&params[i], tmp);
+        fci.param_count = 1;
+        fci.retval = &result;
+        fci.params = params;
+        zend_call_function(&fci, &fci_cache);
+
+        zend_hash_next_index_insert_new(Z_ARRVAL_P(return_value), &result);
+
+        zval_ptr_dtor(tmp);
+        zval_ptr_dtor(&params[i]);
+        efree(tmp);
+    }
+    efree(params);
+}
 
 /**
  * CLASS METHODS
@@ -1953,6 +1991,7 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, __set, arginfo_array_set, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, __toString, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, toArray, NULL, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, map, NULL, ZEND_ACC_PUBLIC)
 
         // RANDOM
         PHP_ME(CArray, rand, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
