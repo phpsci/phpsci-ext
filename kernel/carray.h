@@ -156,6 +156,9 @@ typedef enum {
 /* A sticky flag specifically for structured arrays */
 #define CARRAY_ALIGNED_STRUCT  0x80
 
+#define CArray_ISONESEGMENT(m) (CArray_NDIM(m) == 0 || \
+                             CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS) || \
+                             CArray_CHKFLAGS(m, CARRAY_ARRAY_F_CONTIGUOUS))
 #define CArrayDataType_FLAGCHK(dtype, flag) (((dtype)->flags & (flag)) == (flag))
 #define CArray_ISFORTRAN(m) (CArray_CHKFLAGS(m, CARRAY_ARRAY_F_CONTIGUOUS) && \
                              (!CArray_CHKFLAGS(m, CARRAY_ARRAY_C_CONTIGUOUS)))
@@ -189,8 +192,12 @@ typedef int (CArray_CompareFunc)(const void *, const void *, void *);
 typedef int (CArray_PartitionFunc)(void *, int, int,
                                    int *, int *,
                                     void *);
+typedef void (CArray_FastClipFunc)(void *in, int n_in, void *min,
+                                    void *max, void *out);
 
 typedef struct CArray_ArrFuncs {
+    CArray_FastClipFunc *fastclip;
+
     /* The next four functions *cannot* be NULL */
     CArray_FastTakeFunc *fasttake;
 

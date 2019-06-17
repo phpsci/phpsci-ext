@@ -55,6 +55,7 @@
 #include "kernel/ctors.h"
 #include "kernel/search.h"
 #include "kernel/exp_logs.h"
+#include "kernel/clip.h"
 
 typedef struct _zend_carray_cdata {
     zend_object std;
@@ -122,11 +123,7 @@ void ZVAL_TO_MEMORYPOINTER(zval * obj, MemoryPointer * ptr)
 static
 void FREE_FROM_MEMORYPOINTER(MemoryPointer * ptr)
 {
-    if(ptr->free == 1) {
-        CArray_Alloc_FreeFromMemoryPointer(ptr);
-        return;
-    }
-    if(ptr->free == 2) {
+    if(ptr->free == 1 || ptr->free == 2) {
         CArray_Alloc_FreeFromMemoryPointer(ptr);
     }
 }
@@ -210,7 +207,7 @@ PHP_METHOD(CArray, __construct)
     if(ZEND_NUM_ARGS() > 1) {
         type_parsed = type[0];
     }
-    CArray_FromZval(obj_zval, type_parsed, &ptr);
+    ZVAL_TO_MEMORYPOINTER(obj_zval, &ptr);
     zval * obj = getThis();
     CArray * arr = CArray_FromMemoryPointer(&ptr);
     zend_update_property_long(carray_sc_entry, obj, "uuid", sizeof("uuid") - 1, (int)ptr.uuid);
@@ -1876,6 +1873,49 @@ PHP_METHOD(CArray, fill)
     CArray_FillWithScalar(target_ca, scalar);
     CArrayScalar_FREE(scalar);
 }
+PHP_METHOD(CArray, clip)
+{
+    MemoryPointer ptr_a, ptr_min, ptr_max, ptr_rtn;
+    CArray * ca_a, * ca_min = NULL, * ca_max = NULL, * rtn = NULL;
+    zval * a, * a_min, * a_max;
+    ZEND_PARSE_PARAMETERS_START(3, 3)
+        Z_PARAM_ZVAL(a)
+        Z_PARAM_ZVAL(a_min)
+        Z_PARAM_ZVAL(a_max)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(a, &ptr_a);
+    ZVAL_TO_MEMORYPOINTER(a_min, &ptr_min);
+    ZVAL_TO_MEMORYPOINTER(a_max, &ptr_max);
+
+    ca_a = CArray_FromMemoryPointer(&ptr_a);
+
+    if (Z_TYPE_P(a_min) != IS_NULL) {
+        ca_min = CArray_FromMemoryPointer(&ptr_min);
+    }
+    if (Z_TYPE_P(a_max) != IS_NULL) {
+        ca_max = CArray_FromMemoryPointer(&ptr_max);
+    }
+
+    rtn = CArray_Clip(ca_a, ca_min, ca_max, &ptr_rtn);
+
+    FREE_FROM_MEMORYPOINTER(&ptr_a);
+
+    if (Z_TYPE_P(a_min) != IS_NULL) {
+        FREE_FROM_MEMORYPOINTER(&ptr_min);
+    }
+
+    if (Z_TYPE_P(a_max) != IS_NULL) {
+        FREE_FROM_MEMORYPOINTER(&ptr_max);
+    }
+
+    if (rtn == NULL) {
+        return;
+    }
+
+    RETURN_MEMORYPOINTER(return_value, &ptr_rtn);
+}
+
+
 
 PHP_METHOD(CArray, __toString)
 {
@@ -1919,6 +1959,7 @@ static zend_function_entry carray_class_methods[] =
 
         // MISC
         PHP_ME(CArray, fill, NULL, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, clip, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // INDEXING
         PHP_ME(CArray, diagonal, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

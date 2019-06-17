@@ -158,7 +158,6 @@ CArray_FromArray(CArray *arr, CArrayDescriptor *newtype, int flags)
             CArray_INCREF(arr);
         }
 
-        //CArray_Print(ret);
     }
         /*
          * If no copy then take an appropriate view if necessary, or
