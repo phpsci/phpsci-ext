@@ -4,7 +4,7 @@
 
 ## atleast_1d
 ```php
-public static atleast_1d($a ...) : CArray
+public static atleast_1d($a ...) : CArray | Array
 ```
 > Convert inputs to arrays with at least one dimension.
 > Scalar inputs are converted to 1-dimensional arrays, whilst higher-dimensional inputs are preserved.
@@ -21,7 +21,51 @@ public static atleast_1d($a ...) : CArray
 
 ## atleast_2d
 
+```php
+public static atleast_2d($a ...) : CArray | Array
+```
+> Convert inputs to arrays with at least two dimensions.
+
+##### Parameters
+
+`CArray|Array` **$a ...** One or more input arrays.
+
+##### Returns
+
+`CArray|Array` An CArray, or array of CArrays, each with NDIM >= 2. Copies are made only if necessary.
+
+---
 
 ## atleast_3d
 
+```php
+public static atleast_3d($a ...) : CArray | Array
+```
+> Convert inputs to arrays with at least three dimensions.
+
+##### Parameters
+
+`CArray|Array` **$a ...** One or more input arrays.
+
+##### Returns
+
+`CArray|Array` An CArray, or array of CArrays, each with NDIM >= 3. Copies are made only if necessary.
+
+---
+
 ## squeeze
+
+```php
+public static squeeze($a, $axis = NULL) : CArray
+```
+> Remove single-dimensional entries from the shape of an array.
+  
+##### Parameters
+
+`CArray|Array` **$a** Input data.
+
+`int` **$axis** Selects a subset of the single-dimensional entries in the shape.
+
+##### Returns
+
+`CArray` The input array, but with all or a subset of the dimensions of length 1 removed. This is always a itself or a view into `$a`.
