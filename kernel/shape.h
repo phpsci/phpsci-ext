@@ -15,8 +15,8 @@ CArray * CArray_Ravel(CArray *arr, CARRAY_ORDER order);
 CArray * CArray_atleast1d(CArray * self, MemoryPointer * out);
 CArray * CArray_atleast2d(CArray * self, MemoryPointer * out);
 CArray * CArray_atleast3d(CArray * self, MemoryPointer * out);
-CArray * CArray_Squeeze(CArray * self, int axis, MemoryPointer * out);
-CArray * CArray_SqueezeSelected(CArray * self, int *axis_flags);
+CArray * CArray_Squeeze(CArray * self, int * axis, MemoryPointer * out);
+CArray * CArray_SqueezeSelected(CArray * self, int *axis_flags, int n_axis);
 void CArray_RemoveAxesInPlace(CArray *arr, int *flags);
 CArray * CArray_ExpandDims(CArray * target, int axis, MemoryPointer * out);
 #endif //PHPSCI_EXT_SHAPE_H

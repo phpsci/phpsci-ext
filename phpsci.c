@@ -1577,18 +1577,34 @@ PHP_METHOD(CArray, squeeze)
     MemoryPointer a_ptr, out_ptr;
     CArray * target_array, * rtn_array;
     zval * a;
-    long axis;
+    zval * axis;
+    int axis_i;
     ZEND_PARSE_PARAMETERS_START(1, 2)
         Z_PARAM_ZVAL(a)
         Z_PARAM_OPTIONAL
-        Z_PARAM_LONG(axis)
+        Z_PARAM_ZVAL(axis)
     ZEND_PARSE_PARAMETERS_END();
-    if(ZEND_NUM_ARGS() == 1) {
-        axis = INT_MAX;
+    if(ZEND_NUM_ARGS() == 1 || Z_TYPE_P(axis) == IS_NULL) {
+        axis_i = INT_MAX;
     }
+    if(ZEND_NUM_ARGS() > 1 && Z_TYPE_P(axis) != IS_LONG && Z_TYPE_P(axis) != IS_NULL) {
+        throw_valueerror_exception("axis must be either NULL or LONG");
+        return;
+    } else if (ZEND_NUM_ARGS() > 1) {
+        convert_to_long(axis);
+        axis_i = zval_get_long(axis);
+    }
+
     ZVAL_TO_MEMORYPOINTER(a, &a_ptr);
     target_array = CArray_FromMemoryPointer(&a_ptr);
-    rtn_array = CArray_Squeeze(target_array, axis,&out_ptr);
+
+    if (ZEND_NUM_ARGS() > 1 && Z_TYPE_P(axis) != IS_NULL) {
+        rtn_array = CArray_Squeeze(target_array, &axis_i, &out_ptr);
+    } else {
+        rtn_array = CArray_Squeeze(target_array, NULL, &out_ptr);
+    }
+
+    FREE_FROM_MEMORYPOINTER(&a_ptr);
     if(rtn_array != NULL) {
         RETURN_MEMORYPOINTER(return_value, &out_ptr);
     }
