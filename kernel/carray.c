@@ -27,6 +27,8 @@
 #include "search.h"
 #include "common/sort.h"
 #include "common/compare.h"
+#include "clip.h"
+#include "ctors.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wint-conversion"
@@ -736,6 +738,7 @@ _select_carray_funcs(CArrayDescriptor *descr)
         descr->f->compare = &INT_compare;
         descr->f->cancastto[0] = TYPE_DOUBLE_INT;
         descr->f->cancastto[1] = TYPE_INTEGER_INT;
+        descr->f->fastclip = &INT_clip;
     }
 
     if(descr->type_num == TYPE_DOUBLE_INT) {
@@ -752,6 +755,7 @@ _select_carray_funcs(CArrayDescriptor *descr)
         descr->f->compare = &DOUBLE_compare;
         descr->f->cancastto[0] = TYPE_DOUBLE_INT;
         descr->f->cancastto[1] = TYPE_INTEGER_INT;
+        descr->f->fastclip = &DOUBLE_clip;
     }
 
     /**
@@ -1256,7 +1260,7 @@ CArray_Print(CArray *array, int force_summary)
     }
     if(CArray_TYPE(array) == TYPE_INTEGER_INT) {
         do {
-            if (IT_IDATA(it)[0] > 99999999 || IT_IDATA(it)[0] < 99999999) {
+            if (IT_IDATA(it)[0] > 99999999) {
                 notated = 1;
                 break;
             }

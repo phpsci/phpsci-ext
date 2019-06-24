@@ -120,6 +120,7 @@ PHP_NEW_EXTENSION(carray,
       kernel/assign_scalar.c \
       kernel/common/exceptions.c \
       kernel/item_selection.c \
+      kernel/clip.c \
       kernel/search.c \
       kernel/common/sort.c \
       kernel/common/compare.c \

@@ -3,6 +3,8 @@
 #include "alloc.h"
 #include "convert.h"
 #include "convert_type.h"
+#include "php.h"
+#include "iterators.h"
 
 int
 setArrayFromSequence(CArray *a, CArray *s, int dim, int offset)
@@ -156,7 +158,6 @@ CArray_FromArray(CArray *arr, CArrayDescriptor *newtype, int flags)
             CArray_INCREF(arr);
         }
 
-        //CArray_Print(ret);
     }
         /*
          * If no copy then take an appropriate view if necessary, or
@@ -170,3 +171,101 @@ CArray_FromArray(CArray *arr, CArrayDescriptor *newtype, int flags)
     return ret;
 }
 
+static void
+_carray_to_array_recursive(CArray * array, int * dimension, zval * current_dim_z, CArrayIterator * it)
+{
+    zval tmp;
+    zval * current;
+    int i, next_dim;
+    if (*dimension == CArray_NDIM(array)) {
+        return;
+    }
+
+    if (*dimension < (CArray_NDIM(array) - 1)) {
+        *dimension = *dimension + 1;
+        ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(current_dim_z), current)
+        {
+            for (i = 0; i < CArray_DIMS(array)[*dimension]; i++) {
+                 array_init_size(&tmp, CArray_DIMS(array)[*dimension]);
+                 zend_hash_next_index_insert_new(Z_ARRVAL_P(current), &tmp);
+                 _carray_to_array_recursive(array, dimension, &tmp, it);
+            }
+        }ZEND_HASH_FOREACH_END();
+    } else {
+        if (CArray_NDIM(array) == 2) {
+            ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(current_dim_z), current) {
+                for (i = 0; i < CArray_DIMS(array)[*dimension]; i++) {
+                    if (CArray_TYPE(array) == TYPE_INTEGER_INT) {
+                        ZVAL_LONG(&tmp, ((int *) it->data_pointer)[0]);
+                    }
+                    if (CArray_TYPE(array) == TYPE_DOUBLE_INT) {
+                        ZVAL_DOUBLE(&tmp, ((double *) it->data_pointer)[0]);
+                    }
+                    zend_hash_next_index_insert_new(Z_ARRVAL_P(current), &tmp);
+                    CArrayIterator_NEXT(it);
+                }
+            }ZEND_HASH_FOREACH_END();
+        }
+        if (CArray_NDIM(array) > 2) {
+            for (i = 0; i < CArray_DIMS(array)[*dimension]; i++) {
+                if (CArray_TYPE(array) == TYPE_INTEGER_INT) {
+                    ZVAL_LONG(&tmp, ((int *) it->data_pointer)[0]);
+                }
+                if (CArray_TYPE(array) == TYPE_DOUBLE_INT) {
+                    ZVAL_DOUBLE(&tmp, ((double *) it->data_pointer)[0]);
+                }
+                zend_hash_next_index_insert_new(Z_ARRVAL_P(current_dim_z), &tmp);
+                CArrayIterator_NEXT(it);
+            }
+        }
+    }
+}
+
+void
+CArray_ToArray(CArray *a, zval * rtn)
+{
+    CArrayIterator * it;
+    int dimension = 0;
+    zval * current;
+    zval tmp;
+    int i, j;
+    if (CArray_NDIM(a) == 0) {
+        if (CArray_TYPE(a) == TYPE_DOUBLE_INT) {
+            ZVAL_DOUBLE(rtn, DDATA(a)[0]);
+            return;
+        }
+        if (CArray_TYPE(a) == TYPE_LONG_INT || CArray_TYPE(a) == TYPE_INTEGER_INT) {
+            ZVAL_DOUBLE(rtn, IDATA(a)[0]);
+            return;
+        }
+    }
+
+    if (CArray_NDIM(a) > 1) {
+        array_init_size(rtn, CArray_DIMS(a)[0]);
+        for (i = 0; i < CArray_DIMS(a)[0]; i++) {
+            array_init(&tmp);
+            zend_hash_next_index_insert_new(Z_ARRVAL_P(rtn), &tmp);
+        }
+        dimension++;
+        it = CArray_NewIter(a);
+        _carray_to_array_recursive(a, &dimension, rtn, it);
+        CArrayIterator_FREE(it);
+        return;
+    }
+
+    if (CArray_NDIM(a) == 1) {
+        it = CArray_NewIter(a);
+        array_init_size(rtn, CArray_DIMS(a)[0]);
+        for (i = 0; i < CArray_DIMS(a)[0]; i++) {
+                    if (CArray_TYPE(a) == TYPE_INTEGER_INT) {
+                        ZVAL_LONG(&tmp, ((int *) it->data_pointer)[0]);
+                    }
+                    if (CArray_TYPE(a) == TYPE_DOUBLE_INT) {
+                        ZVAL_DOUBLE(&tmp, ((double *) it->data_pointer)[0]);
+                    }
+                    zend_hash_next_index_insert_new(Z_ARRVAL_P(rtn), &tmp);
+                    CArrayIterator_NEXT(it);
+        };
+        CArrayIterator_FREE(it);
+    }
+}

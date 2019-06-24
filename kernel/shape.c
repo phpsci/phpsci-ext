@@ -657,6 +657,7 @@ CArray_atleast1d(CArray * self, MemoryPointer * out)
         }
         return rtn;
     }
+
     dims = emalloc(sizeof(int));
     dims[0] = 1;
     rtn = CArray_Newshape(self, dims, 1, CARRAY_CORDER, out);
@@ -726,19 +727,22 @@ CArray_atleast3d(CArray * self, MemoryPointer * out)
 }
 
 CArray *
-CArray_SqueezeSelected(CArray * self, int *axis_flags)
+CArray_SqueezeSelected(CArray * self, int *axis_flags, int n_axis)
 {
     CArray *ret;
-    int idim, ndim, any_ones;
+    int idim, ndim, any_ones, axisdim;
     int *shape;
 
     ndim = CArray_NDIM(self);
     shape = CArray_DIMS(self);
- 
+
     /* Verify that the axes requested are all of size one */
     any_ones = 0;
     for (idim = 0; idim < ndim; ++idim) {
-        if (axis_flags[idim] != 0) {
+        if (idim > n_axis) {
+            continue;
+        }
+        if (axis_flags[axisdim] != 0) {
             if (shape[idim] == 1) {
                 any_ones = 1;
             }
@@ -749,6 +753,7 @@ CArray_SqueezeSelected(CArray * self, int *axis_flags)
         }
     }
 
+
     /* If there were no axes to squeeze out, return the same array */
     if (!any_ones) {
         CArray_INCREF(self);
@@ -757,6 +762,7 @@ CArray_SqueezeSelected(CArray * self, int *axis_flags)
 
     
     ret = CArray_View(self);
+
     if (ret == NULL) {
         return NULL;
     }
@@ -767,12 +773,13 @@ CArray_SqueezeSelected(CArray * self, int *axis_flags)
 }
 
 CArray *
-CArray_Squeeze(CArray * self, int axis, MemoryPointer * out)
+CArray_Squeeze(CArray * self, int * axis, MemoryPointer * out)
 {
     CArray *ret;
     int *axis_in = NULL;
     int * axis_flags =  ecalloc(sizeof(int), CArray_NDIM(self));
-    if (axis == INT_MAX) {
+
+    if (axis == NULL) {
         int * unit_dims = emalloc(sizeof(int) * CArray_NDIM(self));
         int idim, ndim, any_ones;
         int *shape;
@@ -806,14 +813,8 @@ CArray_Squeeze(CArray * self, int axis, MemoryPointer * out)
         efree(unit_dims);
         efree(axis_flags);
     } else {
-        axis_in = emalloc(sizeof(int));
-        *axis_in = axis;
-        if (CArray_ConvertMultiAxis(axis_in, CArray_NDIM(self), axis_flags) != CARRAY_SUCCEED) {
-            return NULL;
-        }
-
-        ret = CArray_SqueezeSelected(self, axis_flags);
-        
+        ret = CArray_SqueezeSelected(self, axis, 0);
+        efree(axis_flags);
     }
     
     if(out != NULL && ret != NULL) {
