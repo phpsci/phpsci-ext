@@ -657,6 +657,7 @@ CArray_atleast1d(CArray * self, MemoryPointer * out)
         }
         return rtn;
     }
+
     dims = emalloc(sizeof(int));
     dims[0] = 1;
     rtn = CArray_Newshape(self, dims, 1, CARRAY_CORDER, out);

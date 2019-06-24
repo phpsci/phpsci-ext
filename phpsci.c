@@ -13,7 +13,7 @@
   |     http://www.apache.org/licenses/LICENSE-2.0                       |
   |                                                                      |
   | Unless required by applicable law or agreed to in writing, software  |
-  | distributed under the License is distributed on an "AS IS" BASIS,    |
+  | distributed under the License is distributed on an "AS \IS" BASIS,    |
   | WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or      |
   | implied.                                                             |
   | See the License for the specific language governing permissions and  |
@@ -43,7 +43,6 @@
 #include "kernel/number.h"
 #include "kernel/trigonometric.h"
 #include "kernel/common/exceptions.h"
-#include "kernel/shape.h"
 #include "kernel/item_selection.h"
 #include "kernel/scalar.h"
 #include "kernel/random.h"
@@ -326,7 +325,7 @@ PHP_METHOD(CArray, offsetUnset)
 }
 
 
-PHP_METHOD(CArray, shape)
+PHP_METHOD(CArray, setShape)
 {
     MemoryPointer ptr;
     CArray * carray, * newcarray;
@@ -342,6 +341,23 @@ PHP_METHOD(CArray, shape)
     newcarray = CArray_Newshape(carray, new_shape, zend_hash_num_elements(Z_ARRVAL_P(new_shape_zval)), CARRAY_CORDER, &ptr);
     FREE_TUPLE(new_shape);
     RETURN_MEMORYPOINTER(return_value, &ptr);
+}
+PHP_METHOD(CArray, reshape)
+{
+    MemoryPointer ptr;
+    CArray * carray, * newcarray;
+    zval * new_shape_zval, * target;
+    int * new_shape;
+    int ndim;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+            Z_PARAM_ZVAL(new_shape_zval)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &ptr);
+    carray = CArray_FromMemoryPointer(&ptr);
+    new_shape = ZVAL_TO_TUPLE(new_shape_zval, &ndim);
+    newcarray = CArray_Newshape(carray, new_shape, zend_hash_num_elements(Z_ARRVAL_P(new_shape_zval)), CARRAY_CORDER, &ptr);
+    FREE_TUPLE(new_shape);
 }
 
 
@@ -1441,7 +1457,6 @@ PHP_METHOD(CArray, atleast_1d)
         out_carray = CArray_atleast1d(target, &out);
         RETURN_MEMORYPOINTER(return_value, &out);
         if(ptr.free == 1) {
-            CArrayDescriptor_DECREF(CArray_DESCR(target));
             CArray_Alloc_FreeFromMemoryPointer(&ptr);
         }
         if(ptr.free == 2) {
@@ -1458,7 +1473,6 @@ PHP_METHOD(CArray, atleast_1d)
             zend_hash_next_index_insert_new(Z_ARRVAL_P(return_value), temp_zval);
             if(ptr.free == 1) {
                 efree(temp_zval);
-                CArrayDescriptor_DECREF(CArray_DESCR(target));
                 CArray_Alloc_FreeFromMemoryPointer(&ptr);
             }
             if(ptr.free == 2) {
@@ -1489,7 +1503,6 @@ PHP_METHOD(CArray, atleast_2d)
         out_carray = CArray_atleast2d(target, &out);
         RETURN_MEMORYPOINTER(return_value, &out);
         if(ptr.free == 1) {
-            CArrayDescriptor_DECREF(CArray_DESCR(target));
             CArray_Alloc_FreeFromMemoryPointer(&ptr);
         }
         if(ptr.free == 2) {
@@ -1509,7 +1522,6 @@ PHP_METHOD(CArray, atleast_2d)
             zend_hash_next_index_insert_new(Z_ARRVAL_P(return_value), temp_zval);
             if(ptr.free) {
                 efree(temp_zval);
-                CArrayDescriptor_DECREF(CArray_DESCR(target));
                 CArray_Alloc_FreeFromMemoryPointer(&ptr);
             }
             if(!ptr.free) {
@@ -1536,7 +1548,6 @@ PHP_METHOD(CArray, atleast_3d)
         out_carray = CArray_atleast3d(target, &out);
         RETURN_MEMORYPOINTER(return_value, &out);
         if(ptr.free) {
-            CArrayDescriptor_DECREF(CArray_DESCR(target));
             CArray_Alloc_FreeFromMemoryPointer(&ptr);
         }
         if(!ptr.free) {
@@ -1552,7 +1563,6 @@ PHP_METHOD(CArray, atleast_3d)
             zend_hash_next_index_insert_new(Z_ARRVAL_P(return_value), temp_zval);
             if(ptr.free) {
                 efree(temp_zval);
-                CArrayDescriptor_DECREF(CArray_DESCR(target));
                 CArray_Alloc_FreeFromMemoryPointer(&ptr);
             }
             if(!ptr.free) {
@@ -1951,18 +1961,22 @@ PHP_METHOD(CArray, map)
     zval * tmp;
     MemoryPointer ptr, target_ptr;
 
-    array_init_size(return_value, CArray_DIMS(target_ca)[0]);
-
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_FUNC_EX(fci, fci_cache, 1, 0)
     ZEND_PARSE_PARAMETERS_END();
 
     ZVAL_TO_MEMORYPOINTER(obj, &ptr);
     target_ca = CArray_FromMemoryPointer(&ptr);
+    array_init_size(return_value, CArray_DIMS(target_ca)[0]);
 
     zval *params = (zval *)safe_emalloc(CArray_DIMS(target_ca)[0], sizeof(zval), 0);
     for (i = 0; i < CArray_DIMS(target_ca)[0]; i++) {
         ret_ca = (CArray *) CArray_Slice_Index(target_ca, i, &target_ptr);
+
+        if (ret_ca == NULL) {
+            return;
+        }
+
         tmp = MEMORYPOINTER_TO_ZVAL(&target_ptr);
         ZVAL_COPY(&params[i], tmp);
         fci.param_count = 1;
@@ -2036,7 +2050,8 @@ static zend_function_entry carray_class_methods[] =
 
         // SHAPE
         PHP_ME(CArray, transpose, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        PHP_ME(CArray, shape, NULL, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, reshape, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, setShape, NULL, ZEND_ACC_PUBLIC)
         
         // LINEAR ALGEBRA
         PHP_ME(CArray, matmul, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
@@ -2079,12 +2094,6 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, sinh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, cosh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, tanh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        //PHP_ME(CArray, hypot, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        //PHP_ME(CArray, arctan2, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        //PHP_ME(CArray, degrees, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        //PHP_ME(CArray, radians, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        //PHP_ME(CArray, deg2rad, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        //PHP_ME(CArray, rad2deg, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // CARRAY ITERATOR
         PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
