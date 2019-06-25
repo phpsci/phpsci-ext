@@ -1837,13 +1837,73 @@ PHP_METHOD(CArray, arange)
 }
 PHP_METHOD(CArray, linspace)
 {
+    long num_samples;
+    int num;
+    zend_bool endpoint;
+    size_t type_len;
+    CArray * ret;
+    zval * start, * stop;
+    double start_d, stop_d;
+    char * typestr;
+    int type_num;
+    MemoryPointer out;
+
+    ZEND_PARSE_PARAMETERS_START(2, 7)
+            Z_PARAM_ZVAL(start)
+            Z_PARAM_ZVAL(stop)
+            Z_PARAM_OPTIONAL
+            Z_PARAM_LONG(num_samples)
+            Z_PARAM_BOOL(endpoint)
+            Z_PARAM_STRING(typestr, type_len)
+    ZEND_PARSE_PARAMETERS_END();
+    if(ZEND_NUM_ARGS() == 2) {
+        convert_to_double(start);
+        convert_to_double(stop);
+        start_d = (double)zval_get_double(start);
+        stop_d = (double)zval_get_double(stop);
+        num = 50;
+        type_num = TYPE_DOUBLE_INT;
+        endpoint = 1;
+    }
+    if(ZEND_NUM_ARGS() == 3) {
+        convert_to_double(start);
+        convert_to_double(stop);
+        start_d = (double)zval_get_double(start);
+        stop_d = (double)zval_get_double(stop);
+        num = (int)num_samples;
+        type_num = TYPE_DOUBLE_INT;
+        endpoint = 1;
+    }
+    if(ZEND_NUM_ARGS() == 4) {
+        convert_to_double(start);
+        convert_to_double(stop);
+        start_d = (double)zval_get_double(start);
+        stop_d = (double)zval_get_double(stop);
+        num = (int)num_samples;
+        type_num = TYPE_DOUBLE_INT;
+    }
+    if(ZEND_NUM_ARGS() == 5) {
+        convert_to_double(start);
+        convert_to_double(stop);
+        start_d = (double)zval_get_double(start);
+        stop_d = (double)zval_get_double(stop);
+        num = (int)num_samples;
+        type_num = TYPESTR_TO_INT(typestr);
+    }
+    ret = CArray_Linspace(start_d, stop_d, num, endpoint, 1, 0, type_num, &out);
+
+    RETURN_MEMORYPOINTER(return_value, &out);
+}
+PHP_METHOD(CArray, logspace)
+{
     int num;
     CArray * ret;
     zval * start, * stop;
     double start_d, stop_d;
+    MemoryPointer out;
     ZEND_PARSE_PARAMETERS_START(2, 7)
-        Z_PARAM_ZVAL(start)
-        Z_PARAM_ZVAL(stop)
+            Z_PARAM_ZVAL(start)
+            Z_PARAM_ZVAL(stop)
     ZEND_PARSE_PARAMETERS_END();
     if(ZEND_NUM_ARGS() == 2) {
         convert_to_double(start);
@@ -1852,8 +1912,7 @@ PHP_METHOD(CArray, linspace)
         stop_d = (double)zval_get_double(stop);
         num = 50;
     }
-    ret = CArray_Linspace(start_d, stop_d, num, 1, 1, 0, TYPE_DEFAULT_INT);
-    CArray_Dump(ret);
+    ret = CArray_Linspace(start_d, stop_d, num, 1, 1, 0, TYPE_DEFAULT_INT, &out);
 }
 
 /**
@@ -2046,6 +2105,7 @@ static zend_function_entry carray_class_methods[] =
         // NUMERICAL RANGES
         PHP_ME(CArray, arange, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, linspace, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, logspace, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         //ARRAY MANIPULATION
         PHP_ME(CArray, swapaxes, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
