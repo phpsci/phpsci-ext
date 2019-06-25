@@ -3,6 +3,7 @@
 #include "iterators.h"
 #include "buffer.h"
 #include "convert_type.h"
+#include "alloc.h"
 
 void *
 _carray_add_double_double(CArrayIterator * a, CArrayIterator * b, CArray * out, int out_index) {
@@ -194,15 +195,24 @@ CArray_Add(CArray *m1, CArray *m2, MemoryPointer * ptr)
             break;
     }
 
-    result = CArray_NewFromDescr_int(result, type, CArray_NDIM(prior1),  dimensions,
-                                     NULL, NULL, 0, NULL, 1, 0);
-
     CArrayIterator * it1 = CArray_BroadcastToShape(prior1, dimensions, CArray_NDIM(prior1));
     CArrayIterator * it2 = CArray_BroadcastToShape(prior2, dimensions, CArray_NDIM(prior1));
 
     if (it1 == NULL || it2 == NULL) {
+        if (it1 != NULL) {
+            CArrayIterator_FREE(it1);
+        }
+        if (it2 != NULL) {
+            CArrayIterator_FREE(it2);
+        }
+        CArrayDescriptor_FREE(type);
+        efree(result);
+        efree(dimensions);
         return NULL;
     }
+
+    result = CArray_NewFromDescr_int(result, type, CArray_NDIM(prior1),  dimensions,
+                                     NULL, NULL, 0, NULL, 1, 0);
 
     i = 0;
     do {

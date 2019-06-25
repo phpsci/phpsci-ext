@@ -4,6 +4,7 @@
 #include "range.h"
 #include "convert.h"
 #include "number.h"
+#include "shape.h"
 
 /**
  * @param start
@@ -99,7 +100,7 @@ fail:
 
 
 CArray *
-CArray_Linspace(double start, double stop, int num, int endpoint, int retstep, int axis, int type, MemoryPointer * out)
+CArray_Linspace(double start, double stop, int num, int endpoint, int retstep, int * axis, int type, MemoryPointer * out)
 {
     CArray * y, * tempc = emalloc(sizeof(CArray)), * freec, * rtn;
     double div, delta;
@@ -157,11 +158,65 @@ CArray_Linspace(double start, double stop, int num, int endpoint, int retstep, i
         }
     }
 
+    if (axis != NULL) {
+        if (*axis != 0) {
+            dtype = CArray_DescrFromType(TYPE_INTEGER_INT);
+            CArray *axisc = emalloc(sizeof(CArray));
+            axisc = CArray_NewFromDescr(axisc, dtype, 0, NULL, NULL, NULL, 0, NULL);
+            IDATA(axisc)[0] = *axis;
+
+            dtype = CArray_DescrFromType(TYPE_INTEGER_INT);
+            CArray *dst = emalloc(sizeof(CArray));
+            dst = CArray_NewFromDescr(dst, dtype, 0, NULL, NULL, NULL, 0, NULL);
+            IDATA(dst)[0] = 0;
+            y = CArray_Moveaxis(y, dst, axisc, NULL);
+        }
+    }
+
     CArrayDescriptor_FREE(dtype);
-    CArray_Free(tempc);
+
 
     if (type != TYPE_DOUBLE_INT) {
         CArrayDescriptor *descr = CArray_DescrFromType(type);
+        rtn = CArray_NewLikeArray(y, CARRAY_CORDER, descr, 0);
+        if(CArray_CastTo(rtn, y) < 0) {
+            return NULL;
+        }
+        CArray_Free(y);
+    } else {
+        rtn = y;
+    }
+
+    if (out != NULL) {
+        add_to_buffer(out, rtn, sizeof(CArray));
+    }
+    efree(tempc->data);
+    efree(tempc);
+    return rtn;
+}
+
+CArray *
+CArray_Logspace(double start, double stop, int num, int endpoint, double base, int typenum, MemoryPointer * out)
+{
+    int axis = 0;
+    CArray * baseca, * y, * rtn, * tmp;
+
+
+    baseca = emalloc(sizeof(CArray));
+
+    CArrayDescriptor * dtype = CArray_DescrFromType(TYPE_DOUBLE_INT);
+    baseca = CArray_NewFromDescr(baseca, dtype, 0, NULL, NULL, NULL, 0, NULL);
+    DDATA(baseca)[0] = base;
+
+    tmp = CArray_Linspace(start, stop, num, endpoint, 1, &axis, TYPE_DOUBLE_INT, NULL);
+
+    y = CArray_Power(baseca, tmp, NULL);
+
+    CArray_Free(tmp);
+    CArray_Free(baseca);
+
+    if (typenum != TYPE_DOUBLE_INT) {
+        CArrayDescriptor *descr = CArray_DescrFromType(typenum);
         rtn = CArray_NewLikeArray(y, CARRAY_CORDER, descr, 0);
         if(CArray_CastTo(rtn, y) < 0) {
             return NULL;

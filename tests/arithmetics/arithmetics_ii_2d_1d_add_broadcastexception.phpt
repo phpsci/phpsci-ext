@@ -1,5 +1,5 @@
 --TEST--
-CArray Arithmetics ([[INT]] + [INT]): new CArray([[1, 2], [3, 4]]) plus [1, 2]
+CArray Arithmetics ([[INT]] + [INT]): Broadcast exception testing
 --FILE--
 <?php
 error_reporting(0);
