@@ -29,6 +29,7 @@
 #include "common/compare.h"
 #include "clip.h"
 #include "ctors.h"
+#include "linalg.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wint-conversion"
@@ -739,6 +740,7 @@ _select_carray_funcs(CArrayDescriptor *descr)
         descr->f->cancastto[0] = TYPE_DOUBLE_INT;
         descr->f->cancastto[1] = TYPE_INTEGER_INT;
         descr->f->fastclip = &INT_clip;
+        descr->f->dotfunc = &INT_dot;
     }
 
     if(descr->type_num == TYPE_DOUBLE_INT) {
@@ -756,6 +758,7 @@ _select_carray_funcs(CArrayDescriptor *descr)
         descr->f->cancastto[0] = TYPE_DOUBLE_INT;
         descr->f->cancastto[1] = TYPE_INTEGER_INT;
         descr->f->fastclip = &DOUBLE_clip;
+        descr->f->dotfunc = &DOUBLE_dot;
     }
 
     /**

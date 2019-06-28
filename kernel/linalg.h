@@ -1,7 +1,7 @@
 #ifndef PHPSCI_EXT_LINALG_H
 #define PHPSCI_EXT_LINALG_H
 
-typedef void (CArray_DotFunc)(char *, int, char *, int, char *, int);
+#include "carray.h"
 
 void FLOAT_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n);
 void INT_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n);

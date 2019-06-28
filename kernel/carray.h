@@ -194,6 +194,7 @@ typedef int (CArray_PartitionFunc)(void *, int, int,
                                     void *);
 typedef void (CArray_FastClipFunc)(void *in, int n_in, void *min,
                                     void *max, void *out);
+typedef void (CArray_DotFunc)(char *, int, char *, int, char *, int);
 
 typedef struct CArray_ArrFuncs {
     CArray_FastClipFunc *fastclip;
@@ -248,6 +249,8 @@ typedef struct CArray_ArrFuncs {
      * Can be NULL.
      */
     CArray_FillFunc *fill;
+
+    CArray_DotFunc *dotfunc;
 
     int cancastto[CARRAY_NTYPES];
 } CArray_ArrFuncs;

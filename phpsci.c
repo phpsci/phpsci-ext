@@ -52,6 +52,7 @@
 #include "kernel/matlib.h"
 #include "kernel/join.h"
 #include "kernel/ctors.h"
+#include "kernel/statistics.h"
 #include "kernel/search.h"
 #include "kernel/exp_logs.h"
 #include "kernel/clip.h"
@@ -1392,38 +1393,71 @@ PHP_METHOD(CArray, negative)
 }
 PHP_METHOD(CArray, sqrt)
 {
-    MemoryPointer out;
+    MemoryPointer target_ptr, rtn_ptr;
     CArray * target_ca, * rtn_ca;
     zval * target;
     ZEND_PARSE_PARAMETERS_START(1, 1)
             Z_PARAM_ZVAL(target)
     ZEND_PARSE_PARAMETERS_END();
-    ZVAL_TO_MEMORYPOINTER(target, &out);
-    target_ca = CArray_FromMemoryPointer(&out);
-    rtn_ca = CArray_Sqrt(target_ca, &out);
+    ZVAL_TO_MEMORYPOINTER(target, &target_ptr);
+    target_ca = CArray_FromMemoryPointer(&target_ptr);
+    rtn_ca = CArray_Sqrt(target_ca, &rtn_ptr);
 
     if (rtn_ca == NULL) {
         return;
     }
-    RETURN_MEMORYPOINTER(return_value, &out);
+
+    FREE_FROM_MEMORYPOINTER(&target_ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
 }
 PHP_METHOD(CArray, reciprocal)
 {
-    MemoryPointer out;
+    MemoryPointer target_ptr, rtn_ptr;
     CArray * target_ca, * rtn_ca;
     zval * target;
     ZEND_PARSE_PARAMETERS_START(1, 1)
             Z_PARAM_ZVAL(target)
     ZEND_PARSE_PARAMETERS_END();
-    ZVAL_TO_MEMORYPOINTER(target, &out);
-    target_ca = CArray_FromMemoryPointer(&out);
-    rtn_ca = CArray_Reciprocal(target_ca, &out);
+    ZVAL_TO_MEMORYPOINTER(target, &target_ptr);
+    target_ca = CArray_FromMemoryPointer(&target_ptr);
+    rtn_ca = CArray_Reciprocal(target_ca, &rtn_ptr);
 
     if (rtn_ca == NULL) {
         return;
     }
+
+    FREE_FROM_MEMORYPOINTER(&target_ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
+}
+
+/**
+ * STATISTICS
+ */
+PHP_METHOD(CArray, correlate)
+{
+    MemoryPointer out, a_ptr, v_ptr;
+    CArray * a_ca, * rtn_ca, * v_ca;
+    zval * a, * v;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+            Z_PARAM_ZVAL(a)
+            Z_PARAM_ZVAL(v)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(a, &a_ptr);
+    ZVAL_TO_MEMORYPOINTER(v, &v_ptr);
+    a_ca = CArray_FromMemoryPointer(&a_ptr);
+    v_ca = CArray_FromMemoryPointer(&v_ptr);
+
+    rtn_ca = CArray_Correlate2(a_ca, v_ca, 0, &out);
+
+    if (rtn_ca == NULL) {
+        return;
+    }
+
+    FREE_FROM_MEMORYPOINTER(&a_ptr);
+    FREE_FROM_MEMORYPOINTER(&v_ptr);
     RETURN_MEMORYPOINTER(return_value, &out);
 }
+
 
 /**
  * INDEXING ROUTINES
@@ -2338,6 +2372,9 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, negative, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, sqrt, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, reciprocal, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
+        // STATISTICS
+        PHP_ME(CArray, correlate, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // EXPONENTS AND LOGARITHMS
         PHP_ME(CArray, exp, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

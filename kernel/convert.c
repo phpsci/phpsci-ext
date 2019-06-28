@@ -132,7 +132,6 @@ CArray_CanCastSafely(int fromtype, int totype)
         int *curtype = from->f->cancastto;
         while (*curtype != CARRAY_NTYPES) {
             if (*curtype++ == totype) {
-                php_printf("OI");
                 return 1;
             }
         }
