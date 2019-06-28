@@ -1407,7 +1407,23 @@ PHP_METHOD(CArray, sqrt)
     }
     RETURN_MEMORYPOINTER(return_value, &out);
 }
+PHP_METHOD(CArray, reciprocal)
+{
+    MemoryPointer out;
+    CArray * target_ca, * rtn_ca;
+    zval * target;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &out);
+    target_ca = CArray_FromMemoryPointer(&out);
+    rtn_ca = CArray_Reciprocal(target_ca, &out);
 
+    if (rtn_ca == NULL) {
+        return;
+    }
+    RETURN_MEMORYPOINTER(return_value, &out);
+}
 
 /**
  * INDEXING ROUTINES
@@ -2321,6 +2337,7 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, remainder, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, negative, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, sqrt, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, reciprocal, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // EXPONENTS AND LOGARITHMS
         PHP_ME(CArray, exp, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

@@ -4,6 +4,7 @@
 #include "buffer.h"
 #include "convert_type.h"
 #include "alloc.h"
+#include "matlib.h"
 
 void *
 _carray_add_double_double(CArrayIterator * a, CArrayIterator * b, CArray * out, int out_index) {
@@ -796,4 +797,16 @@ CArray_Sqrt(CArray *a, MemoryPointer *out)
     return rtn;
 fail:
     return NULL;
+}
+
+CArray *
+CArray_Reciprocal(CArray *a, MemoryPointer *out)
+{
+    CArray * rtn, * tmp;
+    char dtype = CArray_TYPE_CHAR(a);
+
+    tmp = CArray_Ones(CArray_DIMS(a), CArray_NDIM(a), &dtype, CARRAY_CORDER, NULL);
+    rtn = CArray_Divide(tmp, a, out);
+
+    return rtn;
 }
