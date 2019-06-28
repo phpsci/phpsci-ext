@@ -805,8 +805,9 @@ CArray_Reciprocal(CArray *a, MemoryPointer *out)
     CArray * rtn, * tmp;
     char dtype = CArray_TYPE_CHAR(a);
 
-    tmp = CArray_Ones(CArray_DIMS(a), CArray_NDIM(a), &dtype, CARRAY_CORDER, NULL);
+    tmp = CArray_Ones(CArray_DIMS(a), CArray_NDIM(a), &dtype, NULL, NULL);
     rtn = CArray_Divide(tmp, a, out);
 
+    CArray_Free(tmp);
     return rtn;
 }

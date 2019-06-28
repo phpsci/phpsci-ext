@@ -54,7 +54,7 @@ CArray_Zeros(int * shape, int nd, char type, char * order, MemoryPointer * rtn_p
 CArray *
 CArray_Ones(int * shape, int nd, char * type, char * order, MemoryPointer * rtn_ptr)
 {
-    int is_fortran = 0;
+    int is_fortran = 0, order_allocated = 0;
     CArrayDescriptor * new_descr;
     CArrayScalar * sc = emalloc(sizeof(CArrayScalar));
     CArray * rtn;
@@ -62,6 +62,7 @@ CArray_Ones(int * shape, int nd, char * type, char * order, MemoryPointer * rtn_
     if (order == NULL) {
         order = emalloc(sizeof(char));
         *order = 'C';
+        order_allocated = 1;
     }
 
     if (*order == 'F') {
@@ -88,5 +89,9 @@ CArray_Ones(int * shape, int nd, char * type, char * order, MemoryPointer * rtn_
 
     efree(sc->obval);
     efree(sc);
+
+    if (order_allocated) {
+        efree(order);
+    }
     return rtn;
 }
