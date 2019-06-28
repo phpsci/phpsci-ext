@@ -56,6 +56,7 @@
 #include "kernel/search.h"
 #include "kernel/exp_logs.h"
 #include "kernel/clip.h"
+#include "kernel/round.h"
 
 typedef struct _zend_carray_cdata {
     zend_object std;
@@ -1431,6 +1432,75 @@ PHP_METHOD(CArray, reciprocal)
 }
 
 /**
+ * ROUNDING
+ */
+PHP_METHOD(CArray, ceil)
+{
+    MemoryPointer target_ptr, rtn_ptr;
+    CArray * target_ca, * rtn_ca;
+    zval * target;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &target_ptr);
+    target_ca = CArray_FromMemoryPointer(&target_ptr);
+    rtn_ca = CArray_Ceil(target_ca, &rtn_ptr);
+
+    if (rtn_ca == NULL) {
+        return;
+    }
+
+    FREE_FROM_MEMORYPOINTER(&target_ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
+}
+PHP_METHOD(CArray, floor)
+{
+    MemoryPointer target_ptr, rtn_ptr;
+    CArray * target_ca, * rtn_ca;
+    zval * target;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &target_ptr);
+    target_ca = CArray_FromMemoryPointer(&target_ptr);
+    rtn_ca = CArray_Floor(target_ca, &rtn_ptr);
+
+    if (rtn_ca == NULL) {
+        return;
+    }
+
+    FREE_FROM_MEMORYPOINTER(&target_ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
+}
+PHP_METHOD(CArray, around)
+{
+    MemoryPointer target_ptr, rtn_ptr;
+    CArray * target_ca, * rtn_ca;
+    zval * target;
+    long decimals;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+            Z_PARAM_ZVAL(target)
+            Z_PARAM_OPTIONAL
+            Z_PARAM_LONG(decimals)
+    ZEND_PARSE_PARAMETERS_END();
+    if(ZEND_NUM_ARGS() == 1) {
+        decimals = 0;
+    }
+
+    ZVAL_TO_MEMORYPOINTER(target, &target_ptr);
+    target_ca = CArray_FromMemoryPointer(&target_ptr);
+    rtn_ca = CArray_Round(target_ca, (int)decimals, &rtn_ptr);
+
+    if (rtn_ca == NULL) {
+        return;
+    }
+
+    FREE_FROM_MEMORYPOINTER(&target_ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
+}
+
+
+/**
  * STATISTICS
  */
 PHP_METHOD(CArray, correlate)
@@ -2231,6 +2301,34 @@ PHP_METHOD(CArray, clip)
 
     RETURN_MEMORYPOINTER(return_value, &ptr_rtn);
 }
+PHP_METHOD(CArray, convolve)
+{
+    MemoryPointer out, a_ptr, v_ptr;
+    CArray * a_ca, * rtn_ca, * v_ca, *v_ca_flipped;
+    zval * a, * v;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+            Z_PARAM_ZVAL(a)
+            Z_PARAM_ZVAL(v)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(a, &a_ptr);
+    ZVAL_TO_MEMORYPOINTER(v, &v_ptr);
+    a_ca = CArray_FromMemoryPointer(&a_ptr);
+    v_ca = CArray_FromMemoryPointer(&v_ptr);
+
+    v_ca_flipped = CArray_Flip(v_ca, NULL, NULL);
+    rtn_ca = CArray_Correlate(a_ca, v_ca_flipped, 2, &out);
+
+    if (rtn_ca == NULL) {
+        return;
+    }
+
+    CArray_Free(v_ca_flipped);
+    CArrayDescriptor_DECREF(CArray_DESCR(v_ca));
+    FREE_FROM_MEMORYPOINTER(&a_ptr);
+    FREE_FROM_MEMORYPOINTER(&v_ptr);
+    RETURN_MEMORYPOINTER(return_value, &out);
+}
+
 
 /**
  * LOGICAL FUNCTIONS
@@ -2331,6 +2429,7 @@ static zend_function_entry carray_class_methods[] =
         // MISC
         PHP_ME(CArray, fill, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, clip, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, convolve, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // INDEXING
         PHP_ME(CArray, diagonal, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
@@ -2373,7 +2472,12 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, transpose, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, reshape, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, setShape, NULL, ZEND_ACC_PUBLIC)
-        
+
+        //ROUNDING
+        PHP_ME(CArray, ceil, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, floor, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, around, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
         // LINEAR ALGEBRA
         PHP_ME(CArray, matmul, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, inv, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

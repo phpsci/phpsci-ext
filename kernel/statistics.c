@@ -127,6 +127,7 @@ CArray_Correlate(CArray * op1, CArray * op2, int mode, MemoryPointer * out)
 
     typec = CArray_DescrFromType(typenum);
     CArrayDescriptor_INCREF(typec);
+
     ap1 = CArray_FromAny(op1, typec, 1, 1, CARRAY_ARRAY_DEFAULT);
     if (ap1 == NULL) {
         CArrayDescriptor_DECREF(typec);
@@ -146,8 +147,7 @@ CArray_Correlate(CArray * op1, CArray * op2, int mode, MemoryPointer * out)
         add_to_buffer(out, ret, sizeof(CArray));
     }
 
-    CArray_DECREF(ap1);
-    CArray_DECREF(ap2);
+    CArrayDescriptor_FREE(typec);
     return ret;
 
 fail:
