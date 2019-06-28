@@ -233,3 +233,9 @@ CArray_Logspace(double start, double stop, int num, int endpoint, double base, i
     return rtn;
 }
 
+CArray *
+CArray_Geomspace(double start, double stop, int num, int endpoint, int typenum, MemoryPointer * out)
+{
+
+}
+

@@ -1293,7 +1293,6 @@ PHP_METHOD(CArray, remainder)
         RETURN_MEMORYPOINTER(return_value, &result_ptr);
     }
 }
-
 PHP_METHOD(CArray, prod)
 {
     zval * target;
@@ -1345,7 +1344,6 @@ PHP_METHOD(CArray, cumprod)
     efree(axis_p);
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
-
 PHP_METHOD(CArray, cumsum)
 {
     zval * target;
@@ -1374,6 +1372,40 @@ PHP_METHOD(CArray, cumsum)
         return;
     }
     RETURN_MEMORYPOINTER(return_value, &ptr);
+}
+PHP_METHOD(CArray, negative)
+{
+    MemoryPointer out;
+    CArray * target_ca, * rtn_ca;
+    zval * target;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+         Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &out);
+    target_ca = CArray_FromMemoryPointer(&out);
+    rtn_ca = CArray_Negative(target_ca, &out);
+
+    if (rtn_ca == NULL) {
+        return;
+    }
+    RETURN_MEMORYPOINTER(return_value, &out);
+}
+PHP_METHOD(CArray, sqrt)
+{
+    MemoryPointer out;
+    CArray * target_ca, * rtn_ca;
+    zval * target;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(target)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(target, &out);
+    target_ca = CArray_FromMemoryPointer(&out);
+    rtn_ca = CArray_Sqrt(target_ca, &out);
+
+    if (rtn_ca == NULL) {
+        return;
+    }
+    RETURN_MEMORYPOINTER(return_value, &out);
 }
 
 
@@ -1912,8 +1944,7 @@ PHP_METHOD(CArray, logspace)
     zval * start, * stop;
     double start_d, stop_d, base;
     char * typestr;
-    int type_num, axis;
-    zend_long axis_l;
+    int type_num;
     MemoryPointer out;
 
     ZEND_PARSE_PARAMETERS_START(2, 7)
@@ -1934,7 +1965,6 @@ PHP_METHOD(CArray, logspace)
         num = 50;
         type_num = TYPE_DOUBLE_INT;
         endpoint = 1;
-        axis = 0;
         base = 10.00;
     }
     if(ZEND_NUM_ARGS() == 3) {
@@ -1945,7 +1975,6 @@ PHP_METHOD(CArray, logspace)
         num = (int)num_samples;
         type_num = TYPE_DOUBLE_INT;
         endpoint = 1;
-        axis = 0;
         base = 10.00;
     }
     if(ZEND_NUM_ARGS() == 4) {
@@ -1955,7 +1984,6 @@ PHP_METHOD(CArray, logspace)
         stop_d = (double)zval_get_double(stop);
         num = (int)num_samples;
         type_num = TYPE_DOUBLE_INT;
-        axis = 0;
         base = 10.00;
     }
     if(ZEND_NUM_ARGS() == 5) {
@@ -1965,7 +1993,6 @@ PHP_METHOD(CArray, logspace)
         stop_d = (double)zval_get_double(stop);
         num = (int)num_samples;
         type_num = TYPE_DOUBLE_INT;
-        axis = (int)axis_l;
     }
     if(ZEND_NUM_ARGS() == 6) {
         convert_to_double(start);
@@ -1974,10 +2001,79 @@ PHP_METHOD(CArray, logspace)
         stop_d = (double)zval_get_double(stop);
         num = (int)num_samples;
         type_num = TYPESTR_TO_INT(typestr);
-        axis = (int)axis_l;
     }
 
     ret = CArray_Logspace(start_d, stop_d, num, endpoint, base, type_num, &out);
+
+    RETURN_MEMORYPOINTER(return_value, &out);
+}
+
+PHP_METHOD(CArray, geomspace)
+{
+    long num_samples;
+    int num;
+    zend_bool endpoint;
+    size_t type_len;
+    CArray * ret;
+    zval * start, * stop;
+    double start_d, stop_d;
+    char * typestr;
+    int type_num;
+    MemoryPointer out;
+
+    ZEND_PARSE_PARAMETERS_START(2, 7)
+            Z_PARAM_ZVAL(start)
+            Z_PARAM_ZVAL(stop)
+            Z_PARAM_OPTIONAL
+            Z_PARAM_LONG(num_samples)
+            Z_PARAM_BOOL(endpoint)
+            Z_PARAM_STRING(typestr, type_len)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if(ZEND_NUM_ARGS() == 2) {
+        convert_to_double(start);
+        convert_to_double(stop);
+        start_d = (double)zval_get_double(start);
+        stop_d = (double)zval_get_double(stop);
+        num = 50;
+        type_num = TYPE_DOUBLE_INT;
+        endpoint = 1;
+    }
+    if(ZEND_NUM_ARGS() == 3) {
+        convert_to_double(start);
+        convert_to_double(stop);
+        start_d = (double)zval_get_double(start);
+        stop_d = (double)zval_get_double(stop);
+        num = (int)num_samples;
+        type_num = TYPE_DOUBLE_INT;
+        endpoint = 1;
+    }
+    if(ZEND_NUM_ARGS() == 4) {
+        convert_to_double(start);
+        convert_to_double(stop);
+        start_d = (double)zval_get_double(start);
+        stop_d = (double)zval_get_double(stop);
+        num = (int)num_samples;
+        type_num = TYPE_DOUBLE_INT;
+    }
+    if(ZEND_NUM_ARGS() == 5) {
+        convert_to_double(start);
+        convert_to_double(stop);
+        start_d = (double)zval_get_double(start);
+        stop_d = (double)zval_get_double(stop);
+        num = (int)num_samples;
+        type_num = TYPE_DOUBLE_INT;
+    }
+    if(ZEND_NUM_ARGS() == 6) {
+        convert_to_double(start);
+        convert_to_double(stop);
+        start_d = (double)zval_get_double(start);
+        stop_d = (double)zval_get_double(stop);
+        num = (int)num_samples;
+        type_num = TYPESTR_TO_INT(typestr);
+    }
+
+    ret = CArray_Geomspace(start_d, stop_d, num, endpoint, type_num, &out);
 
     RETURN_MEMORYPOINTER(return_value, &out);
 }
@@ -2067,6 +2163,17 @@ PHP_METHOD(CArray, clip)
     RETURN_MEMORYPOINTER(return_value, &ptr_rtn);
 }
 
+/**
+ * LOGICAL FUNCTIONS
+ */
+PHP_METHOD(CArray, any)
+{
+
+}
+PHP_METHOD(CArray, all)
+{
+
+}
 
 
 PHP_METHOD(CArray, __toString)
@@ -2173,6 +2280,7 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, arange, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, linspace, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, logspace, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, geomspace, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         //ARRAY MANIPULATION
         PHP_ME(CArray, swapaxes, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
@@ -2211,6 +2319,8 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, mod, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, fmod, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, remainder, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, negative, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, sqrt, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // EXPONENTS AND LOGARITHMS
         PHP_ME(CArray, exp, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
@@ -2220,6 +2330,10 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, log10, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, log2, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, log1p, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
+        // LOGICAL FUNCTIONS
+        PHP_ME(CArray, any, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, all, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // CALCULATION
         PHP_ME(CArray, sum, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

@@ -446,3 +446,8 @@ CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
 }
 
 
+CArray *
+CArray_Any(CArray * target, int * axis, MemoryPointer * out)
+{
+
+}

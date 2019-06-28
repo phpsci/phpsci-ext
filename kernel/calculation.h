@@ -11,4 +11,5 @@ CArray * CArray_Sum(CArray * self, int * axis, int rtype, MemoryPointer * out_pt
 CArray * CArray_Prod(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr);
 CArray * CArray_CumProd(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr);
 CArray * CArray_CumSum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr);
+CArray * CArray_Any(CArray * target, int * axis, MemoryPointer * out);
 #endif 
