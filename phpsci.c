@@ -1754,6 +1754,25 @@ PHP_METHOD(CArray, rollaxis)
     CArray_Rollaxis(target_array, (int)axis, (int)start, &a_ptr);
     RETURN_MEMORYPOINTER(return_value, &a_ptr);
 }
+PHP_METHOD(CArray, flip)
+{
+    MemoryPointer a_ptr, out_ptr;
+    CArray * target_array, *rtn;
+    zval * a, * axis;
+    int axis_p, start;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(a)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(a, &a_ptr);
+    target_array = CArray_FromMemoryPointer(&a_ptr);
+
+    if(ZEND_NUM_ARGS() == 1) {
+        rtn = CArray_Flip(target_array, NULL, &out_ptr);
+    }
+
+    FREE_FROM_MEMORYPOINTER(&a_ptr);
+    RETURN_MEMORYPOINTER(return_value, &out_ptr);
+}
 PHP_METHOD(CArray, moveaxis)
 {
     MemoryPointer a_ptr, src_ptr, dst_ptr, out_ptr;
@@ -2337,6 +2356,7 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, rollaxis, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, moveaxis, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, concatenate, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, flip, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // SORTING
         PHP_ME(CArray, sort, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

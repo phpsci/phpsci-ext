@@ -3,6 +3,8 @@
 #include "scalar.h"
 #include "alloc.h"
 #include "convert.h"
+#include "buffer.h"
+#include "iterators.h"
 
 CArray *
 CArray_Zeros(int * shape, int nd, char type, char * order, MemoryPointer * rtn_ptr)
@@ -93,5 +95,45 @@ CArray_Ones(int * shape, int nd, char * type, char * order, MemoryPointer * rtn_
     if (order_allocated) {
         efree(order);
     }
+    return rtn;
+}
+
+CArray *
+CArray_Flip(CArray *a, int * axis, MemoryPointer * out)
+{
+    CArrayIterator * it;
+    CArray * rtn;
+
+    it  = CArray_NewIter(a);
+    rtn = CArray_NewLikeArray(a, CARRAY_KEEPORDER, CArray_DESCR(a), 0);
+    CArrayDescriptor_INCREF(CArray_DESCR(a));
+
+    if (axis == NULL) {
+        switch(CArray_TYPE(a)) {
+            case TYPE_DOUBLE_INT:
+                do {
+                    DDATA(rtn)[CArray_DESCR(a)->numElements - it->index - 1] = *IT_DDATA(it);
+                    CArrayIterator_NEXT(it);
+                } while(CArrayIterator_NOTDONE(it));
+                break;
+            case TYPE_INTEGER_INT:
+                do {
+                    IDATA(rtn)[CArray_DESCR(a)->numElements - it->index - 1] = *IT_IDATA(it);
+                    CArrayIterator_NEXT(it);
+                } while(CArrayIterator_NOTDONE(it));
+                break;
+        }
+    }
+    else {
+        throw_notimplemented_exception();
+        CArrayIterator_FREE(it);
+        return NULL;
+    }
+
+    if (out != NULL) {
+        add_to_buffer(out, rtn, sizeof(CArray));
+    }
+
+    CArrayIterator_FREE(it);
     return rtn;
 }
