@@ -391,6 +391,7 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
         add_to_buffer(ptr, ret, sizeof(CArray));
     }
 
+    CArrayDescriptor_INCREF(CArray_DESCR(ret));
     CArray_DECREF(self);
     return ret;
 }
