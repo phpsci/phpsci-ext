@@ -32,6 +32,7 @@ pages:
     - Counting: routines/counting.md
     - Padding: routines/padding.md
     - Random Sampling: routines/random.md
+    - Rearranging: routines/rearranging.md
     - Permutations: routines/permutations.md
     - Distributions: routines/distributions.md
     - Statistics: routines/statistics.md
