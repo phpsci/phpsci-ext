@@ -2,8 +2,6 @@
 
 ---
 
-## reshape
-
 ## ravel
 
 ## CArray::$flat

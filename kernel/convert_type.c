@@ -35,8 +35,9 @@ CArray_ObjectType(CArray * op, int minimum_type)
         ret = dtype->type_num;
     }
 
-    CArrayDescriptor_DECREF(dtype);
-    efree(dtype);
+    if (dtype != NULL) {
+        CArrayDescriptor_FREE(dtype);
+    }
     return ret;
 }
 

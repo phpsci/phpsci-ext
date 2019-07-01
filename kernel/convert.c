@@ -25,6 +25,7 @@ CArray_Slice_Index(CArray * self, int index, MemoryPointer * out)
     ret = (CArray *)ecalloc(1, sizeof(CArray));
    
     subarray_descr = (CArrayDescriptor *)ecalloc(1, sizeof(CArrayDescriptor));
+
     nd = CArray_NDIM(self) - 1;
     new_dimensions = (int*)emalloc(nd * sizeof(int));
     
@@ -103,7 +104,6 @@ CArray *
 CArray_NewCopy(CArray *obj, CARRAY_ORDER order)
 {
     CArray * ret;
-    ret = (CArray *)emalloc(sizeof(CArray));
     ret = (CArray *)CArray_NewLikeArray(obj, order, NULL, 1);
 
     return ret;
@@ -132,7 +132,6 @@ CArray_CanCastSafely(int fromtype, int totype)
         int *curtype = from->f->cancastto;
         while (*curtype != CARRAY_NTYPES) {
             if (*curtype++ == totype) {
-                php_printf("OI");
                 return 1;
             }
         }

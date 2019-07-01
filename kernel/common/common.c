@@ -41,8 +41,7 @@ new_array_for_sum(CArray *ap1, CArray *ap2, CArray* out,
                   int nd, int dimensions[], int typenum, CArray **result)
 {
     CArray *out_buf;
-    out_buf = (CArray *)emalloc(sizeof(CArray));
-    if (out) {
+    if (out != NULL) {
         int d;
 
         /* verify that out is usable */
@@ -93,13 +92,15 @@ new_array_for_sum(CArray *ap1, CArray *ap2, CArray* out,
     else {
         CArray * subtype;
         double prior1, prior2;
+        out_buf = (CArray *)emalloc(sizeof(CArray));
 
         prior1 = prior2 = 0.0;
         subtype = ap1;
-        
+
         out_buf = CArray_New(out_buf, nd, dimensions,
                              typenum, NULL, NULL, 0, 0, 
                              NULL);
+
         return out_buf;
     }
 }                  

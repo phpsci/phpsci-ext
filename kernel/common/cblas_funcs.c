@@ -135,33 +135,63 @@ _bad_strides(CArray * ap)
     return 0;
 }
 
+/*
+ * Helper: dispatch to appropriate cblas_?gemv for typenum.
+ */
+static void
+gemv(int typenum, enum CBLAS_ORDER order, enum CBLAS_TRANSPOSE trans,
+     CArray *A, int lda, CArray *X, int incX,
+     CArray *R)
+{
+    const void *Adata = CArray_DATA(A), *Xdata = CArray_DATA(X);
+    void *Rdata = CArray_DATA(R);
+
+    int m = CArray_DIM(A, 0), n = CArray_DIM(A, 1);
+
+    switch (typenum) {
+        case TYPE_DOUBLE_INT:
+            cblas_dgemv(order, trans, m, n, 1., Adata, lda, Xdata, incX,
+                        0., Rdata, 1);
+            break;
+        case TYPE_FLOAT_INT:
+            cblas_sgemv(order, trans, m, n, 1.f, Adata, lda, Xdata, incX,
+                        0.f, Rdata, 1);
+            break;
+    }
+}
+
 /**
  * Dot product of ap1 and ap2 using CBLAS.
  */ 
 CArray * 
 cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryPointer * ptr)
 {
-    CArray * result = NULL, * out_buffer = NULL;
+    CArray *result = NULL, *out_buf = NULL;
     int j, lda, ldb;
-
-    int nd, l;
+    int l;
+    int nd;
     int ap1stride = 0;
-    int * dimensions = NULL;
+    int bad1 = 0, bad2 = 0;
+    int dimensions[CARRAY_MAXDIMS];
     int numbytes;
     MatrixShape ap1shape, ap2shape;
 
-    if(_bad_strides(ap1)) {
-        CArray * op1 = CArray_NewCopy(ap1, CARRAY_ANYORDER);
+    if (_bad_strides(ap1)) {
+        CArray *op1 = CArray_NewCopy(ap1, CARRAY_ANYORDER);
+        memcpy(CArray_DATA(op1), CArray_DATA(ap1), CArray_SIZE(ap1) * CArray_DESCR(ap1)->elsize);
         CArray_DECREF(ap1);
         ap1 = op1;
-        if(ap1 == NULL) {
+        bad1 = 1;
+        if (ap1 == NULL) {
             goto fail;
         }
     }
     if (_bad_strides(ap2)) {
-        CArray * op2 = CArray_NewCopy(ap2, CARRAY_ANYORDER);
+        CArray *op2 = CArray_NewCopy(ap2, CARRAY_ANYORDER);
+        memcpy(CArray_DATA(op2), CArray_DATA(ap2), CArray_SIZE(ap2) * CArray_DESCR(ap2)->elsize);
         CArray_DECREF(ap2);
         ap2 = op2;
+        bad2 = 1;
         if (ap2 == NULL) {
             goto fail;
         }
@@ -182,6 +212,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
             ap1shape = ap2shape;
             ap2shape = _scalar;
         }
+
         if (ap1shape == _row) {
             ap1stride = CArray_STRIDE(ap1, 1);
         }
@@ -200,26 +231,25 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
                 thisdims = CArray_DIMS(ap1);
             }
             l = 1;
-            dimensions = (int*)emalloc(nd * sizeof(int));
             for (j = 0; j < nd; j++) {
                 dimensions[j] = thisdims[j];
                 l *= dimensions[j];
             }
-        } 
+        }
         else {
             l = CArray_DIM(oap1, CArray_NDIM(oap1) - 1);
 
             if (CArray_DIM(oap2, 0) != l) {
+                //dot_alignment_error(oap1, PyArray_NDIM(oap1) - 1, oap2, 0);
                 goto fail;
             }
             nd = CArray_NDIM(ap1) + CArray_NDIM(ap2) - 2;
-            dimensions = (int*)emalloc(nd * sizeof(int));
             /*
              * nd = 0 or 1 or 2. If nd == 0 do nothing ...
              */
             if (nd == 1) {
                 /*
-                 * Either CArray_DIM(ap1) is 1 dim or CArray_DIM(ap2) is
+                 * Either PyArray_NDIM(ap1) is 1 dim or PyArray_NDIM(ap2) is
                  * 1 dim and the other is 2 dim
                  */
                 dimensions[0] = (CArray_NDIM(oap1) == 2) ?
@@ -252,19 +282,20 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
                 l = 0;
             }
         }
-    } else {
+    }
+    else {
         /*
-         * (CArray_NDIM(ap1) <= 2 && CArray_NDIM(ap2) <= 2)
+         * (PyArray_NDIM(ap1) <= 2 && PyArray_NDIM(ap2) <= 2)
          * Both ap1 and ap2 are vectors or matrices
          */
         l = CArray_DIM(ap1, CArray_NDIM(ap1) - 1);
 
         if (CArray_DIM(ap2, 0) != l) {
-            //dot_alignment_error(ap1, CArray_NDIM(ap1) - 1, ap2, 0);
+            //dot_alignment_error(ap1, PyArray_NDIM(ap1) - 1, ap2, 0);
             goto fail;
         }
         nd = CArray_NDIM(ap1) + CArray_NDIM(ap2) - 2;
-        dimensions = (int*)emalloc(nd * sizeof(int));
+
         if (nd == 1) {
             dimensions[0] = (CArray_NDIM(ap1) == 2) ?
                             CArray_DIM(ap1, 0) : CArray_DIM(ap2, 1);
@@ -275,19 +306,19 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
         }
     }
 
-    out_buffer = new_array_for_sum(ap1, ap2, out, nd, dimensions, typenum, &result);
+    out_buf = new_array_for_sum(ap1, ap2, out, nd, dimensions, typenum, NULL);
 
-    if (out_buffer == NULL) {
+    if (out_buf == NULL) {
         goto fail;
     }
 
-    numbytes = CArray_NBYTES(out_buffer);
-    
+    numbytes = CArray_NBYTES(out_buf);
+    memset(CArray_DATA(out_buf), 0, numbytes);
     if (numbytes == 0 || l == 0) {
-            CArray_DECREF(ap1);
-            CArray_DECREF(ap2);
-            CArray_DECREF(out_buffer);
-            return result;
+        CArray_DECREF(ap1);
+        CArray_DECREF(ap2);
+        CArray_DECREF(out_buf);
+        return result;
     }
 
     if (ap2shape == _scalar) {
@@ -296,20 +327,151 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
          * if ap1shape is a matrix and we are not contiguous, then we can't
          * just blast through the entire array using a single striding factor
          */
-        
-        if (typenum == TYPE_DOUBLE) {
 
+        if (typenum == TYPE_DOUBLE_INT) {
+            if (l == 1) {
+                *((double *)CArray_DATA(out_buf)) = *((double *)CArray_DATA(ap2)) *
+                                                     *((double *)CArray_DATA(ap1));
+            }
+            else if (ap1shape != _matrix) {
+                throw_notimplemented_exception();
+                return NULL;
+                /**cblas_daxpy(l,
+                            *((double *)PyArray_DATA(ap2)),
+                            (double *)PyArray_DATA(ap1),
+                            ap1stride/sizeof(double),
+                            (double *)PyArray_DATA(out_buf), 1);*/
+            }
+            else {
+                int maxind, oind, i, a1s, outs;
+                char *ptr, *optr;
+                double val;
+
+                maxind = (CArray_DIM(ap1, 0) >= CArray_DIM(ap1, 1) ? 0 : 1);
+                oind = 1 - maxind;
+                ptr = CArray_DATA(ap1);
+                optr = CArray_DATA(out_buf);
+                l = CArray_DIM(ap1, maxind);
+                val = *((double *)CArray_DATA(ap2));
+                a1s = CArray_STRIDE(ap1, maxind) / sizeof(double);
+                outs = CArray_STRIDE(out_buf, maxind) / sizeof(double);
+                for (i = 0; i < CArray_DIM(ap1, oind); i++) {
+                    //cblas_daxpy(l, val, (double *)ptr, a1s,
+                                //(double *)optr, outs);
+                    ptr += CArray_STRIDE(ap1, oind);
+                    optr += CArray_STRIDE(out_buf, oind);
+                    throw_notimplemented_exception();
+                    return NULL;
+                }
+            }
         }
-    } else if ((ap2shape == _column) && (ap1shape != _matrix)) {
-        
-    } else if (ap1shape == _matrix && ap2shape != _matrix) {
-        
-    } else if (ap1shape != _matrix && ap2shape == _matrix) {
-        
-    } else {
-        
+        else if (typenum == TYPE_FLOAT_INT) {
+            if (l == 1) {
+                *((float *)CArray_DATA(out_buf)) = *((float *)CArray_DATA(ap2)) *
+                                                    *((float *)CArray_DATA(ap1));
+            }
+            else if (ap1shape != _matrix) {
+                /**cblas_saxpy(l,
+                            *((float *)PyArray_DATA(ap2)),
+                            (float *)PyArray_DATA(ap1),
+                            ap1stride/sizeof(float),
+                            (float *)PyArray_DATA(out_buf), 1);**/
+            }
+            else {
+                int maxind, oind, i, a1s, outs;
+                char *ptr, *optr;
+                float val;
+
+                maxind = (CArray_DIM(ap1, 0) >= CArray_DIM(ap1, 1) ? 0 : 1);
+                oind = 1 - maxind;
+                ptr = CArray_DATA(ap1);
+                optr = CArray_DATA(out_buf);
+                l = CArray_DIM(ap1, maxind);
+                val = *((float *)CArray_DATA(ap2));
+                a1s = CArray_STRIDE(ap1, maxind) / sizeof(float);
+                outs = CArray_STRIDE(out_buf, maxind) / sizeof(float);
+                for (i = 0; i < CArray_DIM(ap1, oind); i++) {
+                    /**cblas_saxpy(l, val, (float *)ptr, a1s,
+                                (float *)optr, outs);
+                    ptr += PyArray_STRIDE(ap1, oind);
+                    optr += PyArray_STRIDE(out_buf, oind);**/
+                    throw_notimplemented_exception();
+                    return NULL;
+                }
+            }
+        }
+
+    }
+    else if ((ap2shape == _column) && (ap1shape != _matrix)) {
+        /* Dot product between two vectors -- Level 1 BLAS */
+        CArray_DESCR(out_buf)->f->dotfunc(
+                CArray_DATA(ap1), CArray_STRIDE(ap1, (ap1shape == _row)),
+                CArray_DATA(ap2), CArray_STRIDE(ap2, 0),
+                CArray_DATA(out_buf), l);
+    }
+    else if (ap1shape == _matrix && ap2shape != _matrix) {
+        /* Matrix vector multiplication -- Level 2 BLAS */
+        /* lda must be MAX(M,1) */
+        enum CBLAS_ORDER Order;
+        int ap2s;
+
+        if (!CArray_ISONESEGMENT(ap1)) {
+            CArray *new;
+            new = CArray_Copy(ap1);
+            CArray_DECREF(ap1);
+            ap1 = (CArray *)new;
+            if (new == NULL) {
+                goto fail;
+            }
+        }
+
+        if (CArray_ISCONTIGUOUS(ap1)) {
+            Order = CblasRowMajor;
+            lda = (CArray_DIM(ap1, 1) > 1 ? CArray_DIM(ap1, 1) : 1);
+        }
+        else {
+            Order = CblasColMajor;
+            lda = (CArray_DIM(ap1, 0) > 1 ? CArray_DIM(ap1, 0) : 1);
+        }
+
+        ap2s = CArray_STRIDE(ap2, 0) / CArray_ITEMSIZE(ap2);
+        gemv(typenum, Order, CblasNoTrans, ap1, lda, ap2, ap2s, out_buf);
+    }
+    else if (ap1shape != _matrix && ap2shape == _matrix) {
+        /* Vector matrix multiplication -- Level 2 BLAS */
+        enum CBLAS_ORDER Order;
+        int ap1s;
+
+        if (!CArray_ISONESEGMENT(ap2)) {
+            CArray *new;
+            new = CArray_Copy(ap2);
+            CArray_DECREF(ap2);
+            ap2 = (CArray *)new;
+            if (new == NULL) {
+                goto fail;
+            }
+        }
+
+        if (CArray_ISCONTIGUOUS(ap2)) {
+            Order = CblasRowMajor;
+            lda = (CArray_DIM(ap2, 1) > 1 ? CArray_DIM(ap2, 1) : 1);
+        }
+        else {
+            Order = CblasColMajor;
+            lda = (CArray_DIM(ap2, 0) > 1 ? CArray_DIM(ap2, 0) : 1);
+        }
+        if (ap1shape == _row) {
+            ap1s = CArray_STRIDE(ap1, 1) / CArray_ITEMSIZE(ap1);
+        }
+        else {
+            ap1s = CArray_STRIDE(ap1, 0) / CArray_ITEMSIZE(ap1);
+        }
+
+        gemv(typenum, Order, CblasTrans, ap2, lda, ap1, ap1s, out_buf);
+    }
+    else {
         /*
-         * (CArray_NDIM(ap1) == 2 && CArray_NDIM(ap2) == 2)
+         * (PyArray_NDIM(ap1) == 2 && PyArray_NDIM(ap2) == 2)
          * Matrix matrix multiplication -- Level 3 BLAS
          *  L x M  multiplied by M x N
          */
@@ -326,16 +488,16 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
             CArray *new = CArray_Copy(ap2);
 
             CArray_DECREF(ap2);
-            ap2 = new;
+            ap2 = (CArray *)new;
             if (new == NULL) {
                 goto fail;
             }
         }
         if (!CArray_IS_C_CONTIGUOUS(ap1) && !CArray_IS_F_CONTIGUOUS(ap1)) {
-            
             CArray *new = CArray_Copy(ap1);
+
             CArray_DECREF(ap1);
-            ap1 = new;
+            ap1 = (CArray *)new;
             if (new == NULL) {
                 goto fail;
             }
@@ -367,40 +529,47 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
          * Otherwise, use gemm for all other cases.
          */
         if (
-            (CArray_BYTES(ap1) == CArray_BYTES(ap2)) &&
-            (CArray_DIM(ap1, 0) == CArray_DIM(ap2, 1)) &&
-            (CArray_DIM(ap1, 1) == CArray_DIM(ap2, 0)) &&
-            (CArray_STRIDE(ap1, 0) == CArray_STRIDE(ap2, 1)) &&
-            (CArray_STRIDE(ap1, 1) == CArray_STRIDE(ap2, 0)) &&
-            ((Trans1 == CblasTrans) ^ (Trans2 == CblasTrans)) &&
-            ((Trans1 == CblasNoTrans) ^ (Trans2 == CblasNoTrans))
-        ) {
+                (CArray_BYTES(ap1) == CArray_BYTES(ap2)) &&
+                (CArray_DIM(ap1, 0) == CArray_DIM(ap2, 1)) &&
+                (CArray_DIM(ap1, 1) == CArray_DIM(ap2, 0)) &&
+                (CArray_STRIDE(ap1, 0) == CArray_STRIDE(ap2, 1)) &&
+                (CArray_STRIDE(ap1, 1) == CArray_STRIDE(ap2, 0)) &&
+                ((Trans1 == CblasTrans) ^ (Trans2 == CblasTrans)) &&
+                ((Trans1 == CblasNoTrans) ^ (Trans2 == CblasNoTrans))
+                ) {
 
             if (Trans1 == CblasNoTrans) {
-                syrk(typenum, Order, Trans1, N, M, ap1, lda, out_buffer);
+                syrk(typenum, Order, Trans1, N, M, ap1, lda, out_buf);
             }
             else {
-                syrk(typenum, Order, Trans1, N, M, ap2, ldb, out_buffer);
+                syrk(typenum, Order, Trans1, N, M, ap2, ldb, out_buf);
             }
         }
         else {
             gemm(typenum, Order, Trans1, Trans2, L, N, M, ap1, lda, ap2, ldb,
-                 out_buffer);
+                 out_buf);
         }
     }
 
     /* Trigger possible copyback into `result` */
-    CArray_ResolveWritebackIfCopy(out_buffer);
-    
-    if(dimensions != NULL) {
-        efree(dimensions);
+    CArray_ResolveWritebackIfCopy(out_buf);
+
+    if (ptr != NULL) {
+        add_to_buffer(ptr, out_buf, sizeof(CArray));
     }
-    out_buffer->flags |= CARRAY_ARRAY_WRITEABLE;
-    if(ptr != NULL ) {
-        add_to_buffer(ptr, out_buffer, sizeof(CArray));
+
+    if (bad1) {
+        CArray_Free(ap1);
     }
-    return out_buffer;
+    if (bad2) {
+        CArray_Free(ap2);
+    }
+
+    return out_buf;
 fail:
-    efree(dimensions);
-    return NULL;    
+    //CArray_DECREF(ap1);
+    //CArray_DECREF(ap2);
+    //CArray_DECREF(out_buf);
+    //CArray_DECREF(result);
+    return NULL;
 }
