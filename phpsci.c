@@ -1613,14 +1613,9 @@ PHP_METHOD(CArray, atleast_1d)
         ZVAL_TO_MEMORYPOINTER(&(dict[0]), &ptr, NULL);
         target = CArray_FromMemoryPointer(&ptr);
         out_carray = CArray_atleast1d(target, &out);
+        CArrayDescriptor_INCREF(CArray_DESCR(out_carray));
         RETURN_MEMORYPOINTER(return_value, &out);
-        if(ptr.free == 1) {
-            CArray_Alloc_FreeFromMemoryPointer(&ptr);
-        }
-        if(ptr.free == 2) {
-            CArrayDescriptor_INCREF(CArray_DESCR(target));
-            CArray_Alloc_FreeFromMemoryPointer(&ptr);
-        }
+        FREE_FROM_MEMORYPOINTER(&ptr);
     } else {
         array_init_size(return_value, dict_size);
         for(i = 0; i < dict_size; i++) {

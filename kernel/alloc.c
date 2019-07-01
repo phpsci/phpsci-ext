@@ -5,8 +5,11 @@
 void
 CArrayDescriptor_FREE(CArrayDescriptor * descr)
 {
-    efree(descr->f);
-    efree(descr);
+    if (descr->refcount <= 0) {
+        efree(descr->f);
+        efree(descr);
+        descr = NULL;
+    }
 }
 
 /**
@@ -72,14 +75,18 @@ CArrayDescriptor_INCREF(CArrayDescriptor * descriptor)
 void
 CArrayDescriptor_DECREF(CArrayDescriptor * descriptor)
 {
-    descriptor->refcount--;
+    if (descriptor != NULL) {
+        descriptor->refcount--;
+    }
 }
 
 void
 CArray_Free(CArray * self)
 {
-    if (self->descriptor->refcount <= 0) {
-        CArrayDescriptor_FREE(self->descriptor);
+    if (self->descriptor != NULL) {
+        if (self->descriptor->refcount <= 0) {
+            CArrayDescriptor_FREE(self->descriptor);
+        }
     }
     if(self->refcount <= 0) {
         efree(self->dimensions);

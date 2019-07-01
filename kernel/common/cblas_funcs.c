@@ -171,6 +171,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
     int l;
     int nd;
     int ap1stride = 0;
+    int bad1 = 0, bad2 = 0;
     int dimensions[CARRAY_MAXDIMS];
     int numbytes;
     MatrixShape ap1shape, ap2shape;
@@ -180,6 +181,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
         memcpy(CArray_DATA(op1), CArray_DATA(ap1), CArray_SIZE(ap1) * CArray_DESCR(ap1)->elsize);
         CArray_DECREF(ap1);
         ap1 = op1;
+        bad1 = 1;
         if (ap1 == NULL) {
             goto fail;
         }
@@ -189,6 +191,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
         memcpy(CArray_DATA(op2), CArray_DATA(ap2), CArray_SIZE(ap2) * CArray_DESCR(ap2)->elsize);
         CArray_DECREF(ap2);
         ap2 = op2;
+        bad2 = 1;
         if (ap2 == NULL) {
             goto fail;
         }
@@ -303,7 +306,8 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
         }
     }
 
-    out_buf = new_array_for_sum(ap1, ap2, out, nd, dimensions, typenum, &result);
+    out_buf = new_array_for_sum(ap1, ap2, out, nd, dimensions, typenum, NULL);
+
     if (out_buf == NULL) {
         goto fail;
     }
@@ -429,6 +433,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
             Order = CblasColMajor;
             lda = (CArray_DIM(ap1, 0) > 1 ? CArray_DIM(ap1, 0) : 1);
         }
+
         ap2s = CArray_STRIDE(ap2, 0) / CArray_ITEMSIZE(ap2);
         gemv(typenum, Order, CblasNoTrans, ap1, lda, ap2, ap2s, out_buf);
     }
@@ -553,11 +558,18 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
         add_to_buffer(ptr, out_buf, sizeof(CArray));
     }
 
+    if (bad1) {
+        CArray_Free(ap1);
+    }
+    if (bad2) {
+        CArray_Free(ap2);
+    }
+
     return out_buf;
 fail:
-    CArray_DECREF(ap1);
-    CArray_DECREF(ap2);
-    CArray_DECREF(out_buf);
-    CArray_DECREF(result);
+    //CArray_DECREF(ap1);
+    //CArray_DECREF(ap2);
+    //CArray_DECREF(out_buf);
+    //CArray_DECREF(result);
     return NULL;
 }

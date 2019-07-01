@@ -334,6 +334,7 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
         }
         if (same) {
             ret = CArray_View(self);
+            CArrayDescriptor_INCREF(CArray_DESCR(ret));
             if(ptr != NULL) { 
                 add_to_buffer(ptr, ret, sizeof(CArray));
             }
@@ -385,12 +386,11 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
             ret, CArray_DESCR(self),
             ndim, newdims, strides, CArray_DATA(self),
             flags, self, 0, 1);
-     
-            
-    CArrayDescriptor_INCREF(CArray_DESCR(self));
+
     if(ptr != NULL) {
         add_to_buffer(ptr, ret, sizeof(CArray));
     }
+
     CArray_DECREF(self);
     return ret;
 }
@@ -660,8 +660,11 @@ CArray_atleast1d(CArray * self, MemoryPointer * out)
 
     dims = emalloc(sizeof(int));
     dims[0] = 1;
+
     rtn = CArray_Newshape(self, dims, 1, CARRAY_CORDER, out);
     efree(dims);
+
+    return rtn;
 }
 
 /**
@@ -674,11 +677,9 @@ CArray_atleast2d(CArray * self, MemoryPointer * out)
     CArray * rtn;
     if (CArray_NDIM(self) >= 2) {
         rtn = CArray_View(self);
-        CArrayDescriptor_INCREF(CArray_DESCR(rtn));
         if (out != NULL) {
             add_to_buffer(out, rtn, sizeof(CArray));
         }
-        CArrayDescriptor_INCREF(CArray_DESCR(rtn));
         return rtn;
     }
     dims = emalloc(sizeof(int) * 2);
@@ -691,6 +692,8 @@ CArray_atleast2d(CArray * self, MemoryPointer * out)
     
     rtn = CArray_Newshape(self, dims, 2, CARRAY_CORDER, out);
     efree(dims);
+
+    return rtn;
 }
 
 CArray *
@@ -700,11 +703,9 @@ CArray_atleast3d(CArray * self, MemoryPointer * out)
     CArray * rtn;
     if (CArray_NDIM(self) >= 3) {
         rtn = CArray_View(self);
-        CArrayDescriptor_INCREF(CArray_DESCR(rtn));
         if (out != NULL) {
             add_to_buffer(out, rtn, sizeof(CArray));
         }
-        CArrayDescriptor_INCREF(CArray_DESCR(rtn));
         return rtn;
     }
     dims = emalloc(sizeof(int) * 3);
@@ -723,7 +724,9 @@ CArray_atleast3d(CArray * self, MemoryPointer * out)
     } 
     
     rtn = CArray_Newshape(self, dims, 3, CARRAY_CORDER, out);
+
     efree(dims);
+    return rtn;
 }
 
 CArray *
