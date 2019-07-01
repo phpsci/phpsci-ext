@@ -496,7 +496,7 @@ CArray_FromZval_Hashtable(zval * php_array, char type, MemoryPointer * ptr)
     Hashtable_dimensions(php_array, dims, ndims, 0);
     // If `a` (auto), find be
     // st element type
-    if(type = auto_flag) {
+    if(type == auto_flag) {
         Hashtable_type(php_array, &type);
     }
 
@@ -592,23 +592,39 @@ CArray_Hashtable_Data_Copy(CArray * target_carray, zval * target_zval, int * fir
     zval * element;
     int * data_int;
     double * data_double;
+
     ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(target_zval), element) {
         ZVAL_DEREF(element);
         if (Z_TYPE_P(element) == IS_ARRAY) {
             CArray_Hashtable_Data_Copy(target_carray, element, first_index);
         }
         if (Z_TYPE_P(element) == IS_LONG) {
-            convert_to_long(element);
-            data_int = (int*)CArray_DATA(target_carray);
-            data_int[*first_index] = (int)zval_get_long(element);
-            *first_index = *first_index + 1;
+            if (CArray_TYPE(target_carray), TYPE_INTEGER_INT) {
+                convert_to_long(element);
+                data_int = (int *) CArray_DATA(target_carray);
+                data_int[*first_index] = (int) zval_get_long(element);
+                *first_index = *first_index + 1;
+            }
+            if (CArray_TYPE(target_carray), TYPE_DOUBLE_INT) {
+                convert_to_long(element);
+                data_int = (double *) CArray_DATA(target_carray);
+                data_int[*first_index] = (double) zval_get_long(element);
+                *first_index = *first_index + 1;
+            }
         }
         if (Z_TYPE_P(element) == IS_DOUBLE) {
-            convert_to_double(element);
-            data_double = (double*)CArray_DATA(target_carray);
-            data_double[*first_index] = (double)zval_get_double(element);
-            *first_index = *first_index + 1;
-            
+            if (CArray_TYPE(target_carray), TYPE_DOUBLE_INT) {
+                convert_to_double(element);
+                data_double = (double *) CArray_DATA(target_carray);
+                data_double[*first_index] = (double) zval_get_double(element);
+                *first_index = *first_index + 1;
+            }
+            if (CArray_TYPE(target_carray), TYPE_INTEGER_INT) {
+                convert_to_double(element);
+                data_double = (int *) CArray_DATA(target_carray);
+                data_double[*first_index] = (int) zval_get_double(element);
+                *first_index = *first_index + 1;
+            }
         }
         if (Z_TYPE_P(element) == IS_STRING) {
             

@@ -131,14 +131,13 @@ INT_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n)
 CArray * 
 CArray_Matmul(CArray * ap1, CArray * ap2, CArray * out, MemoryPointer * ptr)
 {
-    CArray * result = NULL;
+    CArray * result = NULL, * target1, * target2;
     int nd1, nd2, nd, typenum;
     int i, j, l, matchDim, is1, is2, axis, os;
     int * dimensions;
     CArray_DotFunc *dot;
     CArrayIterator * it1, * it2;
     char * op;
-
 
     if (CArray_NDIM(ap1) > 2 || CArray_NDIM(ap2) > 2) {
         throw_valueerror_exception("Matrix product is not implemented for DIM > 2");
@@ -245,6 +244,10 @@ CArray_Matmul(CArray * ap1, CArray * ap2, CArray * out, MemoryPointer * ptr)
     // Remove appended dimension
     result->ndim = ap1->ndim;
 
+    if (ptr != NULL) {
+        add_to_buffer(ptr, result, sizeof(CArray));
+    }
+
     return result;
 fail:
     if(dimensions != NULL) {
@@ -299,6 +302,7 @@ CArray_Inv(CArray * a, MemoryPointer * out) {
     if (casted) {
         CArray_Free(target);
     }
+    efree(data);
     efree(ipiv);
     return identity;
 }
