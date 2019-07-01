@@ -177,7 +177,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
 
     if (_bad_strides(ap1)) {
         CArray *op1 = CArray_NewCopy(ap1, CARRAY_ANYORDER);
-
+        memcpy(CArray_DATA(op1), CArray_DATA(ap1), CArray_SIZE(ap1) * CArray_DESCR(ap1)->elsize);
         CArray_DECREF(ap1);
         ap1 = op1;
         if (ap1 == NULL) {
@@ -430,7 +430,6 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
             lda = (CArray_DIM(ap1, 0) > 1 ? CArray_DIM(ap1, 0) : 1);
         }
         ap2s = CArray_STRIDE(ap2, 0) / CArray_ITEMSIZE(ap2);
-
         gemv(typenum, Order, CblasNoTrans, ap1, lda, ap2, ap2s, out_buf);
     }
     else if (ap1shape != _matrix && ap2shape == _matrix) {
@@ -533,6 +532,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
                 ((Trans1 == CblasTrans) ^ (Trans2 == CblasTrans)) &&
                 ((Trans1 == CblasNoTrans) ^ (Trans2 == CblasNoTrans))
                 ) {
+
             if (Trans1 == CblasNoTrans) {
                 syrk(typenum, Order, Trans1, N, M, ap1, lda, out_buf);
             }

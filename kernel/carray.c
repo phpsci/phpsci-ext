@@ -599,30 +599,30 @@ CArray_Hashtable_Data_Copy(CArray * target_carray, zval * target_zval, int * fir
             CArray_Hashtable_Data_Copy(target_carray, element, first_index);
         }
         if (Z_TYPE_P(element) == IS_LONG) {
-            if (CArray_TYPE(target_carray), TYPE_INTEGER_INT) {
+            if (CArray_TYPE(target_carray) == TYPE_INTEGER_INT) {
                 convert_to_long(element);
                 data_int = (int *) CArray_DATA(target_carray);
                 data_int[*first_index] = (int) zval_get_long(element);
                 *first_index = *first_index + 1;
             }
-            if (CArray_TYPE(target_carray), TYPE_DOUBLE_INT) {
+            if (CArray_TYPE(target_carray) == TYPE_DOUBLE_INT) {
                 convert_to_long(element);
-                data_int = (double *) CArray_DATA(target_carray);
-                data_int[*first_index] = (double) zval_get_long(element);
+                data_double = (double *) CArray_DATA(target_carray);
+                data_double[*first_index] = (double) zval_get_long(element);
                 *first_index = *first_index + 1;
             }
         }
         if (Z_TYPE_P(element) == IS_DOUBLE) {
-            if (CArray_TYPE(target_carray), TYPE_DOUBLE_INT) {
+            if (CArray_TYPE(target_carray) == TYPE_DOUBLE_INT) {
                 convert_to_double(element);
                 data_double = (double *) CArray_DATA(target_carray);
                 data_double[*first_index] = (double) zval_get_double(element);
                 *first_index = *first_index + 1;
             }
-            if (CArray_TYPE(target_carray), TYPE_INTEGER_INT) {
+            if (CArray_TYPE(target_carray) == TYPE_INTEGER_INT) {
                 convert_to_double(element);
-                data_double = (int *) CArray_DATA(target_carray);
-                data_double[*first_index] = (int) zval_get_double(element);
+                data_int = (int *) CArray_DATA(target_carray);
+                data_int[*first_index] = (int) zval_get_double(element);
                 *first_index = *first_index + 1;
             }
         }
