@@ -297,6 +297,79 @@ CArray_Transpose(CArray * target, CArray_Dims * permute, MemoryPointer * ptr)
     return ret;
 }
 
+/*
+ * writes result of a * b into r
+ * returns 1 if a * b overflowed else returns 0
+ *
+ * These functions are not designed to work if either a or b is negative, but
+ * that is not checked. Could use absolute values and adjust the sign if that
+ * functionality was desired.
+ */
+static int
+ca_mul_with_overflow_int(int * r, int a, int b)
+{
+    const int half_sz = ((int)1 << ((sizeof(a) * 8 - 1 ) / 2));
+
+    *r = a * b;
+    /*
+     * avoid expensive division on common no overflow case
+     */
+    if (CARRAY_UNLIKELY((a | b) >= half_sz) &&
+        a != 0 && b > INT_MAX / a) {
+        return 1;
+    }
+    return 0;
+}
+
+static int
+_fix_unknown_dimension(int *newshape, int ndims, CArray *arr)
+{
+    int *dimensions;
+    int s_original = CArray_SIZE(arr);
+    int i_unknown, s_known;
+    int i, n;
+
+    dimensions = newshape;
+    n = ndims;
+    s_known = 1;
+    i_unknown = -1;
+
+    for (i = 0; i < n; i++) {
+        if (dimensions[i] < 0) {
+            if (i_unknown == -1) {
+                i_unknown = i;
+            }
+            else {
+                throw_valueerror_exception("can only specify one unknown dimension");
+                return -1;
+            }
+        }
+        else if (ca_mul_with_overflow_int(&s_known, s_known,
+                                            dimensions[i])) {
+            throw_notimplemented_exception();
+            //raise_reshape_size_mismatch(newshape, arr);
+            return -1;
+        }
+    }
+
+    if (i_unknown >= 0) {
+        if (s_known == 0 || s_original % s_known != 0) {
+            throw_notimplemented_exception();
+            //raise_reshape_size_mismatch(newshape, arr);
+            return -1;
+        }
+        dimensions[i_unknown] = s_original / s_known;
+    }
+    else {
+        if (s_original != s_known) {
+            throw_notimplemented_exception();
+            //raise_reshape_size_mismatch(newshape, arr);
+            return -1;
+        }
+    }
+    return 0;
+}
+
 /**
  * @param self
  * @param newdims
@@ -340,6 +413,13 @@ CArray_Newshape(CArray * self, int *newdims, int new_ndim, CARRAY_ORDER order, M
             }
             return ret;
         }
+    }
+
+    /*
+    * fix any -1 dimensions and check new-dimensions against old size
+    */
+    if (_fix_unknown_dimension(newdims, new_ndim, self) < 0) {
+        return NULL;
     }
 
     CArray_INCREF(self);

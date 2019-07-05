@@ -11,6 +11,8 @@
 #include "lapacke.h"
 #include "matlib.h"
 #include "convert.h"
+#include "shape.h"
+#include "common/matmul.h"
 
 static float s_one;
 static float s_zero;
@@ -115,12 +117,12 @@ DOUBLE_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n)
 void
 INT_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n)
 {
-    int tmp = (int)0;
+    long tmp = (long)0;
     int i;
 
     for (i = 0; i < n; i++, ip1 += is1, ip2 += is2) {
-        tmp += (int)(*((int *)ip1)) *
-        (int)(*((int *)ip2));
+        tmp += (long)(*((int *)ip1)) *
+               (long)(*((int *)ip2));
     }
     *((int *)op) = (int) tmp;
 }
@@ -481,5 +483,129 @@ CArray_Det(CArray * a, MemoryPointer * out)
 
     return rtn;
 fail:
+    return NULL;
+}
+
+
+/**
+ * VDOT
+ */
+void
+DOUBLE_vdot(char *ip1, int is1, char *ip2, int is2,
+             char *op, int n)
+{
+    int is1b = blas_stride(is1, sizeof(double));
+    int is2b = blas_stride(is2, sizeof(double));
+
+    if (is1b && is2b) {
+        double sum[2] = {0., 0.};  /* double for stability */
+
+        while (n > 0) {
+            int chunk = n < CARRAY_CBLAS_CHUNK ? n : CARRAY_CBLAS_CHUNK;
+            double tmp[2];
+
+            cblas_zdotc_sub((int)n, ip1, is1b, ip2, is2b, tmp);
+            sum[0] += (double)tmp[0];
+            sum[1] += (double)tmp[1];
+            /* use char strides here */
+            ip1 += chunk * is1;
+            ip2 += chunk * is2;
+            n -= chunk;
+        }
+        ((double *)op)[0] = (double)sum[0];
+        ((double *)op)[1] = (double)sum[1];
+    }
+}
+
+CArray *
+CArray_Vdot(CArray * a, CArray * b, MemoryPointer * out)
+{
+    int typenum;
+    char *ip1, *ip2, *op;
+    int n, stride1, stride2;
+    CArray *op1 = a, *op2 = b;
+    int newdimptr[1] = {-1};
+    CArray_Dims newdims = {newdimptr, 1};
+    CArray *ap1 = NULL, *ap2  = NULL, *ret = NULL;
+    CArrayDescriptor *type;
+    CArray_DotFunc *vdot;
+
+    /*
+     * Conjugating dot product using the BLAS for vectors.
+     * Flattens both op1 and op2 before dotting.
+     */
+    typenum = CArray_ObjectType(op1, 0);
+    typenum = CArray_ObjectType(op2, typenum);
+
+    type = CArray_DescrFromType(typenum);
+    ap1 = CArray_FromAny(op1, type, 0, 0, 0);
+    if (ap1 == NULL) {
+        CArrayDescriptor_FREE(type);
+        goto fail;
+    }
+
+    op1 = CArray_Newshape(ap1, newdims.ptr, newdims.len, CARRAY_CORDER, NULL);
+
+    if (op1 == NULL) {
+        CArrayDescriptor_FREE(type);
+        goto fail;
+    }
+
+    ap1 = op1;
+
+    ap2 = CArray_FromAny(op2, type, 0, 0, 0);
+    if (ap2 == NULL) {
+        goto fail;
+    }
+    op2 = CArray_Newshape(ap2, newdims.ptr, newdims.len, CARRAY_CORDER, NULL);
+
+    if (op2 == NULL) {
+        goto fail;
+    }
+
+    ap2 = op2;
+
+    if (CArray_DIM(ap2, 0) != CArray_DIM(ap1, 0)) {
+        throw_valueerror_exception("vectors have different lengths");
+        goto fail;
+    }
+
+    /* array scalar output */
+    ret = new_array_for_sum(ap1, ap2, NULL, 0, (int *)NULL, typenum, NULL);
+
+    if (ret == NULL) {
+        goto fail;
+    }
+
+    n = CArray_DIM(ap1, 0);
+    stride1 = CArray_STRIDE(ap1, 0);
+    stride2 = CArray_STRIDE(ap2, 0);
+    ip1 = CArray_DATA(ap1);
+    ip2 = CArray_DATA(ap2);
+    op = CArray_DATA(ret);
+
+    switch (typenum) {
+        case TYPE_DOUBLE_INT:
+            vdot = (CArray_DotFunc *)DOUBLE_vdot;
+            break;
+        default:
+            throw_valueerror_exception("function not available for this data type");
+            goto fail;
+    }
+
+
+    vdot(ip1, stride1, ip2, stride2, op, n);
+
+    if (out != NULL) {
+        add_to_buffer(out, ret, sizeof(CArray));
+    }
+
+    //Py_XDECREF(ap1);
+    //Py_XDECREF(ap2);
+    return ret;
+fail:
+    //Py_XDECREF(ap1);
+    //Py_XDECREF(ap2);
+    //Py_XDECREF(ret);
     return NULL;
 }
