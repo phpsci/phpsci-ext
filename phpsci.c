@@ -1088,7 +1088,55 @@ PHP_METHOD(CArray, vdot)
 
     RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
 }
+PHP_METHOD(CArray, svd)
+{
+    int full_matrices_int = 1, compute_uv_int = 1, i = 0;
+    MemoryPointer a_ptr, * out_ptr;
+    zval * a;
+    zval * tmp_zval;
+    zend_bool  full_matrices, compute_uv;
+    CArray ** rtn, * a_ca;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(a)
+            Z_PARAM_OPTIONAL
+            Z_PARAM_BOOL(full_matrices)
+            Z_PARAM_BOOL(compute_uv)
+    ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(a, &a_ptr, NULL);
+    a_ca = CArray_FromMemoryPointer(&a_ptr);
+    if(ZEND_NUM_ARGS() == 2) {
+        if (full_matrices == IS_FALSE) {
+            full_matrices_int = 0;
+        }
+    }
+    if(ZEND_NUM_ARGS() == 3) {
+        if (full_matrices == IS_FALSE) {
+            full_matrices_int = 0;
+        }
+        if (compute_uv == IS_FALSE) {
+            compute_uv_int = 0;
+        }
+    }
+    out_ptr = emalloc(3 * sizeof(MemoryPointer));
+    rtn = CArray_Svd(a_ca, full_matrices_int, compute_uv_int, out_ptr);
 
+    FREE_FROM_MEMORYPOINTER(&a_ptr);
+
+    if (rtn == NULL) {
+        efree(out_ptr);
+        return;
+    }
+
+    array_init_size(return_value, 3);
+    for (i = 0; i < 3;i ++) {
+        tmp_zval = MEMORYPOINTER_TO_ZVAL(&(out_ptr[i]));
+        zend_hash_next_index_insert_new(Z_ARRVAL_P(return_value), tmp_zval);
+        efree(tmp_zval);
+    }
+
+    efree(out_ptr);
+    efree(rtn);
+}
 
 
 
@@ -1138,6 +1186,7 @@ PHP_METHOD(CArray, ones)
         dtype = emalloc(sizeof(char));
         *dtype = 'd';
     }
+
     shape = ZVAL_TO_TUPLE(zshape, &ndim);
     CArray_Ones(shape, ndim, dtype, &order, &ptr);
     efree(shape);
@@ -1164,7 +1213,6 @@ PHP_METHOD(CArray, add)
     target_ca1 = CArray_FromMemoryPointer(&target1_ptr);
     target_ca2 = CArray_FromMemoryPointer(&target2_ptr);
     output_ca = CArray_Add(target_ca1, target_ca2, &result_ptr);
-
 
     FREE_FROM_MEMORYPOINTER(&target1_ptr);
     FREE_FROM_MEMORYPOINTER(&target2_ptr);
@@ -2511,6 +2559,9 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, norm, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, det, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, vdot, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
+        // DECOMPOSITIONS
+        PHP_ME(CArray, svd, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // ARITHMETIC
         PHP_ME(CArray, add, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)

@@ -609,3 +609,72 @@ fail:
     //Py_XDECREF(ret);
     return NULL;
 }
+
+
+CArray **
+CArray_Svd(CArray * a, int full_matrices, int compute_uv, MemoryPointer * out)
+{
+    int m, n;
+    int lda, ldu, ldvt, info, lwork;
+    int * iwork;
+    double * s, * u, * vt;
+    CArray * u_ca, * s_ca, *vh_ca, ** rtn;
+
+    if (CArray_NDIM(a) != 2) {
+        throw_valueerror_exception("Expected 2D array");
+        return NULL;
+    }
+
+    m = CArray_DIMS(a)[0];
+    n = CArray_DIMS(a)[1];
+
+    lda = m;
+    ldu = m;
+    ldvt = n;
+    lwork = -1;
+
+    s = emalloc(sizeof(double) * n);
+    u = emalloc(sizeof(double) * (ldu * m));
+    vt = emalloc(sizeof(double) * (ldvt * n));
+
+    info = LAPACKE_dgesdd(LAPACK_ROW_MAJOR, 'S', m, n, DDATA(a), lda, s, u, ldu, vt, ldvt);
+
+    if( info > 0 ) {
+        throw_valueerror_exception( "The algorithm computing SVD failed to converge." );
+        return NULL;
+    }
+
+    u_ca = emalloc(sizeof(CArray));
+    u_ca = CArray_NewFromDescr_int(u_ca, CArray_DESCR(a), CArray_NDIM(a), CArray_DIMS(a), CArray_STRIDES(a),
+                                   NULL, 0, NULL, 1, 0);
+    efree(u_ca->data);
+    u_ca->data = (char *)u;
+    CArrayDescriptor_INCREF(CArray_DESCR(a));
+
+    s_ca = emalloc(sizeof(CArray));
+    s_ca = CArray_NewFromDescr_int(s_ca, CArray_DESCR(a), 1, &n, NULL,
+                                   NULL, 0, NULL, 1, 0);
+    efree(s_ca->data);
+    s_ca->data = (char *)s;
+    CArrayDescriptor_INCREF(CArray_DESCR(a));
+
+    vh_ca = emalloc(sizeof(CArray));
+    vh_ca = CArray_NewFromDescr_int(vh_ca, CArray_DESCR(a), CArray_NDIM(a), CArray_DIMS(a), CArray_STRIDES(a),
+                                    NULL, 0, NULL, 1, 0);
+    efree(vh_ca->data);
+    vh_ca->data = (char *)vt;
+    CArrayDescriptor_INCREF(CArray_DESCR(a));
+
+    if (out != NULL) {
+        add_to_buffer(&(out[0]), u_ca, sizeof(CArray));
+        add_to_buffer(&(out[1]), s_ca, sizeof(CArray));
+        add_to_buffer(&(out[2]), vh_ca, sizeof(CArray));
+    }
+
+    rtn = emalloc(sizeof(CArray *) * 3);
+    rtn[0] = u_ca;
+    rtn[1] = s_ca;
+    rtn[2] = vh_ca;
+
+    return rtn;
+}
