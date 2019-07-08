@@ -347,6 +347,23 @@ PHP_METHOD(CArray, setShape)
     newcarray = CArray_Newshape(carray, new_shape, zend_hash_num_elements(Z_ARRVAL_P(new_shape_zval)), CARRAY_CORDER, &ptr);
     FREE_TUPLE(new_shape);
 }
+PHP_METHOD(CArray, shape)
+{
+    MemoryPointer ptr;
+    CArray * target;
+    zval * obj = getThis();
+    zval tmp_zval;
+    int i;
+
+    ZVAL_TO_MEMORYPOINTER(obj, &ptr, NULL);
+    target = CArray_FromMemoryPointer(&ptr);
+
+    array_init_size(return_value, CArray_NDIM(target));
+    for (i = 0; i < CArray_NDIM(target); i++) {
+        ZVAL_LONG(&tmp_zval, CArray_DIMS(target)[i]);
+        zend_hash_next_index_insert_new(Z_ARRVAL_P(return_value), &tmp_zval);
+    }
+}
 PHP_METHOD(CArray, reshape)
 {
     MemoryPointer ptr;
@@ -2535,6 +2552,10 @@ PHP_METHOD(CArray, map)
     }
     efree(params);
 }
+PHP_METHOD(CArray, __invoke)
+{
+    throw_notimplemented_exception();
+}
 
 /**
  * CLASS METHODS
@@ -2546,6 +2567,7 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, dump, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, print, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, __set, arginfo_array_set, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, __invoke, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, __toString, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, toArray, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, map, NULL, ZEND_ACC_PUBLIC)
@@ -2599,6 +2621,7 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, transpose, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, reshape, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, setShape, NULL, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, shape, NULL, ZEND_ACC_PUBLIC)
 
         //ROUNDING
         PHP_ME(CArray, ceil, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
@@ -2764,7 +2787,8 @@ static int carray_do_operation_ex(zend_uchar opcode, zval *result, zval *op1, zv
     }
 }
 
-static int carray_compare(zval *object1, zval *object2 TSRMLS_DC) /* {{{ */
+static
+int carray_compare(zval *object1, zval *object2 TSRMLS_DC) /* {{{ */
 {
     CArray *a, *b;
     MemoryPointer ptr1, ptr2;
@@ -2780,7 +2804,7 @@ static int carray_compare(zval *object1, zval *object2 TSRMLS_DC) /* {{{ */
     return FAILURE;
 }
 
-int
+static int
 carray_count(zval *object, long *count TSRMLS_DC) {
     MemoryPointer ptr;
     CArray * target;
@@ -2794,7 +2818,8 @@ carray_count(zval *object, long *count TSRMLS_DC) {
     return SUCCESS;
 }
 
-static int carray_do_operation(zend_uchar opcode, zval *result, zval *op1, zval *op2) /* {{{ */
+static
+int carray_do_operation(zend_uchar opcode, zval *result, zval *op1, zval *op2) /* {{{ */
 {
     zval op1_copy;
     int retval;
@@ -2834,6 +2859,7 @@ static PHP_MINIT_FUNCTION(carray)
     carray_object_handlers.compare_objects = carray_compare;
     carray_object_handlers.cast_object = carray_cast;
     carray_object_handlers.count_elements = carray_count;
+
 
     zend_class_implements(carray_sc_entry, 1, zend_ce_arrayaccess);
 
