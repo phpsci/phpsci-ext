@@ -1062,6 +1062,13 @@ PHP_METHOD(CArray, det)
         RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
     }
 }
+PHP_METHOD(CArray, matrix_rank)
+{
+    zval * a;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(a)
+    ZEND_PARSE_PARAMETERS_END();
+}
 PHP_METHOD(CArray, vdot)
 {
     MemoryPointer a_ptr, b_ptr, rtn_ptr;
@@ -1087,6 +1094,34 @@ PHP_METHOD(CArray, vdot)
     FREE_FROM_MEMORYPOINTER(&b_ptr);
 
     RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
+}
+PHP_METHOD(CArray, inner)
+{
+    zval * a;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(a)
+    ZEND_PARSE_PARAMETERS_END();
+}
+PHP_METHOD(CArray, outer)
+{
+    zval * a;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(a)
+    ZEND_PARSE_PARAMETERS_END();
+}
+PHP_METHOD(CArray, eig)
+{
+    zval * a;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(a)
+    ZEND_PARSE_PARAMETERS_END();
+}
+PHP_METHOD(CArray, eigvals)
+{
+    zval * a;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(a)
+    ZEND_PARSE_PARAMETERS_END();
 }
 PHP_METHOD(CArray, svd)
 {
@@ -1136,6 +1171,23 @@ PHP_METHOD(CArray, svd)
 
     efree(out_ptr);
     efree(rtn);
+}
+PHP_METHOD(CArray, qr)
+{
+    zval * a;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+         Z_PARAM_ZVAL(a)
+    ZEND_PARSE_PARAMETERS_END();
+
+
+}
+PHP_METHOD(CArray, cholesky)
+{
+    zval * a;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_ZVAL(a)
+    ZEND_PARSE_PARAMETERS_END();
+
 }
 
 
@@ -2556,12 +2608,23 @@ static zend_function_entry carray_class_methods[] =
         // LINEAR ALGEBRA
         PHP_ME(CArray, matmul, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, inv, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, vdot, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, inner, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, outer, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
+        // EIGNVALUES
+        PHP_ME(CArray, eig, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, eigvals, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
+        // NORMS
         PHP_ME(CArray, norm, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, det, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
-        PHP_ME(CArray, vdot, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, matrix_rank, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // DECOMPOSITIONS
         PHP_ME(CArray, svd, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, cholesky, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+        PHP_ME(CArray, qr, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // ARITHMETIC
         PHP_ME(CArray, add, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
@@ -2701,6 +2764,36 @@ static int carray_do_operation_ex(zend_uchar opcode, zval *result, zval *op1, zv
     }
 }
 
+static int carray_compare(zval *object1, zval *object2 TSRMLS_DC) /* {{{ */
+{
+    CArray *a, *b;
+    MemoryPointer ptr1, ptr2;
+    ZVAL_TO_MEMORYPOINTER(object1, &ptr1, NULL);
+    ZVAL_TO_MEMORYPOINTER(object2, &ptr2, NULL);
+
+    a = CArray_FromMemoryPointer(&ptr1);
+    b = CArray_FromMemoryPointer(&ptr2);
+
+    if (CArray_DATA(a) == CArray_DATA(b)) {
+        return SUCCESS;
+    }
+    return FAILURE;
+}
+
+int
+carray_count(zval *object, long *count TSRMLS_DC) {
+    MemoryPointer ptr;
+    CArray * target;
+    ZVAL_TO_MEMORYPOINTER(object, &ptr, NULL);
+    target = CArray_FromMemoryPointer(&ptr);
+    if (CArray_NDIM(target) > 0) {
+        *count = (long)CArray_DIMS(target)[0];
+    } else {
+        *count = (long)1;
+    }
+    return SUCCESS;
+}
+
 static int carray_do_operation(zend_uchar opcode, zval *result, zval *op1, zval *op2) /* {{{ */
 {
     zval op1_copy;
@@ -2720,6 +2813,12 @@ static int carray_do_operation(zend_uchar opcode, zval *result, zval *op1, zval 
     return retval;
 }
 
+static int
+carray_cast(zval *readobj, zval *retval, int type) {
+    throw_valueerror_exception("Use astype() for casting");
+    return FAILURE;
+}
+
 /**
  * MINIT
  */
@@ -2730,10 +2829,11 @@ static PHP_MINIT_FUNCTION(carray)
     carray_sc_entry = zend_register_internal_class(&ce);
     carray_sc_entry->create_object = carray_create_object;
 
-
     memcpy(&carray_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     carray_object_handlers.do_operation = carray_do_operation;
-
+    carray_object_handlers.compare_objects = carray_compare;
+    carray_object_handlers.cast_object = carray_cast;
+    carray_object_handlers.count_elements = carray_count;
 
     zend_class_implements(carray_sc_entry, 1, zend_ce_arrayaccess);
 
