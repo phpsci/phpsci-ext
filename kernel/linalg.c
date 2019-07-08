@@ -277,7 +277,12 @@ CArray_Inv(CArray * a, MemoryPointer * out) {
 
     if (CArray_DESCR(a)->type_num != TYPE_DOUBLE_INT) {
         CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
-        target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_F_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_FORTRANORDER, descr, 0);
+        }
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        }
         if(CArray_CastTo(target, a) < 0) {
             return NULL;
         }
@@ -287,7 +292,7 @@ CArray_Inv(CArray * a, MemoryPointer * out) {
     }
 
     if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
-        linearize_DOUBLE_matrix(data, DDATA(target), a);
+        linearize_DOUBLE_matrix(data, DDATA(target), target);
     } else {
         memcpy(data, DDATA(target), sizeof(double) * CArray_SIZE(target));
     }
@@ -351,7 +356,12 @@ CArray_Norm(CArray * a, int norm, MemoryPointer * out)
 
     if (CArray_DESCR(a)->type_num != TYPE_DOUBLE_INT) {
         CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
-        target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_F_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_FORTRANORDER, descr, 0);
+        }
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        }
         if(CArray_CastTo(target, a) < 0) {
             goto fail;
         }
@@ -362,7 +372,7 @@ CArray_Norm(CArray * a, int norm, MemoryPointer * out)
 
     if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
         data = emalloc(sizeof(double) * CArray_SIZE(target));
-        linearize_DOUBLE_matrix(data, DDATA(target), a);
+        linearize_DOUBLE_matrix(data, DDATA(target), target);
     } else {
         data = DDATA(target);
     }
@@ -414,7 +424,12 @@ CArray_Det(CArray * a, MemoryPointer * out)
     }
     if (CArray_DESCR(a)->type_num != TYPE_DOUBLE_INT) {
         CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
-        target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_F_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_FORTRANORDER, descr, 0);
+        }
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        }
         if(CArray_CastTo(target, a) < 0) {
             goto fail;
         }
@@ -425,7 +440,7 @@ CArray_Det(CArray * a, MemoryPointer * out)
 
     if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
         data = emalloc(sizeof(double) * CArray_SIZE(target));
-        linearize_DOUBLE_matrix(data, DDATA(target), a);
+        linearize_DOUBLE_matrix(data, DDATA(target), target);
     } else {
         data = DDATA(target);
     }
@@ -617,7 +632,7 @@ CArray_Svd(CArray * a, int full_matrices, int compute_uv, MemoryPointer * out)
     int m, n, casted = 0;
     int lda, ldu, ldvt, info, lwork;
     int * iwork;
-    double * s, * u, * vt;
+    double * s, * u, * vt, * data = NULL;
     CArray * u_ca, * s_ca, *vh_ca, ** rtn, * target;
 
     if (CArray_NDIM(a) != 2) {
@@ -627,7 +642,13 @@ CArray_Svd(CArray * a, int full_matrices, int compute_uv, MemoryPointer * out)
 
     if (CArray_DESCR(a)->type_num != TYPE_DOUBLE_INT) {
         CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
-        target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_F_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_FORTRANORDER, descr, 0);
+        }
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        }
         if(CArray_CastTo(target, a) < 0) {
             return NULL;
         }
@@ -636,8 +657,15 @@ CArray_Svd(CArray * a, int full_matrices, int compute_uv, MemoryPointer * out)
         target = a;
     }
 
-    m = CArray_DIMS(a)[0];
-    n = CArray_DIMS(a)[1];
+    if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+        data = emalloc(sizeof(double) * CArray_SIZE(a));
+        linearize_DOUBLE_matrix(data, DDATA(target), target);
+    } else {
+        memcpy(data, DDATA(target), sizeof(double) * CArray_SIZE(target));
+    }
+
+    m = CArray_DIMS(target)[0];
+    n = CArray_DIMS(target)[1];
 
     lda = m;
     ldu = m;
@@ -648,7 +676,7 @@ CArray_Svd(CArray * a, int full_matrices, int compute_uv, MemoryPointer * out)
     u = emalloc(sizeof(double) * (ldu * m));
     vt = emalloc(sizeof(double) * (ldvt * n));
 
-    info = LAPACKE_dgesdd(LAPACK_ROW_MAJOR, 'S', m, n, DDATA(target), lda, s, u, ldu, vt, ldvt);
+    info = LAPACKE_dgesdd(LAPACK_ROW_MAJOR, 'S', m, n, data, lda, s, u, ldu, vt, ldvt);
 
     if( info > 0 ) {
         throw_valueerror_exception( "The algorithm computing SVD failed to converge." );
@@ -692,5 +720,8 @@ CArray_Svd(CArray * a, int full_matrices, int compute_uv, MemoryPointer * out)
         CArray_Free(target);
     }
 
+    if (data != NULL) {
+        efree(data);
+    }
     return rtn;
 }
