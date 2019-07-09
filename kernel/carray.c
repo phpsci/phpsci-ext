@@ -1173,6 +1173,9 @@ _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int cur
                     value = (int *) CArrayIterator_DATA(iterator);
                     snprintf(tmp_str_num, 11, "%d", *value);
                     offset = max_digits - strlen(tmp_str_num);
+                    if (*value == INFINITY) {
+                        offset = max_digits - 3;
+                    }
                     for (j = 0; j < offset; j++) {
                         php_printf(" ");
                     }
@@ -1196,6 +1199,9 @@ _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int cur
                         value = (double *) CArrayIterator_DATA(iterator);
                         snprintf(tmp_str_num, 320, "%.8f", *value);
                         offset = max_digits - strlen(tmp_str_num);
+                        if (*value == INFINITY) {
+                            offset = max_digits - 3;
+                        }
                         for (j = 0; j < offset; j++) {
                             php_printf(" ");
                         }
@@ -1207,6 +1213,9 @@ _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int cur
                         value = IT_DDATA(iterator);
                         snprintf(tmp_str_num, 320, "%.0f", *value);
                         offset = max_digits - strlen(tmp_str_num);
+                        if (*value == INFINITY) {
+                            offset = max_digits - 3;
+                        }
                         for (j = 0; j < offset; j++) {
                             php_printf(" ");
                         }
