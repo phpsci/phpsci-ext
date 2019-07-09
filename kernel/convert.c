@@ -156,11 +156,6 @@ CArray_CanCastTo(CArrayDescriptor *from, CArrayDescriptor *to)
                 ret = (from->elsize <= to->elsize);
             }
         }
-        /*
-         * TODO: If totype is STRING or unicode
-         * see if the length is long enough to hold the
-         * stringified value of the object.
-         */
     }
     return ret;
 }
@@ -225,10 +220,8 @@ CArray_FillWithScalar(CArray * arr, CArrayScalar * sc)
         CArrayDescriptor_FREE(dtype);
         return -1;
     }
-    
-    /* Use the value pointer we got if possible */
+
     if (value != NULL) {
-        /* TODO: switch to SAME_KIND casting */
         retcode = CArray_AssignRawScalar(arr, dtype, value, NULL, CARRAY_UNSAFE_CASTING);
         
         CArrayDescriptor_FREE(dtype);
