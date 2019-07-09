@@ -1137,6 +1137,12 @@ _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int cur
         *index = 0;
         for (i = *index; i < array->dimensions[current_dim]; i++) {
             if (iterator->index >= CArray_DIMS(array)[CArray_NDIM(array)-1] && !current_dim) {
+
+                // Break line for 2D stacks
+                if (CArray_NDIM(array) == 3) {
+                    php_printf("\n");
+                }
+
                 for (j = 0; j < current_dim + 1; j++) {
                     php_printf(" ");
                 }
