@@ -276,16 +276,25 @@ PHP_METHOD(CArray, offsetGet)
     if (zend_parse_parameters(ZEND_NUM_ARGS(), "z", &index) == FAILURE) {
         return;
     }
-    convert_to_long(index);
+
     zval * obj = getThis();
     ZVAL_TO_MEMORYPOINTER(obj, &ptr, NULL);
     _this_ca = CArray_FromMemoryPointer(&ptr);
-    if(zval_get_long(index) > CArray_DIMS(_this_ca)[0]) {
-        throw_indexerror_exception("");
-        return;
+
+    if (Z_TYPE_P(index) == IS_STRING) {
+        convert_to_string(index);
+        ret_ca = (CArray *) CArray_Slice_Str(_this_ca, zval_get_string(index)->val, &target_ptr);
     }
 
-    ret_ca = (CArray *) CArray_Slice_Index(_this_ca, (int)zval_get_long(index), &target_ptr);
+    if (Z_TYPE_P(index) == IS_LONG) {
+        convert_to_long(index);
+        if (zval_get_long(index) > CArray_DIMS(_this_ca)[0]) {
+            throw_indexerror_exception("");
+            return;
+        }
+        ret_ca = (CArray *) CArray_Slice_Index(_this_ca, (int)zval_get_long(index), &target_ptr);
+    }
+
     if(ret_ca != NULL) {
         RETURN_MEMORYPOINTER(return_value, &target_ptr);
     }
@@ -2857,7 +2866,6 @@ static PHP_MINIT_FUNCTION(carray)
     memcpy(&carray_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     carray_object_handlers.do_operation = carray_do_operation;
     carray_object_handlers.compare_objects = carray_compare;
-    carray_object_handlers.cast_object = carray_cast;
     carray_object_handlers.count_elements = carray_count;
 
 

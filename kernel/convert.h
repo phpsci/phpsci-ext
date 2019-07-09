@@ -5,6 +5,8 @@
 #include "scalar.h"
 
 CArray * CArray_Slice_Index(CArray * self, int index, MemoryPointer * out);
+CArray * CArray_Slice_Str(CArray * self, char * index, MemoryPointer * out);
+
 CArray * CArray_View(CArray *self);
 CArray * CArray_NewCopy(CArray *obj, CARRAY_ORDER order);
 int CArray_CanCastTo(CArrayDescriptor *from, CArrayDescriptor *to);
