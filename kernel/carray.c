@@ -1136,7 +1136,7 @@ _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int cur
     if(current_dim < array->ndim-1) {
         *index = 0;
         for (i = *index; i < array->dimensions[current_dim]; i++) {
-            if (iterator->index >= CArray_DIMS(array)[current_dim] && !current_dim) {
+            if (iterator->index >= CArray_DIMS(array)[CArray_NDIM(array)-1] && !current_dim) {
                 for (j = 0; j < current_dim + 1; j++) {
                     php_printf(" ");
                 }
