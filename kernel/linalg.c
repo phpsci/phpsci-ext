@@ -11,6 +11,8 @@
 #include "lapacke.h"
 #include "matlib.h"
 #include "convert.h"
+#include "shape.h"
+#include "common/matmul.h"
 
 static float s_one;
 static float s_zero;
@@ -115,12 +117,12 @@ DOUBLE_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n)
 void
 INT_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n)
 {
-    int tmp = (int)0;
+    long tmp = (long)0;
     int i;
 
     for (i = 0; i < n; i++, ip1 += is1, ip2 += is2) {
-        tmp += (int)(*((int *)ip1)) *
-        (int)(*((int *)ip2));
+        tmp += (long)(*((int *)ip1)) *
+               (long)(*((int *)ip2));
     }
     *((int *)op) = (int) tmp;
 }
@@ -275,7 +277,12 @@ CArray_Inv(CArray * a, MemoryPointer * out) {
 
     if (CArray_DESCR(a)->type_num != TYPE_DOUBLE_INT) {
         CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
-        target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_F_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_FORTRANORDER, descr, 0);
+        }
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        }
         if(CArray_CastTo(target, a) < 0) {
             return NULL;
         }
@@ -285,7 +292,7 @@ CArray_Inv(CArray * a, MemoryPointer * out) {
     }
 
     if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
-        linearize_DOUBLE_matrix(data, DDATA(target), a);
+        linearize_DOUBLE_matrix(data, DDATA(target), target);
     } else {
         memcpy(data, DDATA(target), sizeof(double) * CArray_SIZE(target));
     }
@@ -349,7 +356,12 @@ CArray_Norm(CArray * a, int norm, MemoryPointer * out)
 
     if (CArray_DESCR(a)->type_num != TYPE_DOUBLE_INT) {
         CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
-        target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_F_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_FORTRANORDER, descr, 0);
+        }
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        }
         if(CArray_CastTo(target, a) < 0) {
             goto fail;
         }
@@ -360,7 +372,7 @@ CArray_Norm(CArray * a, int norm, MemoryPointer * out)
 
     if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
         data = emalloc(sizeof(double) * CArray_SIZE(target));
-        linearize_DOUBLE_matrix(data, DDATA(target), a);
+        linearize_DOUBLE_matrix(data, DDATA(target), target);
     } else {
         data = DDATA(target);
     }
@@ -412,7 +424,12 @@ CArray_Det(CArray * a, MemoryPointer * out)
     }
     if (CArray_DESCR(a)->type_num != TYPE_DOUBLE_INT) {
         CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
-        target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_F_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_FORTRANORDER, descr, 0);
+        }
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        }
         if(CArray_CastTo(target, a) < 0) {
             goto fail;
         }
@@ -423,7 +440,7 @@ CArray_Det(CArray * a, MemoryPointer * out)
 
     if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
         data = emalloc(sizeof(double) * CArray_SIZE(target));
-        linearize_DOUBLE_matrix(data, DDATA(target), a);
+        linearize_DOUBLE_matrix(data, DDATA(target), target);
     } else {
         data = DDATA(target);
     }
@@ -482,4 +499,229 @@ CArray_Det(CArray * a, MemoryPointer * out)
     return rtn;
 fail:
     return NULL;
+}
+
+
+/**
+ * VDOT
+ */
+void
+DOUBLE_vdot(char *ip1, int is1, char *ip2, int is2,
+             char *op, int n)
+{
+    int is1b = blas_stride(is1, sizeof(double));
+    int is2b = blas_stride(is2, sizeof(double));
+
+    if (is1b && is2b) {
+        double sum[2] = {0., 0.};  /* double for stability */
+
+        while (n > 0) {
+            int chunk = n < CARRAY_CBLAS_CHUNK ? n : CARRAY_CBLAS_CHUNK;
+            double tmp[2];
+
+            cblas_zdotc_sub((int)n, ip1, is1b, ip2, is2b, tmp);
+            sum[0] += (double)tmp[0];
+            sum[1] += (double)tmp[1];
+            /* use char strides here */
+            ip1 += chunk * is1;
+            ip2 += chunk * is2;
+            n -= chunk;
+        }
+        ((double *)op)[0] = (double)sum[0];
+        ((double *)op)[1] = (double)sum[1];
+    }
+}
+
+CArray *
+CArray_Vdot(CArray * a, CArray * b, MemoryPointer * out)
+{
+    int typenum;
+    char *ip1, *ip2, *op;
+    int n, stride1, stride2;
+    CArray *op1 = a, *op2 = b;
+    int newdimptr[1] = {-1};
+    CArray_Dims newdims = {newdimptr, 1};
+    CArray *ap1 = NULL, *ap2  = NULL, *ret = NULL;
+    CArrayDescriptor *type;
+    CArray_DotFunc *vdot;
+
+    /*
+     * Conjugating dot product using the BLAS for vectors.
+     * Flattens both op1 and op2 before dotting.
+     */
+    typenum = CArray_ObjectType(op1, 0);
+    typenum = CArray_ObjectType(op2, typenum);
+
+    type = CArray_DescrFromType(typenum);
+    ap1 = CArray_FromAny(op1, type, 0, 0, 0);
+    if (ap1 == NULL) {
+        CArrayDescriptor_FREE(type);
+        goto fail;
+    }
+
+    op1 = CArray_Newshape(ap1, newdims.ptr, newdims.len, CARRAY_CORDER, NULL);
+
+    if (op1 == NULL) {
+        CArrayDescriptor_FREE(type);
+        goto fail;
+    }
+
+    ap1 = op1;
+
+    ap2 = CArray_FromAny(op2, type, 0, 0, 0);
+    if (ap2 == NULL) {
+        goto fail;
+    }
+    op2 = CArray_Newshape(ap2, newdims.ptr, newdims.len, CARRAY_CORDER, NULL);
+
+    if (op2 == NULL) {
+        goto fail;
+    }
+
+    ap2 = op2;
+
+    if (CArray_DIM(ap2, 0) != CArray_DIM(ap1, 0)) {
+        throw_valueerror_exception("vectors have different lengths");
+        goto fail;
+    }
+
+    /* array scalar output */
+    ret = new_array_for_sum(ap1, ap2, NULL, 0, (int *)NULL, typenum, NULL);
+
+    if (ret == NULL) {
+        goto fail;
+    }
+
+    n = CArray_DIM(ap1, 0);
+    stride1 = CArray_STRIDE(ap1, 0);
+    stride2 = CArray_STRIDE(ap2, 0);
+    ip1 = CArray_DATA(ap1);
+    ip2 = CArray_DATA(ap2);
+    op = CArray_DATA(ret);
+
+    switch (typenum) {
+        case TYPE_DOUBLE_INT:
+            vdot = (CArray_DotFunc *)DOUBLE_vdot;
+            break;
+        default:
+            throw_valueerror_exception("function not available for this data type");
+            goto fail;
+    }
+
+
+    vdot(ip1, stride1, ip2, stride2, op, n);
+
+    if (out != NULL) {
+        add_to_buffer(out, ret, sizeof(CArray));
+    }
+
+    //Py_XDECREF(ap1);
+    //Py_XDECREF(ap2);
+    return ret;
+fail:
+    //Py_XDECREF(ap1);
+    //Py_XDECREF(ap2);
+    //Py_XDECREF(ret);
+    return NULL;
+}
+
+
+CArray **
+CArray_Svd(CArray * a, int full_matrices, int compute_uv, MemoryPointer * out)
+{
+    int m, n, casted = 0;
+    int lda, ldu, ldvt, info, lwork;
+    int * iwork;
+    double * s, * u, * vt, * data = NULL;
+    CArray * u_ca, * s_ca, *vh_ca, ** rtn, * target;
+
+    if (CArray_NDIM(a) != 2) {
+        throw_valueerror_exception("Expected 2D array");
+        return NULL;
+    }
+
+    if (CArray_DESCR(a)->type_num != TYPE_DOUBLE_INT) {
+        CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
+
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_F_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_FORTRANORDER, descr, 0);
+        }
+        if (CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+            target = CArray_NewLikeArray(a, CARRAY_CORDER, descr, 0);
+        }
+        if(CArray_CastTo(target, a) < 0) {
+            return NULL;
+        }
+        casted = 1;
+    } else {
+        target = a;
+    }
+
+    if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+        data = emalloc(sizeof(double) * CArray_SIZE(a));
+        linearize_DOUBLE_matrix(data, DDATA(target), target);
+    } else {
+        memcpy(data, DDATA(target), sizeof(double) * CArray_SIZE(target));
+    }
+
+    m = CArray_DIMS(target)[0];
+    n = CArray_DIMS(target)[1];
+
+    lda = m;
+    ldu = m;
+    ldvt = n;
+    lwork = -1;
+
+    s = emalloc(sizeof(double) * n);
+    u = emalloc(sizeof(double) * (ldu * m));
+    vt = emalloc(sizeof(double) * (ldvt * n));
+
+    info = LAPACKE_dgesdd(LAPACK_ROW_MAJOR, 'S', m, n, data, lda, s, u, ldu, vt, ldvt);
+
+    if( info > 0 ) {
+        throw_valueerror_exception( "The algorithm computing SVD failed to converge." );
+        return NULL;
+    }
+
+    u_ca = emalloc(sizeof(CArray));
+    u_ca = CArray_NewFromDescr_int(u_ca, CArray_DESCR(target), CArray_NDIM(target), CArray_DIMS(target), CArray_STRIDES(target),
+                                   NULL, 0, NULL, 1, 0);
+    efree(u_ca->data);
+    u_ca->data = (char *)u;
+    CArrayDescriptor_INCREF(CArray_DESCR(target));
+
+    s_ca = emalloc(sizeof(CArray));
+    s_ca = CArray_NewFromDescr_int(s_ca, CArray_DESCR(target), 1, &n, NULL,
+                                   NULL, 0, NULL, 1, 0);
+    efree(s_ca->data);
+    s_ca->data = (char *)s;
+    CArrayDescriptor_INCREF(CArray_DESCR(target));
+
+    vh_ca = emalloc(sizeof(CArray));
+    vh_ca = CArray_NewFromDescr_int(vh_ca, CArray_DESCR(target), CArray_NDIM(target), CArray_DIMS(target), CArray_STRIDES(target),
+                                    NULL, 0, NULL, 1, 0);
+    efree(vh_ca->data);
+    vh_ca->data = (char *)vt;
+    CArrayDescriptor_INCREF(CArray_DESCR(target));
+
+    if (out != NULL) {
+        add_to_buffer(&(out[0]), u_ca, sizeof(CArray));
+        add_to_buffer(&(out[1]), s_ca, sizeof(CArray));
+        add_to_buffer(&(out[2]), vh_ca, sizeof(CArray));
+    }
+
+    rtn = emalloc(sizeof(CArray *) * 3);
+    rtn[0] = u_ca;
+    rtn[1] = s_ca;
+    rtn[2] = vh_ca;
+
+    if (casted) {
+        CArrayDescriptor_DECREF(CArray_DESCR(target));
+        CArray_Free(target);
+    }
+
+    if (data != NULL) {
+        efree(data);
+    }
+    return rtn;
 }

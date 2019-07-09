@@ -1,6 +1,3 @@
-//
-// Created by Henrique Borba on 19/11/2018.
-//
 #include "php.h"
 #include "iterators.h"
 #include "carray.h"

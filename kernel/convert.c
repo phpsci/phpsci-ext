@@ -156,11 +156,6 @@ CArray_CanCastTo(CArrayDescriptor *from, CArrayDescriptor *to)
                 ret = (from->elsize <= to->elsize);
             }
         }
-        /*
-         * TODO: If totype is STRING or unicode
-         * see if the length is long enough to hold the
-         * stringified value of the object.
-         */
     }
     return ret;
 }
@@ -225,16 +220,192 @@ CArray_FillWithScalar(CArray * arr, CArrayScalar * sc)
         CArrayDescriptor_FREE(dtype);
         return -1;
     }
-    
-    /* Use the value pointer we got if possible */
+
     if (value != NULL) {
-        /* TODO: switch to SAME_KIND casting */
         retcode = CArray_AssignRawScalar(arr, dtype, value, NULL, CARRAY_UNSAFE_CASTING);
         
         CArrayDescriptor_FREE(dtype);
         return retcode;
     }
 
-    CArrayDescriptor_FREE(dtype);
+    throw_notimplemented_exception();
 }
+
+static
+void
+remove_spaces(char* s) {
+    const char* d = s;
+    do {
+        while (*d == ' ') {
+            ++d;
+        }
+    } while (*s++ = *d++);
+}
+
+static int *
+_dimensions_from_slice_str(CArray * self, char * index, int * ndim, int *stride_step, int * strides)
+{
+    int * dimensions, * ignored_dimensions;
+    int sum_dimension, ignore_dim = 0;
+    int current_dim = 0, num_args = 0;
+    char * indice, * start_stop_step, *end_indice, *end_sss;
+    int len;
+    int indices_count = 1, i;
+    int * start = NULL, * stop = NULL, * step = NULL;
+
+    len = strlen(index);
+    remove_spaces(index);
+
+    for (i = 0; i < len; i++) {
+        if (index[i] == ',') {
+            indices_count++;
+        }
+    }
+
+    dimensions = emalloc(sizeof(int) * CArray_NDIM(self));
+    ignored_dimensions = ecalloc(CArray_NDIM(self), sizeof(int));
+
+    if (indices_count > CArray_NDIM(self)) {
+        throw_indexerror_exception("too many indices for array");
+        return NULL;
+    }
+
+    *ndim = 0;
+
+    indice = strtok_r(index, ",", &end_indice);
+    while(indice != NULL) {
+        sum_dimension = 0;
+        if (strstr(indice, ":") == NULL) {
+            ignore_dim = 1;
+            ignored_dimensions[current_dim] = 1;
+        } else {
+            if (indice[0] == ':') {
+                num_args = 1;
+                if (strlen(indice) > 1) {
+                    if (indice[1] == ':') {
+                        num_args = 2;
+                    }
+                }
+            }
+
+            start_stop_step = strtok_r(indice, ":", &end_sss);
+            while (start_stop_step != NULL) {
+
+                num_args++;
+                if (num_args == 1) {
+                    start = emalloc(sizeof(int));
+                    *start = atoi(start_stop_step);
+                }
+                if (num_args == 2) {
+                    stop = emalloc(sizeof(int));
+                    *stop = atoi(start_stop_step);
+                }
+                if (num_args == 3) {
+                    step = emalloc(sizeof(int));
+                    *step = atoi(start_stop_step);
+                }
+                start_stop_step = strtok_r(NULL, ":", &end_sss);
+            }
+
+        }
+
+        if (num_args == 0) {
+            start = emalloc(sizeof(int));
+            *start = 0;
+        }
+
+        if (start != NULL) {
+            sum_dimension = *start;
+            *stride_step = *stride_step + (*start * CArray_STRIDES(self)[current_dim]);
+            efree(start);
+            start = NULL;
+        } else {
+            sum_dimension = 0;
+        }
+
+        if (stop != NULL) {
+            sum_dimension = sum_dimension + *stop;
+            efree(stop);
+            stop = NULL;
+        } else {
+            sum_dimension = CArray_DIMS(self)[current_dim] - sum_dimension;
+        }
+
+        if (step != NULL) {
+            sum_dimension = (int)ceil(sum_dimension / *step);
+            efree(step);
+            step = NULL;
+        }
+
+        if (sum_dimension < 0) {
+            sum_dimension = 0;
+        }
+
+        if (!ignore_dim) {
+            dimensions[*ndim] = sum_dimension;
+            *ndim += 1;
+        } else {
+            ignore_dim = 0;
+            *stride_step = *stride_step + (atoi(indice) * CArray_STRIDES(self)[current_dim]);
+        }
+
+        current_dim++;
+        num_args = 0;
+        indice = strtok_r(NULL, ",", &end_indice);
+    }
+
+    int current_index = 0;
+    for (i = indices_count; i < CArray_NDIM(self); i++) {
+        if(!ignored_dimensions[i]) {
+            dimensions[*ndim] = CArray_DIMS(self)[i];
+            *ndim += 1;
+        }
+    }
+
+
+    current_index = 0;
+    for (i = 0; i < CArray_NDIM(self); i++) {
+        if(!ignored_dimensions[i]) {
+            strides[current_index] = CArray_STRIDES(self)[i];
+            current_index++;
+        }
+    }
+
+    efree(ignored_dimensions);
+    return dimensions;
+}
+
+CArray *
+CArray_Slice_Str(CArray *self, char *index, MemoryPointer *out)
+{
+    CArray *rtn = emalloc(sizeof(CArray));
+    int *strides = emalloc(sizeof(int) * CArray_NDIM(self));
+    int i, ndim;
+    int step = 0;
+    int *dimensions = _dimensions_from_slice_str(self, index, &ndim, &step, strides);
+
+    if (dimensions == NULL) {
+        return NULL;
+    }
+
+    if (strides == NULL) {
+        return NULL;
+    }
+
+    rtn = CArray_NewFromDescr_int(rtn, CArray_DESCR(self), ndim, dimensions, strides, CArray_DATA(self),
+                                  0, self, 0, 0);
+
+    rtn->flags = (CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_WRITEABLE | CARRAY_ARRAY_ALIGNED);
+
+    rtn->data += step;
+
+    if (out != NULL) {
+        add_to_buffer(out, rtn, sizeof(CArray));
+    }
+
+    efree(strides);
+    efree(dimensions);
+    return rtn;
+}
+
 #pragma clang diagnostic pop

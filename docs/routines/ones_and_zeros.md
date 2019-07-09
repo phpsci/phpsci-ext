@@ -71,7 +71,33 @@ echo CArray::eye(3, 3, 1);
 ---
 
 ## ones
+```php
+public static ones(array $shape) : CArray
+```
+> Return a new CArray of given shape, filled with ones.
+
+##### Parameters
+
+`Array` **$shape** Shape of the new array, e.g., `[2, 3]` or `[2]`.
+
+##### Returns
+
+`CArray` CArray of ones with the given shape.
+
 
 ---
 
 ## zeros
+```php
+public static zeros(array $shape) : CArray
+```
+
+> Return a new CArray of given shape, filled with zeros.
+
+##### Parameters
+
+`Array` **$shape** Shape of the new array, e.g., `[2, 3]` or `[2]`.
+
+##### Returns
+
+`CArray` CArray of zeros with the given shape.

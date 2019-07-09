@@ -196,10 +196,10 @@ _carray_to_array_recursive(CArray * array, int * dimension, zval * current_dim_z
             ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(current_dim_z), current) {
                 for (i = 0; i < CArray_DIMS(array)[*dimension]; i++) {
                     if (CArray_TYPE(array) == TYPE_INTEGER_INT) {
-                        ZVAL_LONG(&tmp, ((int *) it->data_pointer)[0]);
+                        ZVAL_LONG(&tmp, *((int *) it->data_pointer));
                     }
                     if (CArray_TYPE(array) == TYPE_DOUBLE_INT) {
-                        ZVAL_DOUBLE(&tmp, ((double *) it->data_pointer)[0]);
+                        ZVAL_DOUBLE(&tmp, *((double *) it->data_pointer));
                     }
                     zend_hash_next_index_insert_new(Z_ARRVAL_P(current), &tmp);
                     CArrayIterator_NEXT(it);
@@ -209,10 +209,10 @@ _carray_to_array_recursive(CArray * array, int * dimension, zval * current_dim_z
         if (CArray_NDIM(array) > 2) {
             for (i = 0; i < CArray_DIMS(array)[*dimension]; i++) {
                 if (CArray_TYPE(array) == TYPE_INTEGER_INT) {
-                    ZVAL_LONG(&tmp, ((int *) it->data_pointer)[0]);
+                    ZVAL_LONG(&tmp, *((int *) it->data_pointer));
                 }
                 if (CArray_TYPE(array) == TYPE_DOUBLE_INT) {
-                    ZVAL_DOUBLE(&tmp, ((double *) it->data_pointer)[0]);
+                    ZVAL_DOUBLE(&tmp, *((double *) it->data_pointer));
                 }
                 zend_hash_next_index_insert_new(Z_ARRVAL_P(current_dim_z), &tmp);
                 CArrayIterator_NEXT(it);
@@ -258,10 +258,10 @@ CArray_ToArray(CArray *a, zval * rtn)
         array_init_size(rtn, CArray_DIMS(a)[0]);
         for (i = 0; i < CArray_DIMS(a)[0]; i++) {
                     if (CArray_TYPE(a) == TYPE_INTEGER_INT) {
-                        ZVAL_LONG(&tmp, ((int *) it->data_pointer)[0]);
+                        ZVAL_LONG(&tmp, *((int *) it->data_pointer));
                     }
                     if (CArray_TYPE(a) == TYPE_DOUBLE_INT) {
-                        ZVAL_DOUBLE(&tmp, ((double *) it->data_pointer)[0]);
+                        ZVAL_DOUBLE(&tmp, *((double *) it->data_pointer));
                     }
                     zend_hash_next_index_insert_new(Z_ARRVAL_P(rtn), &tmp);
                     CArrayIterator_NEXT(it);
