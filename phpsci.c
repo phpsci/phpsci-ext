@@ -56,6 +56,7 @@
 #include "kernel/search.h"
 #include "kernel/exp_logs.h"
 #include "kernel/clip.h"
+#include "kernel/storage.h"
 #include "kernel/round.h"
 
 typedef struct _zend_carray_cdata {
@@ -2567,6 +2568,45 @@ PHP_METHOD(CArray, __invoke)
 }
 
 /**
+ * STORAGE
+ */
+PHP_METHOD(CArray, save)
+{
+    MemoryPointer ptr;
+    zval * obj = getThis();
+    char * filename;
+    size_t filename_len;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+        Z_PARAM_STRING(filename, filename_len)
+    ZEND_PARSE_PARAMETERS_END();
+
+    ZVAL_TO_MEMORYPOINTER(obj, &ptr, NULL);
+
+    CArray *target = CArray_FromMemoryPointer(&ptr);
+    if(!CArrayStorage_SaveBin(filename, target)){
+        throw_memory_exception("An error occurred");
+        return;
+    }
+}
+PHP_METHOD(CArray, load)
+{
+    MemoryPointer rtn;
+    char * filename;
+    size_t filename_len;
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+            Z_PARAM_STRING(filename, filename_len)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if(!CArrayStorage_LoadBin(filename, &rtn)){
+        throw_memory_exception("An error occurred");
+        return;
+    }
+
+    RETURN_MEMORYPOINTER(return_value, &rtn);
+}
+
+
+/**
  * CLASS METHODS
  */
 static zend_function_entry carray_class_methods[] =
@@ -2703,6 +2743,10 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, sinh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, cosh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, tanh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
+
+        // STORAGAE
+        PHP_ME(CArray, save, NULL, ZEND_ACC_PUBLIC)
+        PHP_ME(CArray, load, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
         // CARRAY ITERATOR
         PHP_ME(CArray, offsetUnset, arginfo_array_offsetGet, ZEND_ACC_PUBLIC)
