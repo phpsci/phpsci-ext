@@ -440,7 +440,6 @@ _new_sortlike(CArray *op, int axis, CArray_SortFunc *sort,
 
     CArray_CopySwapNFunc *copyswapn = CArray_DESCR(op)->f->copyswapn;
     char *buffer = NULL;
-
     CArrayIterator *it;
     int size;
 

@@ -67,7 +67,7 @@ After
 ```php
 public static rollaxis($a, int $axis, int $start = 0) : CArray
 ```
-Roll the specified axis backwards, until it lies in a given position.
+> Roll the specified axis backwards, until it lies in a given position.
 
 ##### Parameters
 
@@ -89,7 +89,7 @@ Roll the specified axis backwards, until it lies in a given position.
 ```php
 public static swapaxes($a, $axis1, $axis2) : CArray
 ```
-Interchange two axes of an array.
+> Interchange two axes of an array.
 
 ##### Parameters
 
@@ -109,7 +109,7 @@ Interchange two axes of an array.
 ```php
 public static transpose($a, $axes = NULL) : CArray
 ```
-Permute the dimensions of an array.
+> Permute the dimensions of an array.
 
 ##### Parameters
 

@@ -1136,7 +1136,13 @@ _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int cur
     if(current_dim < array->ndim-1) {
         *index = 0;
         for (i = *index; i < array->dimensions[current_dim]; i++) {
-            if (iterator->index >= CArray_DIMS(array)[current_dim] && !current_dim) {
+            if (iterator->index >= CArray_DIMS(array)[CArray_NDIM(array)-1] && !current_dim) {
+
+                // Break line for 2D stacks
+                if (CArray_NDIM(array) == 3) {
+                    php_printf("\n");
+                }
+
                 for (j = 0; j < current_dim + 1; j++) {
                     php_printf(" ");
                 }
@@ -1167,6 +1173,9 @@ _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int cur
                     value = (int *) CArrayIterator_DATA(iterator);
                     snprintf(tmp_str_num, 11, "%d", *value);
                     offset = max_digits - strlen(tmp_str_num);
+                    if (*value == INFINITY) {
+                        offset = max_digits - 3;
+                    }
                     for (j = 0; j < offset; j++) {
                         php_printf(" ");
                     }
@@ -1190,6 +1199,9 @@ _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int cur
                         value = (double *) CArrayIterator_DATA(iterator);
                         snprintf(tmp_str_num, 320, "%.8f", *value);
                         offset = max_digits - strlen(tmp_str_num);
+                        if (*value == INFINITY) {
+                            offset = max_digits - 3;
+                        }
                         for (j = 0; j < offset; j++) {
                             php_printf(" ");
                         }
@@ -1201,6 +1213,9 @@ _print_recursive(CArray * array, CArrayIterator * iterator, int * index, int cur
                         value = IT_DDATA(iterator);
                         snprintf(tmp_str_num, 320, "%.0f", *value);
                         offset = max_digits - strlen(tmp_str_num);
+                        if (*value == INFINITY) {
+                            offset = max_digits - 3;
+                        }
                         for (j = 0; j < offset; j++) {
                             php_printf(" ");
                         }

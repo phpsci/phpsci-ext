@@ -421,6 +421,7 @@ CArray_Multiply(CArray *m1, CArray *m2, MemoryPointer * ptr)
     CArrayIterator_FREE(it2);
     efree(dimensions);
     result->flags = (CARRAY_ARRAY_C_CONTIGUOUS | CARRAY_ARRAY_OWNDATA | CARRAY_ARRAY_WRITEABLE | CARRAY_ARRAY_ALIGNED);
+
     if(ptr != NULL) {
         add_to_buffer(ptr, result, sizeof(*result));
     }
@@ -739,8 +740,8 @@ CArray_Negative(CArray * a, MemoryPointer * out)
 
     rtn = CArray_Multiply(a, negative_ca, out);
 
+    CArrayDescriptor_FREE(CArray_DESCR(negative_ca));
     CArray_Free(negative_ca);
-
     return rtn;
 }
 

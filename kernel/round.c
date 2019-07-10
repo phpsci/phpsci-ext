@@ -69,7 +69,7 @@ CArray_Ceil(CArray *a, MemoryPointer *out)
             break;
         case TYPE_INTEGER_INT:
             do {
-                *IT_IDATA(it2) = *IT_IDATA(it1);
+                *IT_IDATA(it2) = (int)ceil((double)*IT_IDATA(it1));
                 CArrayIterator_NEXT(it1);
                 CArrayIterator_NEXT(it2);
             } while (CArrayIterator_NOTDONE(it1));
@@ -119,13 +119,18 @@ CArray_Round(CArray *a, int decimals, MemoryPointer *out)
         case TYPE_DOUBLE_INT:
             if (negative_decimals) {
                 do {
-                    *IT_DDATA(it2) = round(*IT_DDATA(it1) / multiplier) * multiplier;
+                    *IT_DDATA(it2) = ceil(*IT_DDATA(it1) / multiplier) * multiplier;
                     CArrayIterator_NEXT(it1);
                     CArrayIterator_NEXT(it2);
                 } while (CArrayIterator_NOTDONE(it1));
             } else {
                 do {
-                    *IT_DDATA(it2) = round(*IT_DDATA(it1) * multiplier) / multiplier;
+                    if ((*IT_DDATA(it1) - (int)*IT_DDATA(it1)) >= 0.5) {
+                        *IT_DDATA(it2) = ceil(pow(10,decimals)* *IT_DDATA(it1))/pow(10,decimals);
+                    } else {
+                        *IT_DDATA(it2) = floor(pow(10,decimals)* *IT_DDATA(it1))/pow(10,decimals);
+                    }
+
                     CArrayIterator_NEXT(it1);
                     CArrayIterator_NEXT(it2);
                 } while (CArrayIterator_NOTDONE(it1));
@@ -134,7 +139,7 @@ CArray_Round(CArray *a, int decimals, MemoryPointer *out)
         case TYPE_INTEGER_INT:
             if (negative_decimals) {
                 do {
-                    *IT_IDATA(it2) = (int)(round(((double)(*IT_IDATA(it1))/multiplier)) * multiplier);
+                    *IT_IDATA(it2) = (int)(ceil(((double)(*IT_IDATA(it1))/multiplier)) * multiplier);
                     CArrayIterator_NEXT(it1);
                     CArrayIterator_NEXT(it2);
                 } while (CArrayIterator_NOTDONE(it1));
