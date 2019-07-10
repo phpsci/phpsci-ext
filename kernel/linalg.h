@@ -11,6 +11,6 @@ CArray * CArray_Matmul(CArray * ap1, CArray * ap2, CArray * out, MemoryPointer *
 CArray * CArray_Inv(CArray * a, MemoryPointer * out);
 CArray * CArray_Norm(CArray * a, int norm, MemoryPointer * out);
 CArray * CArray_Det(CArray * a, MemoryPointer * out);
-CArray * CArray_Vdot(CArray * a, CArray * b, MemoryPointer * out);
+CArray * CArray_Vdot(CArray * target_a, CArray * target_b, MemoryPointer * out);
 CArray ** CArray_Svd(CArray * a, int full_matrices, int compute_uv, MemoryPointer * out);
 #endif

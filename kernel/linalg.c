@@ -7,12 +7,12 @@
 #include "convert_type.h"
 #include "alloc.h"
 #include "buffer.h"
-#include "cblas.h"
-#include "lapacke.h"
 #include "matlib.h"
 #include "convert.h"
 #include "shape.h"
 #include "common/matmul.h"
+#include "cblas.h"
+#include "lapacke.h"
 
 static float s_one;
 static float s_zero;
@@ -533,17 +533,56 @@ DOUBLE_vdot(char *ip1, int is1, char *ip2, int is2,
 }
 
 CArray *
-CArray_Vdot(CArray * a, CArray * b, MemoryPointer * out)
+CArray_Vdot(CArray * target_a, CArray * target_b, MemoryPointer * out)
 {
+    CArray * a = NULL, * b = NULL;
+    int casted_a = 0, casted_b = 0;
     int typenum;
     char *ip1, *ip2, *op;
     int n, stride1, stride2;
-    CArray *op1 = a, *op2 = b;
+    CArray *op1, *op2;
     int newdimptr[1] = {-1};
     CArray_Dims newdims = {newdimptr, 1};
     CArray *ap1 = NULL, *ap2  = NULL, *ret = NULL;
     CArrayDescriptor *type;
     CArray_DotFunc *vdot;
+
+    if (CArray_DESCR(target_a)->type_num != TYPE_DOUBLE_INT) {
+        CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
+        if (CArray_CHKFLAGS(target_a, CARRAY_ARRAY_F_CONTIGUOUS)) {
+            a = CArray_NewLikeArray(target_a, CARRAY_FORTRANORDER, descr, 0);
+        }
+        if (CArray_CHKFLAGS(target_a, CARRAY_ARRAY_C_CONTIGUOUS)) {
+            a = CArray_NewLikeArray(target_a, CARRAY_CORDER, descr, 0);
+        }
+        if(CArray_CastTo(a, target_a) < 0) {
+            goto fail;
+        }
+        casted_a = 1;
+    } else {
+        a = target_a;
+    }
+
+
+
+    if (CArray_DESCR(target_b)->type_num != TYPE_DOUBLE_INT) {
+        CArrayDescriptor *descr = CArray_DescrFromType(TYPE_DOUBLE_INT);
+        if (CArray_CHKFLAGS(target_b, CARRAY_ARRAY_F_CONTIGUOUS)) {
+            b = CArray_NewLikeArray(target_b, CARRAY_FORTRANORDER, descr, 0);
+        }
+        if (CArray_CHKFLAGS(target_b, CARRAY_ARRAY_C_CONTIGUOUS)) {
+            b = CArray_NewLikeArray(target_b, CARRAY_CORDER, descr, 0);
+        }
+        if(CArray_CastTo(b, target_b) < 0) {
+            goto fail;
+        }
+        casted_b = 1;
+    } else {
+        b = target_b;
+    }
+
+    op1 = a;
+    op2 = b;
 
     /*
      * Conjugating dot product using the BLAS for vectors.
@@ -553,7 +592,8 @@ CArray_Vdot(CArray * a, CArray * b, MemoryPointer * out)
     typenum = CArray_ObjectType(op2, typenum);
 
     type = CArray_DescrFromType(typenum);
-    ap1 = CArray_FromAny(op1, type, 0, 0, 0);
+
+    ap1 = op1;
     if (ap1 == NULL) {
         CArrayDescriptor_FREE(type);
         goto fail;
@@ -568,10 +608,11 @@ CArray_Vdot(CArray * a, CArray * b, MemoryPointer * out)
 
     ap1 = op1;
 
-    ap2 = CArray_FromAny(op2, type, 0, 0, 0);
+    ap2 = op2;
     if (ap2 == NULL) {
         goto fail;
     }
+
     op2 = CArray_Newshape(ap2, newdims.ptr, newdims.len, CARRAY_CORDER, NULL);
 
     if (op2 == NULL) {
@@ -592,6 +633,7 @@ CArray_Vdot(CArray * a, CArray * b, MemoryPointer * out)
         goto fail;
     }
 
+
     n = CArray_DIM(ap1, 0);
     stride1 = CArray_STRIDE(ap1, 0);
     stride2 = CArray_STRIDE(ap2, 0);
@@ -603,6 +645,7 @@ CArray_Vdot(CArray * a, CArray * b, MemoryPointer * out)
         case TYPE_DOUBLE_INT:
             vdot = (CArray_DotFunc *)DOUBLE_vdot;
             break;
+
         default:
             throw_valueerror_exception("function not available for this data type");
             goto fail;
@@ -611,12 +654,24 @@ CArray_Vdot(CArray * a, CArray * b, MemoryPointer * out)
 
     vdot(ip1, stride1, ip2, stride2, op, n);
 
+    if (casted_a) {
+        CArray_Free(a);
+    }
+
+    if (casted_b) {
+        CArray_Free(b);
+    }
+
     if (out != NULL) {
         add_to_buffer(out, ret, sizeof(CArray));
     }
 
-    //Py_XDECREF(ap1);
-    //Py_XDECREF(ap2);
+
+    CArrayDescriptor_FREE(type);
+    CArrayDescriptor_DECREF(CArray_DESCR(ap1));
+    CArrayDescriptor_DECREF(CArray_DESCR(ap2));
+    CArray_Free(ap1);
+    CArray_Free(ap2);
     return ret;
 fail:
     //Py_XDECREF(ap1);
