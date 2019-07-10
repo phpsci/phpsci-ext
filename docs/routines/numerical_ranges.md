@@ -1,5 +1,7 @@
 # Numerical Range Methods
 
+---
+
 ## arange
 
 ```php
