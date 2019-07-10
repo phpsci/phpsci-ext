@@ -44,7 +44,7 @@ CArray_CumSum(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
         if(rtype == TYPE_INTEGER_INT) {
             int accumulator = 0;
             do {
-                accumulator += *(IT_DDATA(it));
+                accumulator += *(IT_IDATA(it));
                 IDATA(ret)[it->index] = accumulator;
                 CArrayIterator_NEXT(it);
             } while(CArrayIterator_NOTDONE(it));
@@ -146,7 +146,7 @@ CArray_CumProd(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
         if(rtype == TYPE_INTEGER_INT) {
             int accumulator = 1;
             do {
-                accumulator *= *(IT_DDATA(it));
+                accumulator *= *(IT_IDATA(it));
                 IDATA(ret)[it->index] = accumulator;
                 CArrayIterator_NEXT(it);
             } while(CArrayIterator_NOTDONE(it));
@@ -225,6 +225,8 @@ CArray_Prod(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
     void * total;
     CArray * arr, * ret = NULL;
     CArrayDescriptor * descr;
+    CArrayIterator * it = NULL;
+
     ret = (CArray *)emalloc(sizeof(CArray));
     descr = (CArrayDescriptor*)emalloc(sizeof(CArrayDescriptor));
     arr = CArray_CheckAxis(self, axis, 0);
@@ -287,17 +289,17 @@ CArray_Prod(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
         }      
         int num_elements = new_dimensions[0];
         int * strides = CArray_Generate_Strides(new_dimensions, self->ndim-1, self->descriptor->type);
+
         for(i = 1; i < self->ndim-1; i++) {
             num_elements *= new_dimensions[i];
         }
         descr->numElements = num_elements;
         
         ret->descriptor = descr;
-        CArray_Data_alloc(ret);
         
         if(rtype == TYPE_INTEGER_INT) {
             ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, NULL, 0, NULL, 1, 0);   
-            CArrayIterator * it = CArray_IterAllButAxis(self, axis);
+            it = CArray_IterAllButAxis(self, axis);
             
             for(i = 0; i < num_elements; i++) {
                 IDATA(ret)[i] = 1;
@@ -314,7 +316,7 @@ CArray_Prod(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
         }
         if(rtype == TYPE_DOUBLE_INT) {
             ret = CArray_NewFromDescr_int(ret, descr, self->ndim-1, new_dimensions, strides, NULL, 0, NULL, 1, 0);   
-            CArrayIterator * it = CArray_IterAllButAxis(self, axis);
+            it = CArray_IterAllButAxis(self, axis);
             
             for(i = 0; i < num_elements; i++) {
                 DDATA(ret)[i] = 1.0;
@@ -329,9 +331,18 @@ CArray_Prod(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
                 i++;
             } while(CArrayIterator_NOTDONE(it));
         }
+        efree(new_dimensions);
         efree(strides);
     }
-    add_to_buffer(out_ptr, ret, sizeof(*ret));
+
+    if (out_ptr != NULL) {
+        add_to_buffer(out_ptr, ret, sizeof(*ret));
+    }
+
+    if (it != NULL) {
+        CArrayIterator_FREE(it);
+    }
+
     efree(total);
     return ret;
 }

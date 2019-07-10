@@ -869,7 +869,7 @@ PHP_METHOD(CArray, argmax)
         CArray_Free(target_ca);
     }
 
-    FREE_FROM_MEMORYPOINTER(&out_ptr);
+    FREE_FROM_MEMORYPOINTER(&ptr);
     RETURN_MEMORYPOINTER(return_value, &out_ptr);
 }
 PHP_METHOD(CArray, argmin)
@@ -911,7 +911,7 @@ PHP_METHOD(CArray, argmin)
         CArray_Free(target_ca);
     }
 
-    FREE_FROM_MEMORYPOINTER(&out_ptr);
+    FREE_FROM_MEMORYPOINTER(&ptr);
     RETURN_MEMORYPOINTER(return_value, &out_ptr);
 }
 
@@ -950,7 +950,7 @@ PHP_METHOD(CArray, sort)
             *axis_p = axis;
         } else {
             decref = 1;
-            *axis_p = 0;
+            *axis_p = -1;
             ZVAL_TO_MEMORYPOINTER(target, &ptr, NULL);
             tmp_ca = CArray_FromMemoryPointer(&ptr);
             target_ca = CArray_Ravel(tmp_ca, CARRAY_KEEPORDER);
@@ -964,7 +964,7 @@ PHP_METHOD(CArray, sort)
             *axis_p = axis;
         } else {
             decref = 1;
-            *axis_p = 0;
+            *axis_p = -1;
             ZVAL_TO_MEMORYPOINTER(target, &ptr, NULL);
             tmp_ca = CArray_FromMemoryPointer(&ptr);
             target_ca = CArray_Ravel(tmp_ca, CARRAY_KEEPORDER);
@@ -994,7 +994,7 @@ PHP_METHOD(CArray, sort)
     if(decref) {
         CArray_DECREF(target_ca);
     }
-    FREE_FROM_MEMORYPOINTER(&out_ptr);
+    FREE_FROM_MEMORYPOINTER(&ptr);
     RETURN_MEMORYPOINTER(return_value, &out_ptr);
 }
 
@@ -1476,8 +1476,9 @@ PHP_METHOD(CArray, prod)
     ZVAL_TO_MEMORYPOINTER(target, &ptr, NULL);
     target_ca = CArray_FromMemoryPointer(&ptr);
     ret = CArray_Prod(target_ca, axis_p, target_ca->descriptor->type_num, &rtn_ptr);
-    efree(axis_p);
 
+    efree(axis_p);
+    CArray_DECREF(target_ca);
     FREE_FROM_MEMORYPOINTER(&ptr);
     RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
 }
@@ -1513,7 +1514,7 @@ PHP_METHOD(CArray, cumsum)
     long axis;
     int * axis_p;
     CArray * ret, * target_ca;
-    MemoryPointer ptr;
+    MemoryPointer ptr, rtn_ptr;
     ZEND_PARSE_PARAMETERS_START(1, 2)
             Z_PARAM_ZVAL(target)
             Z_PARAM_OPTIONAL
@@ -1528,17 +1529,18 @@ PHP_METHOD(CArray, cumsum)
     }
     ZVAL_TO_MEMORYPOINTER(target, &ptr, NULL);
     target_ca = CArray_FromMemoryPointer(&ptr);
-    ret = CArray_CumSum(target_ca, axis_p, target_ca->descriptor->type_num, &ptr);
+    ret = CArray_CumSum(target_ca, axis_p, target_ca->descriptor->type_num, &rtn_ptr);
     efree(axis_p);
 
     if (ret == NULL) {
         return;
     }
-    RETURN_MEMORYPOINTER(return_value, &ptr);
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
 }
 PHP_METHOD(CArray, negative)
 {
-    MemoryPointer out;
+    MemoryPointer out, rtn_ptr;
     CArray * target_ca, * rtn_ca;
     zval * target;
     ZEND_PARSE_PARAMETERS_START(1, 1)
@@ -1546,12 +1548,13 @@ PHP_METHOD(CArray, negative)
     ZEND_PARSE_PARAMETERS_END();
     ZVAL_TO_MEMORYPOINTER(target, &out, NULL);
     target_ca = CArray_FromMemoryPointer(&out);
-    rtn_ca = CArray_Negative(target_ca, &out);
-
+    rtn_ca = CArray_Negative(target_ca, &rtn_ptr);
     if (rtn_ca == NULL) {
         return;
     }
-    RETURN_MEMORYPOINTER(return_value, &out);
+
+    FREE_FROM_MEMORYPOINTER(&out);
+    RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
 }
 PHP_METHOD(CArray, sqrt)
 {

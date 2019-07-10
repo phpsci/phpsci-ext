@@ -213,7 +213,7 @@ CArray_Argmax(CArray * target, int * axis, MemoryPointer * out)
         CArray_Free(target);
         CArray_Free(ap);
     } else {
-        efree(tmp_descr);
+        CArrayDescriptor_FREE(tmp_descr);
     }
 
     return rp;
@@ -313,7 +313,7 @@ CArray_Argmin(CArray * target, int * axis, MemoryPointer * out)
         CArray_Free(target);
         CArray_Free(ap);
     } else {
-        efree(tmp_descr);
+        CArrayDescriptor_FREE(tmp_descr);
     }
 
     return rp;
