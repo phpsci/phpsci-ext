@@ -239,9 +239,6 @@ CArray_Matmul(CArray * ap1, CArray * ap2, CArray * out, MemoryPointer * ptr)
     CArrayIterator_FREE(it1);
     CArrayIterator_FREE(it2);
 
-    if(ptr != NULL) {
-        add_to_buffer(ptr, result, sizeof(CArray*));
-    }
     efree(dimensions);
     // Remove appended dimension
     result->ndim = ap1->ndim;
@@ -496,6 +493,7 @@ CArray_Det(CArray * a, MemoryPointer * out)
         efree(data);
     }
 
+    efree(ipiv);
     return rtn;
 fail:
     return NULL;
@@ -712,8 +710,8 @@ CArray_Svd(CArray * a, int full_matrices, int compute_uv, MemoryPointer * out)
         target = a;
     }
 
+    data = emalloc(sizeof(double) * CArray_SIZE(a));
     if (!CArray_CHKFLAGS(a, CARRAY_ARRAY_C_CONTIGUOUS)) {
-        data = emalloc(sizeof(double) * CArray_SIZE(a));
         linearize_DOUBLE_matrix(data, DDATA(target), target);
     } else {
         memcpy(data, DDATA(target), sizeof(double) * CArray_SIZE(target));

@@ -525,7 +525,7 @@ PHP_METHOD(CArray, arcsin)
     ZEND_PARSE_PARAMETERS_END();
     ZVAL_TO_MEMORYPOINTER(target, &ptr, NULL);
     target_ca = CArray_FromMemoryPointer(&ptr);
-    ret = CArray_Tan(target_ca, &rtn_tr);
+    ret = CArray_Arcsin(target_ca, &rtn_tr);
 
     FREE_FROM_MEMORYPOINTER(&ptr);
     RETURN_MEMORYPOINTER(return_value, &rtn_tr);
@@ -542,7 +542,7 @@ PHP_METHOD(CArray, arccos)
     ZEND_PARSE_PARAMETERS_END();
     ZVAL_TO_MEMORYPOINTER(target, &ptr, NULL);
     target_ca = CArray_FromMemoryPointer(&ptr);
-    ret = CArray_Tan(target_ca, &rtn_tr);
+    ret = CArray_Arccos(target_ca, &rtn_tr);
 
     FREE_FROM_MEMORYPOINTER(&ptr);
     RETURN_MEMORYPOINTER(return_value, &rtn_tr);
@@ -559,7 +559,7 @@ PHP_METHOD(CArray, arctan)
     ZEND_PARSE_PARAMETERS_END();
     ZVAL_TO_MEMORYPOINTER(target, &ptr, NULL);
     target_ca = CArray_FromMemoryPointer(&ptr);
-    ret = CArray_Tan(target_ca, &rtn_tr);
+    ret = CArray_Arctan(target_ca, &rtn_tr);
 
     FREE_FROM_MEMORYPOINTER(&ptr);
     RETURN_MEMORYPOINTER(return_value, &rtn_tr);
@@ -1460,7 +1460,7 @@ PHP_METHOD(CArray, prod)
     long axis;
     int * axis_p;
     CArray * ret, * target_ca;
-    MemoryPointer ptr;
+    MemoryPointer ptr, rtn_ptr;
     ZEND_PARSE_PARAMETERS_START(1, 2)
             Z_PARAM_ZVAL(target)
             Z_PARAM_OPTIONAL
@@ -1475,9 +1475,11 @@ PHP_METHOD(CArray, prod)
     }
     ZVAL_TO_MEMORYPOINTER(target, &ptr, NULL);
     target_ca = CArray_FromMemoryPointer(&ptr);
-    ret = CArray_Prod(target_ca, axis_p, target_ca->descriptor->type_num, &ptr);
+    ret = CArray_Prod(target_ca, axis_p, target_ca->descriptor->type_num, &rtn_ptr);
     efree(axis_p);
-    RETURN_MEMORYPOINTER(return_value, &ptr);
+
+    FREE_FROM_MEMORYPOINTER(&ptr);
+    RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
 }
 
 PHP_METHOD(CArray, cumprod)
@@ -1652,6 +1654,10 @@ PHP_METHOD(CArray, around)
 
     if (rtn_ca == NULL) {
         return;
+    }
+
+    if (target_ptr.free == 1 || target_ptr.free == 2) {
+        CArrayDescriptor_INCREF(CArray_DESCR(rtn_ca));
     }
 
     FREE_FROM_MEMORYPOINTER(&target_ptr);
@@ -2744,7 +2750,7 @@ static zend_function_entry carray_class_methods[] =
         PHP_ME(CArray, cosh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
         PHP_ME(CArray, tanh, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 
-        // STORAGAE
+        // STORAGE
         PHP_ME(CArray, save, NULL, ZEND_ACC_PUBLIC)
         PHP_ME(CArray, load, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
 

@@ -228,13 +228,13 @@ CArray_Prod(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
     ret = (CArray *)emalloc(sizeof(CArray));
     descr = (CArrayDescriptor*)emalloc(sizeof(CArrayDescriptor));
     arr = CArray_CheckAxis(self, axis, 0);
-    int index_jumps = self->strides[*axis]/self->descriptor->elsize;
     
     if(axis != NULL) {
         if(*axis >= CArray_NDIM(self)) {
             throw_axis_exception("Invalid axis for current matrix shape.");
             return NULL;
         }
+        int index_jumps = self->strides[*axis] / self->descriptor->elsize;
     }
 
     if (arr == NULL) {
@@ -262,7 +262,6 @@ CArray_Prod(CArray * self, int * axis, int rtype, MemoryPointer * out_ptr)
     if(axis == NULL) {
         descr->numElements = 1;
         ret = CArray_NewFromDescr_int(ret, descr, 0, NULL, NULL, NULL, 0, NULL, 1, 0);
-        CArray_Data_alloc(ret);
         if(rtype == TYPE_INTEGER_INT) {
             *((int*)total) = IDATA(self)[0];
             for(i = 1; i < CArray_DESCR(self)->numElements; i++) {
