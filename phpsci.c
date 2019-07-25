@@ -385,12 +385,21 @@ PHP_METHOD(CArray, reshape)
             Z_PARAM_ZVAL(target)
             Z_PARAM_ZVAL(new_shape_zval)
     ZEND_PARSE_PARAMETERS_END();
+
+    if(ZEND_NUM_ARGS() == 1) {
+        throw_valueerror_exception("Expected 2 arguments");
+        return;
+    }
+
     ZVAL_TO_MEMORYPOINTER(target, &ptr, NULL);
     carray = CArray_FromMemoryPointer(&ptr);
     new_shape = ZVAL_TO_TUPLE(new_shape_zval, &ndim);
     newcarray = CArray_Newshape(carray, new_shape, zend_hash_num_elements(Z_ARRVAL_P(new_shape_zval)), CARRAY_CORDER, &ptr);
     FREE_TUPLE(new_shape);
 
+    if (newcarray == NULL) {
+        return;
+    }
     RETURN_MEMORYPOINTER(return_value, &ptr);
 }
 
@@ -1124,10 +1133,28 @@ PHP_METHOD(CArray, vdot)
 }
 PHP_METHOD(CArray, inner)
 {
-    zval * a;
-    ZEND_PARSE_PARAMETERS_START(1, 1)
-            Z_PARAM_ZVAL(a)
+    MemoryPointer rtn_ptr, a_ptr, b_ptr;
+    zval *a, *b;
+    CArray *a_ca, *b_ca, *rtn_ca;
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+        Z_PARAM_ZVAL(a)
+        Z_PARAM_ZVAL(b)
     ZEND_PARSE_PARAMETERS_END();
+    ZVAL_TO_MEMORYPOINTER(a, &a_ptr, NULL);
+    ZVAL_TO_MEMORYPOINTER(b, &b_ptr, NULL);
+
+    a_ca = CArray_FromMemoryPointer(&a_ptr);
+    b_ca = CArray_FromMemoryPointer(&b_ptr);
+
+    rtn_ca = CArray_InnerProduct(a_ca, b_ca, &rtn_ptr);
+
+    FREE_FROM_MEMORYPOINTER(&a_ptr);
+    FREE_FROM_MEMORYPOINTER(&b_ptr);
+    if (rtn_ca == NULL) {
+        return;
+    }
+
+    RETURN_MEMORYPOINTER(return_value, &rtn_ptr);
 }
 PHP_METHOD(CArray, outer)
 {
