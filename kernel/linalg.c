@@ -136,7 +136,7 @@ CArray_Matmul(CArray * ap1, CArray * ap2, CArray * out, MemoryPointer * ptr)
     CArray * result = NULL, * target1, * target2;
     int nd1, nd2, nd, typenum;
     int i, j, l, matchDim, is1, is2, axis, os;
-    int * dimensions;
+    int * dimensions = NULL;
     CArray_DotFunc *dot;
     CArrayIterator * it1, * it2;
     char * op;
@@ -240,8 +240,6 @@ CArray_Matmul(CArray * ap1, CArray * ap2, CArray * out, MemoryPointer * ptr)
     CArrayIterator_FREE(it2);
 
     efree(dimensions);
-    // Remove appended dimension
-    result->ndim = ap1->ndim;
 
     if (ptr != NULL) {
         add_to_buffer(ptr, result, sizeof(CArray));
@@ -777,4 +775,70 @@ CArray_Svd(CArray * a, int full_matrices, int compute_uv, MemoryPointer * out)
         efree(data);
     }
     return rtn;
+}
+
+CArray *
+CArray_InnerProduct(CArray *op1, CArray *op2, MemoryPointer *out)
+{
+    CArray *ap1 = NULL;
+    CArray *ap2 = NULL;
+    int typenum;
+    CArrayDescriptor *typec = NULL;
+    CArray* ap2t = NULL;
+    int dims[CARRAY_MAXDIMS];
+    CArray_Dims newaxes = {dims, 0};
+    int i;
+    CArray* ret = NULL;
+
+    typenum = CArray_ObjectType(op1, 0);
+    typenum = CArray_ObjectType(op2, typenum);
+    typec = CArray_DescrFromType(typenum);
+    if (typec == NULL) {
+        throw_typeerror_exception("Cannot find a common data type.");
+        goto fail;
+    }
+
+    CArrayDescriptor_INCREF(typec);
+    ap1 = CArray_FromAny(op1, typec, 0, 0, CARRAY_ARRAY_ALIGNED);
+    if (ap1 == NULL) {
+        CArrayDescriptor_DECREF(typec);
+        goto fail;
+    }
+    ap2 = (CArray *)CArray_FromAny(op2, typec, 0, 0, CARRAY_ARRAY_ALIGNED);
+    if (ap2 == NULL) {
+        goto fail;
+    }
+
+    newaxes.len = CArray_NDIM(ap2);
+    if ((CArray_NDIM(ap1) >= 1) && (newaxes.len >= 2)) {
+        for (i = 0; i < newaxes.len - 2; i++) {
+            dims[i] = (int)i;
+        }
+        dims[newaxes.len - 2] = newaxes.len - 1;
+        dims[newaxes.len - 1] = newaxes.len - 2;
+
+        ap2t = CArray_Transpose(ap2, &newaxes, NULL);
+        if (ap2t == NULL) {
+            goto fail;
+        }
+    }
+    else {
+        ap2t = ap2;
+        CArray_INCREF(ap2);
+    }
+
+    ret = CArray_Matmul(ap1, ap2t, NULL, out);
+
+    if (ret == NULL) {
+        goto fail;
+    }
+
+    CArray_DECREF(op2);
+    CArrayDescriptor_DECREF(CArray_DESCR(op2));
+
+    CArrayDescriptor_DECREF(typec);
+    CArrayDescriptor_FREE(typec);
+    return ret;
+fail:
+    return NULL;
 }
