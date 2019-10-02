@@ -31,7 +31,19 @@
 #include "TSRM.h"
 #endif
 #include "php.h"
+#include "Python.h"
+#include "zend.h"
 
+/*
+ * Make sure our version of Python is recent enough and that it has been
+ * built with all of the options that we need.
+ */
+#if !defined(PY_VERSION_HEX) || PY_VERSION_HEX <= 0x03050000
+    #error Sorry, the Python extension requires Python 3.5.0 or later.
+#endif
+#if !defined(WITH_THREAD)
+    #error Sorry, the Python extension requires Python's threading support.
+#endif
 
 static zend_class_entry *carray_sc_entry;
 static zend_object_handlers carray_object_handlers;
@@ -39,6 +51,8 @@ static zend_class_entry *carray_exception_sc_entry;
 static zend_class_entry *carray_iterator_sc_entry;
 
 extern zend_module_entry carray_module_entry;
+
+PyThreadState * GTS();
 
 #define phpext_carray_ptr &carray_module_entry
 #endif //PHPSCI_EXT_PHPSCI_H

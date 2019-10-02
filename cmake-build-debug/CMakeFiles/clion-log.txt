@@ -1,0 +1,6 @@
+C:\Users\henrique.borba\.CLion2019.1\system\cygwin_cmake\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=C:/cygwin64/bin/make.exe -DCMAKE_C_COMPILER=C:/cygwin64/bin/gcc.exe -DCMAKE_CXX_COMPILER=C:/cygwin64/bin/g++.exe -G "CodeBlocks - Unix Makefiles" /cygdrive/c/Users/henrique.borba/Documents/phpsci-ext-new
+Begin cmaking of PHP extension ...
+End cmaking of PHP extension ...
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /cygdrive/c/Users/henrique.borba/Documents/phpsci-ext-new/cmake-build-debug

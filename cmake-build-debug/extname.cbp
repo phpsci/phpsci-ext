@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="extname"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="extname">
+				<Option output="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/libextname.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/henrique.borba/src/php/php-src"/>
+					<Add directory="/home/henrique.borba/src/php/php-src/main"/>
+					<Add directory="/home/henrique.borba/src/php/php-src/Zend"/>
+					<Add directory="/home/henrique.borba/src/php/php-src/TSRM"/>
+					<Add directory="/home/henrique.borba/src/php/php-src/ext"/>
+					<Add directory="/home/henrique.borba/src/php/php-src/sapi"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.4.0/include"/>
+					<Add directory="/usr/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.4.0/../../../../lib/../include/w32api"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 extname"/>
+					<CompileFile command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="extname/fast">
+				<Option output="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/libextname.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/henrique.borba/src/php/php-src"/>
+					<Add directory="/home/henrique.borba/src/php/php-src/main"/>
+					<Add directory="/home/henrique.borba/src/php/php-src/Zend"/>
+					<Add directory="/home/henrique.borba/src/php/php-src/TSRM"/>
+					<Add directory="/home/henrique.borba/src/php/php-src/ext"/>
+					<Add directory="/home/henrique.borba/src/php/php-src/sapi"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.4.0/include"/>
+					<Add directory="/usr/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.4.0/../../../../lib/../include/w32api"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 extname/fast"/>
+					<CompileFile command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/cygwin64/bin/make.exe -j8 -f &quot;/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/config.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/alloc.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/alloc.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/assign.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/assign.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/assign_scalar.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/assign_scalar.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/buffer.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/buffer.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/calculation.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/calculation.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/carray.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/carray.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/casting.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/casting.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/conversion_utils.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/conversion_utils.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/convert.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/convert.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/convert_datatype.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/convert_datatype.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/convert_type.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/convert_type.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/descriptor.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/descriptor.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/dtype_transfer.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/dtype_transfer.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/flagsobject.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/flagsobject.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/getset.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/getset.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/item_selection.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/item_selection.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/iterators.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/iterators.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/linalg.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/linalg.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/matlib.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/matlib.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/number.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/number.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/random.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/random.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/reduction.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/reduction.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/scalar.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/scalar.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/shape.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/shape.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/trigonometric.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/kernel/trigonometric.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/phpsci.c">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/phpsci.h">
+			<Option target="extname"/>
+		</Unit>
+		<Unit filename="/cygdrive/c/Users/henrique.borba/Documents/phpsci-ext/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
