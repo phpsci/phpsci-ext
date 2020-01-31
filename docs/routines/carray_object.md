@@ -4,7 +4,7 @@
 
 ## fill
 ```php
-public fill($val) : CArray | Array
+public fill($val)
 ```
 > Fill the array with a scalar value.
 >
