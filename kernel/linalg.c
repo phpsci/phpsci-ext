@@ -86,6 +86,7 @@ DOUBLE_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n)
     int is1b = blas_stride(is1, sizeof(double));
     int is2b = blas_stride(is2, sizeof(double));
 
+#ifdef HAVE_CBLAS
     if (is1b && is2b)
     {
         double sum = 0.;
@@ -103,6 +104,7 @@ DOUBLE_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n)
         *((double *)op) = (double)sum;
     }
     else {
+#endif
         double sum = (double)0;
         int i;
         for (i = 0; i < n; i++, ip1 += is1, ip2 += is2) {
@@ -111,7 +113,9 @@ DOUBLE_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n)
             sum += ip1r * ip2r;
         }
         *((double *)op) = sum;
+#ifdef HAVE_CBLAS
     }
+#endif
 }
 
 void
@@ -155,9 +159,11 @@ CArray_Matmul(CArray * ap1, CArray * ap2, CArray * out, MemoryPointer * ptr)
     nd1 = CArray_NDIM(ap1);
     nd2 = CArray_NDIM(ap2);
 
+#ifdef HAVE_BLAS
     if (nd1 <= 2 && nd2 <= 2 && (TYPE_DOUBLE_INT == typenum || TYPE_FLOAT_INT == typenum)) {
         return cblas_matrixproduct(typenum, ap1, ap2, out, ptr);
     }
+#endif
 
     if(typenum == TYPE_INTEGER_INT) {
         dot = &INT_dot;

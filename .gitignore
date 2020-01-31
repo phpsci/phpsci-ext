@@ -30,4 +30,5 @@ aclocal.m4
 acinclude.m4
 playground.py
 *.php
+config.h
 CMakeLists.txt

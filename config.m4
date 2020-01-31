@@ -71,8 +71,9 @@ PHP_CHECK_LIBRARY(blas,cblas_sdot,
   PHP_CHECK_LIBRARY(openblas,cblas_sdot,
   [
     PHP_ADD_LIBRARY(openblas)
+    AC_DEFINE(HAVE_BLAS,1,[ ])
   ],[
-    AC_MSG_ERROR([wrong openblas/blas version or library not found])
+    AC_MSG_RESULT([wrong openblas/blas version or library not found.])
   ],[
     -lopenblas
   ])
@@ -82,9 +83,10 @@ PHP_CHECK_LIBRARY(blas,cblas_sdot,
 
 PHP_CHECK_LIBRARY(lapacke,LAPACKE_sgetrf,
 [
+  AC_DEFINE(HAVE_LAPACKE,1,[ ])
   PHP_ADD_LIBRARY(lapacke)
 ],[
-  AC_MSG_ERROR([wrong lapacke version or library not found])
+  AC_MSG_RESULT([wrong lapacke version or library not found])
 ],[
   -llapacke
 ])

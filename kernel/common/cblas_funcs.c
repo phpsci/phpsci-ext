@@ -19,6 +19,7 @@
 #include "common.h"
 #include "cblas.h"
 
+#ifdef HAVE_BLAS
 /*
  * Helper: dispatch to appropriate cblas_?gemm for typenum.
  */
@@ -573,3 +574,4 @@ fail:
     //CArray_DECREF(result);
     return NULL;
 }
+#endif
