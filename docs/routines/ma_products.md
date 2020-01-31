@@ -38,7 +38,7 @@ echo CArray::vdot($a, $b);
 
 ## matmul
 ```php
-public static matmul($x1, $x2) : CArray
+public static matmul($a, $b) : CArray
 ```
 > Matrix product of two arrays.
 
@@ -65,3 +65,21 @@ echo CArray::matmul($a, $b);
 [[ 12   9 ]
  [ 32  17 ]]
 ```
+
+---
+
+## inner
+```php
+public static inner($a, $b) : CArray
+```
+> Inner product of two arrays.
+
+##### Parameters
+
+`CArray|Array` **$a** Input array.
+
+`CArray|Array` **$b** Input array.
+
+##### Returns
+
+`CArray` Inner product of the input arrays.
