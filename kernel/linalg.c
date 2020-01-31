@@ -145,10 +145,6 @@ CArray_Matmul(CArray * ap1, CArray * ap2, CArray * out, MemoryPointer * ptr)
     CArrayIterator * it1, * it2;
     char * op;
 
-    if (CArray_NDIM(ap1) > 2 || CArray_NDIM(ap2) > 2) {
-        throw_valueerror_exception("Matrix product is not implemented for DIM > 2");
-        return NULL;
-    }
     if (CArray_NDIM(ap1) == 0 || CArray_NDIM(ap2) == 0) {
         throw_valueerror_exception("Scalar operands are not allowed, use '*' instead");
         return NULL;
