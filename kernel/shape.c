@@ -919,10 +919,6 @@ CArray_ExpandDims(CArray * target, int axis, MemoryPointer * out)
         return NULL;
     }
 
-    if (check_and_adjust_axis_msg(&axis, CArray_NDIM(target)) < 0) {
-        return NULL;
-    }
-
     t1_s = axis;
     t1 = emalloc(t1_s * sizeof(int));
 
