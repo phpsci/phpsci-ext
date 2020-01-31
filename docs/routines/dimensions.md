@@ -69,3 +69,24 @@ public static squeeze($a, $axis = NULL) : CArray
 ##### Returns
 
 `CArray` The input array, but with all or a subset of the dimensions of length 1 removed. This is always a itself or a view into `$a`.
+
+---
+
+## expand_dims
+
+```php
+public static expand_dims($a, $axis = NULL) : CArray
+```
+> Expand the shape of an array.
+  
+> Insert a new axis that will appear at the `$axis` position in the expanded array shape.
+  
+##### Parameters
+
+`CArray|Array` **$a** Input data.
+
+`int` **$axis** Position in the expanded axes where the new axis is placed.
+
+##### Returns
+
+`CArray` **View** of `$a` with the number of dimensions increased by one.
