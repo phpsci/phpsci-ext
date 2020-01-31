@@ -9,6 +9,7 @@ dev_addr: '0.0.0.0:8000'
 pages:
 - Home: index.md
 - Routines:
+    - CArray Object: routines/carray_object.md
     - Ones and Zeros: routines/ones_and_zeros.md
     - Numerical Ranges: routines/numerical_ranges.md
     - Transpose: routines/transpose.md
