@@ -64,6 +64,39 @@ AC_CHECK_HEADERS(
     [[#include "/usr/include/openblas/cblas.h"]]
 )
 
+
+AC_CHECK_HEADERS(
+    [/usr/include/clBLAS.h],
+    [
+        PHP_ADD_INCLUDE(/usr/include/)
+    ],
+    ,
+    [[#include "/usr/include/clBLAS.h"]]
+)
+
+
+
+PHP_CHECK_LIBRARY(clBLAS,clblasSgemm,
+[
+  PHP_ADD_LIBRARY(clBLAS)
+  AC_DEFINE(HAVE_CLBLAS,1,[Have CLBLAS support])
+
+  PHP_CHECK_LIBRARY(OpenCL,clGetPlatformIDs,
+  [
+    PHP_ADD_LIBRARY(OpenCL)
+    AC_DEFINE(HAVE_OPENCL,1,[Have OpenCL support])
+  ],[
+    AC_MSG_RESULT([OpenCL not detected (OpenCL BLAS not available).])
+  ],[
+    -lOpenCL
+  ])
+],[
+  AC_MSG_RESULT([clBLAS not detected (OpenCL BLAS not available).])
+],[
+  -lclBLAS
+])
+
+
 PHP_CHECK_LIBRARY(blas,cblas_sdot,
 [
   PHP_ADD_LIBRARY(blas)
@@ -91,7 +124,7 @@ PHP_CHECK_LIBRARY(lapacke,LAPACKE_sgetrf,
   -llapacke
 ])
 
-CFLAGS="$CFLAGS -lopenblas -llapacke -lblas -llapack"
+CFLAGS="$CFLAGS -lopenblas -llapacke -lblas -llapack -lclBLAS -lOpenCL"
 
 PHP_NEW_EXTENSION(carray,
 	  phpsci.c \
@@ -107,6 +140,7 @@ PHP_NEW_EXTENSION(carray,
       kernel/shape.c \
       kernel/common/common.c \
       kernel/common/cblas_funcs.c \
+      kernel/common/clblas_funcs.c \
       kernel/common/mem_overlap.c \
       kernel/number.c \
       kernel/convert_type.c \

@@ -1,8 +1,8 @@
+#include "config.h"
 #include "iterators.h"
 #include "carray.h"
 #include "common/exceptions.h"
 #include "linalg.h"
-#include "common/cblas_funcs.h"
 #include "common/common.h"
 #include "convert_type.h"
 #include "alloc.h"
@@ -11,7 +11,18 @@
 #include "convert.h"
 #include "shape.h"
 #include "common/matmul.h"
-#include "cblas.h"
+
+#ifdef HAVE_CBLAS
+    #include "cblas.h"
+    #include "common/cblas_funcs.h"
+#endif
+
+#ifdef HAVE_CLBLAS
+    #include "clBLAS.h"
+    #include "common/clblas_funcs.h"
+#endif
+
+
 #include "lapacke.h"
 
 static float s_one;
@@ -41,15 +52,19 @@ linearize_DOUBLE_matrix(double *dst_in,
         int one = 1;
         for (i = 0; i < CArray_DIMS(a)[0]; i++) {
             if (column_strides > 0) {
+#ifdef HAVE_BLAS
                 cblas_dcopy(columns,
                              (double*)src, column_strides,
                              (double*)dst, one);
+#endif
             }
             else if (column_strides < 0) {
+#ifdef HAVE_BLAS
                 cblas_dcopy(columns,
                              (double*)((double*)src + (columns-1)*column_strides),
                              column_strides,
                              (double*)dst, one);
+#endif
             }
             else {
                 /*
@@ -158,6 +173,14 @@ CArray_Matmul(CArray * ap1, CArray * ap2, CArray * out, MemoryPointer * ptr)
 #ifdef HAVE_BLAS
     if (nd1 <= 2 && nd2 <= 2 && (TYPE_DOUBLE_INT == typenum || TYPE_FLOAT_INT == typenum)) {
         return cblas_matrixproduct(typenum, ap1, ap2, out, ptr);
+    }
+#endif
+
+#ifdef HAVE_CLBLAS
+    if (nd1 <= 2 && nd2 <= 2 && (TYPE_DOUBLE_INT == typenum || TYPE_FLOAT_INT == typenum)) {
+        return clblas_matrixproduct(typenum, ap1, ap2, out, ptr);
+        php_printf("FOI");
+        return NULL;
     }
 #endif
 
@@ -516,8 +539,9 @@ DOUBLE_vdot(char *ip1, int is1, char *ip2, int is2,
         while (n > 0) {
             int chunk = n < CARRAY_CBLAS_CHUNK ? n : CARRAY_CBLAS_CHUNK;
             double tmp[2];
-
+#ifdef HAVE_BLAS
             cblas_zdotc_sub((int)n, ip1, is1b, ip2, is2b, tmp);
+#endif
             sum[0] += (double)tmp[0];
             sum[1] += (double)tmp[1];
             /* use char strides here */

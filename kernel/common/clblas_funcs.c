@@ -1,94 +1,15 @@
-/*
- * This module provides a BLAS optimized matrix multiply,
- * inner product and dot for numpy arrays
- * 
- * Original File
- * Copyright (c) NumPy (/numpy/core/src/common/cblasfuncs.c)
- * 
- * Modified for CArrays in 2018
- * 
- * Henrique Borba
- * henrique.borba.dev@gmail.com
- */
 #include "config.h"
 #include "../carray.h"
 #include "../convert.h"
-#include "cblas_funcs.h"
 #include "../buffer.h"
 #include "../alloc.h"
 #include "common.h"
 
-#ifdef HAVE_BLAS
-#include "cblas.h"
 
-/*
- * Helper: dispatch to appropriate cblas_?gemm for typenum.
- */
-static void
-gemm(int typenum, enum CBLAS_ORDER order,
-     enum CBLAS_TRANSPOSE transA, enum CBLAS_TRANSPOSE transB,
-     int m, int n, int k,
-     CArray *A, int lda, CArray *B, int ldb, CArray *R)
-{
-    int i ;
-    const void *Adata = CArray_DATA(A), *Bdata = CArray_DATA(B);
-    void *Rdata = CArray_DATA(R);
-    int ldc = CArray_DIM(R, 1) > 1 ? CArray_DIM(R, 1) : 1;
-   
-    
-    switch (typenum) {
-        case TYPE_DOUBLE_INT:
-            cblas_dgemm(order, transA, transB, m, n, k, 1.,
-                        Adata, lda, Bdata, ldb, 0., Rdata, ldc);
-            break;
-        case TYPE_FLOAT_INT:
-            cblas_sgemm(order, transA, transB, m, n, k, 1.f,
-                        Adata, lda, Bdata, ldb, 0.f, Rdata, ldc);
-            break;
-    }    
+#ifdef HAVE_CLBLAS
 
-}
-
-/*
- * Helper: dispatch to appropriate cblas_?syrk for typenum.
- */
-static void
-syrk(int typenum, enum CBLAS_ORDER order, enum CBLAS_TRANSPOSE trans,
-     int n, int k,
-     CArray *A, int lda, CArray *R)
-{
-    const void *Adata = CArray_DATA(A);
-    void *Rdata = CArray_DATA(R);
-    int ldc = CArray_DIM(R, 1) > 1 ? CArray_DIM(R, 1) : 1;
-
-    int i;
-    int j;
-
-    switch (typenum) {
-        case TYPE_DOUBLE_INT:
-            cblas_dsyrk(order, CblasUpper, trans, n, k, 1.,
-                        Adata, lda, 0., Rdata, ldc);
-
-            for (i = 0; i < n; i++) {
-                for (j = i + 1; j < n; j++) {
-                    *((double*)CArray_GETPTR2(R, j, i)) =
-                            *((double*)CArray_GETPTR2(R, i, j));
-                }
-            }
-            break;
-        case TYPE_FLOAT_INT:
-            cblas_ssyrk(order, CblasUpper, trans, n, k, 1.f,
-                        Adata, lda, 0.f, Rdata, ldc);
-
-            for (i = 0; i < n; i++) {
-                for (j = i + 1; j < n; j++) {
-                    *((float*)CArray_GETPTR2(R, j, i)) =
-                            *((float*)CArray_GETPTR2(R, i, j));
-                }
-            }
-            break;
-    }
-}
+#include "clblas_funcs.h"
+#include "clBLAS.h"
 
 static MatrixShape
 _select_matrix_shape(CArray *array)
@@ -138,35 +59,99 @@ _bad_strides(CArray * ap)
 }
 
 /*
- * Helper: dispatch to appropriate cblas_?gemv for typenum.
+ * Helper: dispatch to appropriate cblas_?gemm for typenum.
  */
 static void
-gemv(int typenum, enum CBLAS_ORDER order, enum CBLAS_TRANSPOSE trans,
-     CArray *A, int lda, CArray *X, int incX,
-     CArray *R)
+clgemm(int typenum, clblasOrder order,
+     clblasTranspose transA, clblasTranspose transB,
+     int m, int n, int k,
+     CArray *A, int lda, CArray *B, int ldb, CArray *R)
 {
-    const void *Adata = CArray_DATA(A), *Xdata = CArray_DATA(X);
+    int i ;
+    const void *Adata = CArray_DATA(A), *Bdata = CArray_DATA(B);
     void *Rdata = CArray_DATA(R);
+    int ldc = CArray_DIM(R, 1) > 1 ? CArray_DIM(R, 1) : 1;
 
-    int m = CArray_DIM(A, 0), n = CArray_DIM(A, 1);
+    cl_int err;
+    cl_platform_id platform = 0;
+    cl_device_id device = 0;
+    cl_context_properties props[3] = { CL_CONTEXT_PLATFORM, 0, 0 };
+    cl_context ctx = 0;
+    cl_command_queue queue = 0;
+    cl_mem bufA, bufB, bufC;
+    cl_event event = NULL;
+    int ret = 0;
+
+    /* Setup OpenCL environment. */
+    err = clGetPlatformIDs( 1, &platform, NULL );
+    err = clGetDeviceIDs( platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL );
+
+    props[1] = (cl_context_properties)platform;
+    ctx = clCreateContext( props, 1, &device, NULL, NULL, &err );
+    queue = clCreateCommandQueue( ctx, device, 0, &err );
+
+    /* Setup clBLAS */
+    err = clblasSetup( );
+
+
+    /* Prepare OpenCL memory objects and place matrices inside them. */
+    bufA = clCreateBuffer( ctx, CL_MEM_READ_ONLY, m * k * CArray_DESCR(A)->elsize,
+                          NULL, &err );
+    bufB = clCreateBuffer( ctx, CL_MEM_READ_ONLY, k * n * CArray_DESCR(B)->elsize,
+                          NULL, &err );
+    bufC = clCreateBuffer( ctx, CL_MEM_READ_WRITE, m * n * CArray_DESCR(R)->elsize,
+                          NULL, &err );
+
+    err = clEnqueueWriteBuffer( queue, bufA, CL_TRUE, 0,
+        m * k * CArray_DESCR(A)->elsize, Adata, 0, NULL, NULL );
+    err = clEnqueueWriteBuffer( queue, bufB, CL_TRUE, 0,
+        k * n * CArray_DESCR(B)->elsize, Bdata, 0, NULL, NULL );
+    err = clEnqueueWriteBuffer( queue, bufC, CL_TRUE, 0,
+        m * n * CArray_DESCR(R)->elsize, Rdata, 0, NULL, NULL );
+
+
+    cl_float alpha = 1;
+    cl_float beta  = 0;
 
     switch (typenum) {
         case TYPE_DOUBLE_INT:
-            cblas_dgemv(order, trans, m, n, 1., Adata, lda, Xdata, incX,
-                        0., Rdata, 1);
+            /* Call clBLAS extended function. Perform gemm for the lower right sub-matrices */
+            err = clblasDgemm( order, transA, transB,
+                                m, n, k,
+                                alpha, bufA, 0, lda,
+                                bufB, 0, ldb, beta,
+                                bufC, 0, ldc,
+                                1, &queue, 0, NULL, &event );
             break;
         case TYPE_FLOAT_INT:
-            cblas_sgemv(order, trans, m, n, 1.f, Adata, lda, Xdata, incX,
-                        0.f, Rdata, 1);
             break;
     }
+
+    /* Wait for calculations to be finished. */
+    err = clWaitForEvents( 1, &event );
+
+    /* Fetch results of calculations from GPU memory. */
+    err = clEnqueueReadBuffer( queue, bufC, CL_TRUE, 0,
+                                m * n * CArray_DESCR(R)->elsize,
+                                Rdata, 0, NULL, NULL );
+
+    /* Release OpenCL memory objects. */
+    clReleaseMemObject( bufC );
+    clReleaseMemObject( bufB );
+    clReleaseMemObject( bufA );
+
+    /* Finalize work with clBLAS */
+    clblasTeardown( );
+
+    /* Release OpenCL working objects. */
+    clReleaseCommandQueue( queue );
+    clReleaseContext( ctx );
+
+
 }
 
-/**
- * Dot product of ap1 and ap2 using CBLAS.
- */ 
-CArray * 
-cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryPointer * ptr)
+CArray *
+clblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryPointer * ptr)
 {
     CArray *result = NULL, *out_buf = NULL;
     int j, lda, ldb;
@@ -414,7 +399,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
     else if (ap1shape == _matrix && ap2shape != _matrix) {
         /* Matrix vector multiplication -- Level 2 BLAS */
         /* lda must be MAX(M,1) */
-        enum CBLAS_ORDER Order;
+        clblasOrder Order;
         int ap2s;
 
         if (!CArray_ISONESEGMENT(ap1)) {
@@ -428,20 +413,20 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
         }
 
         if (CArray_ISCONTIGUOUS(ap1)) {
-            Order = CblasRowMajor;
+            Order = clblasRowMajor;
             lda = (CArray_DIM(ap1, 1) > 1 ? CArray_DIM(ap1, 1) : 1);
         }
         else {
-            Order = CblasColMajor;
+            Order = clblasColumnMajor;
             lda = (CArray_DIM(ap1, 0) > 1 ? CArray_DIM(ap1, 0) : 1);
         }
 
         ap2s = CArray_STRIDE(ap2, 0) / CArray_ITEMSIZE(ap2);
-        gemv(typenum, Order, CblasNoTrans, ap1, lda, ap2, ap2s, out_buf);
+        gemv(typenum, Order, clblasNoTrans, ap1, lda, ap2, ap2s, out_buf);
     }
     else if (ap1shape != _matrix && ap2shape == _matrix) {
         /* Vector matrix multiplication -- Level 2 BLAS */
-        enum CBLAS_ORDER Order;
+        clblasOrder Order;
         int ap1s;
 
         if (!CArray_ISONESEGMENT(ap2)) {
@@ -455,11 +440,11 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
         }
 
         if (CArray_ISCONTIGUOUS(ap2)) {
-            Order = CblasRowMajor;
+            Order = clblasRowMajor;
             lda = (CArray_DIM(ap2, 1) > 1 ? CArray_DIM(ap2, 1) : 1);
         }
         else {
-            Order = CblasColMajor;
+            Order = clblasColumnMajor;
             lda = (CArray_DIM(ap2, 0) > 1 ? CArray_DIM(ap2, 0) : 1);
         }
         if (ap1shape == _row) {
@@ -469,7 +454,7 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
             ap1s = CArray_STRIDE(ap1, 0) / CArray_ITEMSIZE(ap1);
         }
 
-        gemv(typenum, Order, CblasTrans, ap2, lda, ap1, ap1s, out_buf);
+        gemv(typenum, Order, clblasTrans, ap2, lda, ap1, ap1s, out_buf);
     }
     else {
         /*
@@ -477,8 +462,8 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
          * Matrix matrix multiplication -- Level 3 BLAS
          *  L x M  multiplied by M x N
          */
-        enum CBLAS_ORDER Order;
-        enum CBLAS_TRANSPOSE Trans1, Trans2;
+        clblasOrder Order;
+        clblasTranspose Trans1, Trans2;
         int M, N, L;
 
         /* Optimization possible: */
@@ -505,9 +490,9 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
             }
         }
 
-        Order = CblasRowMajor;
-        Trans1 = CblasNoTrans;
-        Trans2 = CblasNoTrans;
+        Order = clblasRowMajor;
+        Trans1 = clblasNoTrans;
+        Trans2 = clblasNoTrans;
         L = CArray_DIM(ap1, 0);
         N = CArray_DIM(ap2, 1);
         M = CArray_DIM(ap2, 0);
@@ -518,11 +503,11 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
          * Avoid temporary copies for arrays in Fortran order
          */
         if (CArray_IS_F_CONTIGUOUS(ap1)) {
-            Trans1 = CblasTrans;
+            Trans1 = clblasTrans;
             lda = (CArray_DIM(ap1, 0) > 1 ? CArray_DIM(ap1, 0) : 1);
         }
         if (CArray_IS_F_CONTIGUOUS(ap2)) {
-            Trans2 = CblasTrans;
+            Trans2 = clblasTrans;
             ldb = (CArray_DIM(ap2, 0) > 1 ? CArray_DIM(ap2, 0) : 1);
         }
 
@@ -536,19 +521,19 @@ cblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, MemoryP
                 (CArray_DIM(ap1, 1) == CArray_DIM(ap2, 0)) &&
                 (CArray_STRIDE(ap1, 0) == CArray_STRIDE(ap2, 1)) &&
                 (CArray_STRIDE(ap1, 1) == CArray_STRIDE(ap2, 0)) &&
-                ((Trans1 == CblasTrans) ^ (Trans2 == CblasTrans)) &&
-                ((Trans1 == CblasNoTrans) ^ (Trans2 == CblasNoTrans))
+                ((Trans1 == clblasTrans) ^ (Trans2 == clblasTrans)) &&
+                ((Trans1 == clblasNoTrans) ^ (Trans2 == clblasNoTrans))
                 ) {
 
-            if (Trans1 == CblasNoTrans) {
-                syrk(typenum, Order, Trans1, N, M, ap1, lda, out_buf);
+            if (Trans1 == clblasNoTrans) {
+                //syrk(typenum, Order, Trans1, N, M, ap1, lda, out_buf);
             }
             else {
-                syrk(typenum, Order, Trans1, N, M, ap2, ldb, out_buf);
+                //syrk(typenum, Order, Trans1, N, M, ap2, ldb, out_buf);
             }
         }
         else {
-            gemm(typenum, Order, Trans1, Trans2, L, N, M, ap1, lda, ap2, ldb,
+            clgemm(typenum, Order, Trans1, Trans2, L, N, M, ap1, lda, ap2, ldb,
                  out_buf);
         }
     }
