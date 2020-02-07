@@ -157,6 +157,7 @@ PHP_NEW_EXTENSION(carray,
       kernel/convert_datatype.c \
       kernel/dtype_transfer.c \
       kernel/assign_scalar.c \
+      kernel/gpu.c \
       kernel/common/exceptions.c \
       kernel/item_selection.c \
       kernel/clip.c \

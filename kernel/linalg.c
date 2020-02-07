@@ -98,10 +98,9 @@ FLOAT_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n)
 void
 DOUBLE_dot(char *ip1, int is1, char *ip2, int is2, char *op, int n)
 {
+#ifdef HAVE_CBLAS
     int is1b = blas_stride(is1, sizeof(double));
     int is2b = blas_stride(is2, sizeof(double));
-
-#ifdef HAVE_CBLAS
     if (is1b && is2b)
     {
         double sum = 0.;
@@ -160,10 +159,10 @@ CArray_Matmul(CArray * ap1, CArray * ap2, CArray * out, MemoryPointer * ptr)
     CArrayIterator * it1, * it2;
     char * op;
 
-    if (CArray_NDIM(ap1) == 0 || CArray_NDIM(ap2) == 0) {
+    /**if (CArray_NDIM(ap1) == 0 || CArray_NDIM(ap2) == 0) {
         throw_valueerror_exception("Scalar operands are not allowed, use '*' instead");
         return NULL;
-    }
+    }**/
     typenum = CArray_ObjectType(ap1, 0);
     typenum = CArray_ObjectType(ap2, typenum);
 
@@ -171,16 +170,16 @@ CArray_Matmul(CArray * ap1, CArray * ap2, CArray * out, MemoryPointer * ptr)
     nd2 = CArray_NDIM(ap2);
 
 #ifdef HAVE_BLAS
+#ifndef HAVE_CLBLAS
     if (nd1 <= 2 && nd2 <= 2 && (TYPE_DOUBLE_INT == typenum || TYPE_FLOAT_INT == typenum)) {
         return cblas_matrixproduct(typenum, ap1, ap2, out, ptr);
     }
+#endif
 #endif
 
 #ifdef HAVE_CLBLAS
     if (nd1 <= 2 && nd2 <= 2 && (TYPE_DOUBLE_INT == typenum || TYPE_FLOAT_INT == typenum)) {
         return clblas_matrixproduct(typenum, ap1, ap2, out, ptr);
-        php_printf("FOI");
-        return NULL;
     }
 #endif
 

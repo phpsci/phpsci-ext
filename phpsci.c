@@ -59,6 +59,10 @@
 #include "kernel/storage.h"
 #include "kernel/round.h"
 
+#ifdef HAVE_CLBLAS
+#include "kernel/gpu.h"
+#endif
+
 typedef struct _zend_carray_cdata {
     zend_object std;
 } end_carray_cdata;
@@ -2948,6 +2952,9 @@ static PHP_MINIT_FUNCTION(carray)
     carray_object_handlers.compare_objects = carray_compare;
     carray_object_handlers.count_elements = carray_count;
 
+#ifdef HAVE_CLBLAS
+    start_clblas_context();
+#endif
 
     zend_class_implements(carray_sc_entry, 1, zend_ce_arrayaccess);
 

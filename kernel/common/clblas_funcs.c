@@ -10,6 +10,7 @@
 
 #include "clblas_funcs.h"
 #include "clBLAS.h"
+#include "../gpu.h"
 
 static MatrixShape
 _select_matrix_shape(CArray *array)
@@ -58,6 +59,55 @@ _bad_strides(CArray * ap)
     return 0;
 }
 
+static void
+cldaxpy(int n_elements, int alpha, double *a, int incX, double *b, int incY) {
+    cl_double alphad = alpha;
+    size_t offsetX = 0, offsetY = 0;
+
+    cl_int err;
+    cl_platform_id platform = 0;
+    cl_device_id device = 0;
+    cl_context_properties props[3] = { CL_CONTEXT_PLATFORM, 0, 0 };
+    cl_context ctx = 0;
+    cl_command_queue queue = 0;
+    cl_mem bufA, bufB;
+    cl_event event = NULL;
+
+    ctx = getCLContext();
+    queue = getCLQueue();
+
+    /* Setup OpenCL environment. */
+    err = clGetPlatformIDs( 1, &platform, NULL );
+    err = clGetDeviceIDs( platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL );
+
+    props[1] = (cl_context_properties)platform;
+    ctx = clCreateContext( props, 1, &device, NULL, NULL, &err );
+    queue = clCreateCommandQueue( ctx, device, 0, &err );
+
+    /* Setup clBLAS */
+    err = clblasSetup( );
+
+    /* Prepare OpenCL memory objects and place matrices inside them. */
+    bufA = clCreateBuffer( ctx, CL_MEM_READ_ONLY, n_elements * sizeof(double),
+                          NULL, &err );
+
+    php_printf("%d", err);
+
+    bufB = clCreateBuffer( ctx, CL_MEM_READ_ONLY, sizeof(double),
+                          NULL, &err );
+
+
+
+    err = clEnqueueWriteBuffer( queue, bufA, CL_TRUE, 0,
+        n_elements * sizeof(double), a, 0, NULL, NULL );
+    err = clEnqueueWriteBuffer( queue, bufB, CL_TRUE, 0,
+        sizeof(double), b, 0, NULL, NULL );
+
+    err = clblasDaxpy((size_t)n_elements, alphad, bufA, 0, incX, bufB, 0, incY, 1, &queue, 0, NULL, &event);
+
+    return NULL;
+}
+
 /*
  * Helper: dispatch to appropriate cblas_?gemm for typenum.
  */
@@ -73,26 +123,14 @@ clgemm(int typenum, clblasOrder order,
     int ldc = CArray_DIM(R, 1) > 1 ? CArray_DIM(R, 1) : 1;
 
     cl_int err;
-    cl_platform_id platform = 0;
-    cl_device_id device = 0;
-    cl_context_properties props[3] = { CL_CONTEXT_PLATFORM, 0, 0 };
     cl_context ctx = 0;
     cl_command_queue queue = 0;
     cl_mem bufA, bufB, bufC;
     cl_event event = NULL;
     int ret = 0;
 
-    /* Setup OpenCL environment. */
-    err = clGetPlatformIDs( 1, &platform, NULL );
-    err = clGetDeviceIDs( platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL );
-
-    props[1] = (cl_context_properties)platform;
-    ctx = clCreateContext( props, 1, &device, NULL, NULL, &err );
-    queue = clCreateCommandQueue( ctx, device, 0, &err );
-
-    /* Setup clBLAS */
-    err = clblasSetup( );
-
+    ctx = getCLContext();
+    queue = getCLQueue();
 
     /* Prepare OpenCL memory objects and place matrices inside them. */
     bufA = clCreateBuffer( ctx, CL_MEM_READ_ONLY, m * k * CArray_DESCR(A)->elsize,
@@ -112,6 +150,7 @@ clgemm(int typenum, clblasOrder order,
 
     cl_float alpha = 1;
     cl_float beta  = 0;
+
 
     switch (typenum) {
         case TYPE_DOUBLE_INT:
@@ -135,6 +174,7 @@ clgemm(int typenum, clblasOrder order,
                                 m * n * CArray_DESCR(R)->elsize,
                                 Rdata, 0, NULL, NULL );
 
+
     /* Release OpenCL memory objects. */
     clReleaseMemObject( bufC );
     clReleaseMemObject( bufB );
@@ -146,7 +186,6 @@ clgemm(int typenum, clblasOrder order,
     /* Release OpenCL working objects. */
     clReleaseCommandQueue( queue );
     clReleaseContext( ctx );
-
 
 }
 
@@ -272,7 +311,7 @@ clblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, Memory
     }
     else {
         /*
-         * (PyArray_NDIM(ap1) <= 2 && PyArray_NDIM(ap2) <= 2)
+         * (CArray_NDIM(ap1) <= 2 && CArray_NDIM(ap2) <= 2)
          * Both ap1 and ap2 are vectors or matrices
          */
         l = CArray_DIM(ap1, CArray_NDIM(ap1) - 1);
@@ -321,13 +360,9 @@ clblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, Memory
                                                      *((double *)CArray_DATA(ap1));
             }
             else if (ap1shape != _matrix) {
-                throw_notimplemented_exception();
+                throw_not_implemented_exception();
                 return NULL;
-                /**cblas_daxpy(l,
-                            *((double *)PyArray_DATA(ap2)),
-                            (double *)PyArray_DATA(ap1),
-                            ap1stride/sizeof(double),
-                            (double *)PyArray_DATA(out_buf), 1);*/
+                //cldaxpy(ap1, ap2, out_buf);
             }
             else {
                 int maxind, oind, i, a1s, outs;
@@ -343,12 +378,9 @@ clblas_matrixproduct(int typenum, CArray * ap1, CArray *ap2, CArray *out, Memory
                 a1s = CArray_STRIDE(ap1, maxind) / sizeof(double);
                 outs = CArray_STRIDE(out_buf, maxind) / sizeof(double);
                 for (i = 0; i < CArray_DIM(ap1, oind); i++) {
-                    //cblas_daxpy(l, val, (double *)ptr, a1s,
-                                //(double *)optr, outs);
+                    cldaxpy(l, val, (double *)ptr, a1s, (double *)optr, outs);
                     ptr += CArray_STRIDE(ap1, oind);
                     optr += CArray_STRIDE(out_buf, oind);
-                    throw_notimplemented_exception();
-                    return NULL;
                 }
             }
         }
